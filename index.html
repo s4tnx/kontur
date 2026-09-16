@@ -116,7 +116,10 @@ p{margin:0}
 .pl-op.door line{stroke:#1D3A47}
 .pl-op.door .pl-oin{stroke:#4FA3C4}
 .pl-op .pl-ohit{fill:transparent;cursor:grab}
-.pl-op:hover line{stroke-width:9}
+.pl-op:hover line{stroke-width:15}
+.pl-op:hover .pl-oin{stroke-width:8}
+.pl-lab{font-family:var(--mono);font-size:11px;font-weight:600;fill:var(--text);paint-order:stroke;stroke:var(--panel2);stroke-width:4px;pointer-events:none}
+.pl-op.door .pl-lab{fill:#63BEE0}
 .op-pal{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:12px}
 .op-pal .chipx.door{border-color:rgba(79,163,196,.5);color:#8FCBE2}
 .op-pal .chipx.win::before{content:"";display:inline-block;width:9px;height:9px;background:#F4F1EA;border:1px solid rgba(20,22,24,.4);border-radius:2px;margin-right:7px;vertical-align:-1px}
@@ -130,6 +133,22 @@ p{margin:0}
 .pc-plan text{font-family:var(--body);font-size:11px;fill:var(--text)}
 .pc-plan text.n{font-family:var(--mono);font-size:10px;fill:var(--muted)}
 .pc-plan text.r{font-weight:500;font-size:11.5px}
+.adm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px}
+.adm-stats div{border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:6px;background:var(--panel)}
+.adm-stats span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.adm-stats b{font-family:var(--display);font-size:24px;font-weight:600}
+.adm-bar{display:grid;gap:12px;margin-bottom:20px}
+.adm-bar input{height:46px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:0 14px;font-size:15px}
+.adm-list{display:grid;gap:16px}
+.adm-client{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden}
+.adm-client header{display:flex;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.adm-client header b{font-size:16px;margin-right:10px}
+.adm-client header span{font-size:13px;color:var(--muted)}
+.adm-order{padding:14px 18px;border-bottom:1px solid var(--line);display:grid;gap:8px}
+.adm-order:last-child{border-bottom:0}
+.adm-row{display:grid;grid-template-columns:80px 100px 1fr auto 170px;gap:12px;align-items:center;font-size:14px}
+.adm-row select{height:36px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--text);padding:0 8px}
+@media (max-width:760px){.adm-row{grid-template-columns:1fr 1fr}}
 .spec-det{margin-top:2px}
 .spec-det summary{cursor:pointer;font-size:13px;color:var(--lamp2);width:max-content}
 .spec-det[open] summary{margin-bottom:8px}
@@ -614,14 +633,14 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 <script>
 /* ---------- data ---------- */
 const MODELS=[
- {id:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w120150:2,w120100:1,w6090:1},base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома',plan:[['Душевая',0,0,1.7,1.5],['Гардероб',1.7,0,1.6,1.5],['Гостиная',0,1.5,3.3,2.5],['Спальня',3.3,0,2.7,2.4]]},
- {id:'6x5',winSides:[1,2,1,.2],ver:{w:2.4,d:1.5,pos:'front-right'},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120150:1,w120100:2,w6090:1},base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,3],['С/у',3.6,3,2.4,2]]},
- {id:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w180180:1,w120150:1,w6090:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
- {id:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:2.2,pos:'front'},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:2,w120100:2,w6090:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,6,3.6],['Спальня',0,3.6,3,3.4],['Детская',3,3.6,3,2.2],['С/у',3,5.8,3,1.2]]},
- {id:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right'},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w120150:2,w120100:2,w6090:1,w180180:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,4],['Спальня',0,4,3,4],['Спальня',3,4,3,2.6],['С/у',3,6.6,3,1.4]]},
- {id:'8x8',winSides:[3,1,.6,.5],ver:{w:5,d:2,pos:'front-right'},photo:'h8x8.jpg',w:8,d:8,name:'Карелия',floors:1.5,area:96,beds:3,baths:1,price:5610000,weeks:12,days:8,wins:{w120150:3,w120100:2,w6090:2,w180180:1,portal:1},base:'Бетонные блоки 400×200×200',lead:'Мансарда со вторым светом и тремя спальнями',plan:[['Гостиная',0,0,5,5],['Кухня',5,0,3,5],['Спальня',0,5,4,3],['С/у',4,5,2,3],['Лестница',6,5,2,3]]},
- {id:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:2,area:172,beds:4,baths:2,price:9110000,weeks:16,days:12,wins:{w180180:2,w120150:3,w120100:2,w6090:2,portal:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.6,5.2],['Спальня',0,5.2,4.6,4.8],['Кухня-гостиная',4.6,0,3.4,10]]},
- {id:'12x10',winSides:[3,1,.8,.5],ver:{w:7,d:2.5,pos:'front-left'},photo:'h12x10.jpg',w:12,d:10,name:'Байкал',floors:2,area:208,beds:5,baths:2,price:11110000,weeks:18,days:14,wins:{w120150:5,w120100:3,w6090:3,w180180:2,portal:2},base:'Бетонные блоки 400×200×200',lead:'Большой семейный дом с котельной и террасой',plan:[['Гостиная',0,0,7,6],['Кухня',7,0,5,4],['Котельная',7,4,5,2],['Спальня',0,6,4,4],['С/у',4,6,3,4],['Холл',7,6,5,4]]},
+ {id:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома',plan:[['Душевая',0,0,1.7,1.5],['Гардероб',1.7,0,1.6,1.5],['Гостиная',0,1.5,3.3,2.5],['Спальня',3.3,0,2.7,2.4]]},
+ {id:'6x5',winSides:[1,2,1,.2],ver:{w:2.4,d:1.5,pos:'front-right'},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,3],['С/у',3.6,3,2.4,2]]},
+ {id:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
+ {id:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:2.2,pos:'front'},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,6,3.6],['Спальня',0,3.6,3,3.4],['Детская',3,3.6,3,2.2],['С/у',3,5.8,3,1.2]]},
+ {id:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right'},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,4],['Спальня',0,4,3,4],['Спальня',3,4,3,2.6],['С/у',3,6.6,3,1.4]]},
+ {id:'8x8',winSides:[3,1,.6,.5],ver:{w:5,d:2,pos:'front-right'},photo:'h8x8.jpg',w:8,d:8,name:'Карелия',floors:1.5,area:96,beds:3,baths:1,price:5610000,weeks:12,days:8,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Мансарда со вторым светом и тремя спальнями',plan:[['Гостиная',0,0,5,5],['Кухня',5,0,3,5],['Спальня',0,5,4,3],['С/у',4,5,2,3],['Лестница',6,5,2,3]]},
+ {id:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:2,area:172,beds:4,baths:2,price:9110000,weeks:16,days:12,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.6,5.2],['Спальня',0,5.2,4.6,4.8],['Кухня-гостиная',4.6,0,3.4,10]]},
+ {id:'12x10',winSides:[3,1,.8,.5],ver:{w:7,d:2.5,pos:'front-left'},photo:'h12x10.jpg',w:12,d:10,name:'Байкал',floors:2,area:208,beds:5,baths:2,price:11110000,weeks:18,days:14,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Большой семейный дом с котельной и террасой',plan:[['Гостиная',0,0,7,6],['Кухня',7,0,5,4],['Котельная',7,4,5,2],['Спальня',0,6,4,4],['С/у',4,6,3,4],['Холл',7,6,5,4]]},
 ];
 const PKGS=[
  {id:'cold',name:'Холодный контур',k:.518,txt:'Каркас, наружная обшивка, ветро-влагозащитная мембрана, кровля, окна и дверь — без утепления'},
@@ -636,15 +655,15 @@ const RATE=[[24,72500],[30,70333],[36,69167],[42,68095],[48,67500],[96,58438],[1
 const rateFor=a=>{if(a<=RATE[0][0])return RATE[0][1];if(a>=RATE[RATE.length-1][0])return RATE[RATE.length-1][1];
   for(let i=1;i<RATE.length;i++){if(a<=RATE[i][0]){const a0=RATE[i-1][0],r0=RATE[i-1][1],a1=RATE[i][0],r1=RATE[i][1];return r0+(a-a0)/(a1-a0)*(r1-r0)}}return RATE[0][1]};
 const floorK=f=>f===1?1:f===1.5?1.5:1.73;
-const sizeWins=(s,floors)=>{const w={...s.wins};if(floors>=1.5){w.w120100=(w.w120100||0)+1;w.w6090=(w.w6090||0)+1}
-  if(floors===2){w.w120150=(w.w120150||0)+1;w.portal=(w.portal||0)+1}return w};
+/* в базе всегда два окна проекта, остальные добавляются отдельно */
+const sizeWins=(m)=>({...m.wins});
 function variant(m,sizeId){
   const s=SIZES.find(x=>x.id===sizeId);if(!s||s.id===m.id)return m;
   const area=Math.round(s.w*s.d*floorK(m.floors)),sx=s.w/m.w,sy=s.d/m.d;
   return {...m,id:m.id+'@'+s.id,native:m.id,size:s.id,w:s.w,d:s.d,area,
     beds:Math.max(1,Math.min(6,Math.round(area/30))),baths:area>90?2:1,
     price:Math.round(rateFor(area)*area/10000)*10000,
-    days:Math.min(14,s.days+(m.floors>1?3:0)),wins:sizeWins(s,m.floors),
+    days:Math.min(14,s.days+(m.floors>1?3:0)),wins:sizeWins(m),
     ver:m.ver?{w:+Math.min(s.w,m.ver.w*sx).toFixed(1),d:+(m.ver.d*sy).toFixed(1),pos:m.ver.pos,inset:m.ver.inset}:null,
     plan:m.plan.map(r=>[r[0],+(r[1]*sx).toFixed(2),+(r[2]*sy).toFixed(2),+(r[3]*sx).toFixed(2),+(r[4]*sy).toFixed(2)])};
 }
@@ -1207,6 +1226,18 @@ function draw3D(){
       g.strokeText(l.t,p[0],p[1]);g.fillStyle=LT?'rgba(27,26,24,.95)':'rgba(240,237,231,.95)';g.fillText(l.t,p[0],p[1]);
       g.font='11px ui-monospace,SFMono-Regular,Menlo,monospace';g.strokeText(l.s,p[0],p[1]+14);
       g.fillStyle=LT?'rgba(150,92,20,.95)':'rgba(242,180,92,.9)';g.fillText(l.s,p[0],p[1]+14)})}
+  /* постоянные бирки с размерами над проёмами */
+  g.textAlign='center';
+  HITS.forEach(h=>{if(V3.hover===h.meta.i)return;
+    const xs2=h.q.map(p=>p[0]),ys2=h.q.map(p=>p[1]),wpx=Math.max(...xs2)-Math.min(...xs2);
+    if(wpx<6)return;
+    const cx2=(Math.max(...xs2)+Math.min(...xs2))/2,top2=Math.min(...ys2)-9;
+    const lab=h.meta.t==='door'?'дверь':h.meta.size.replace(' см','').replace(/ × /g,'×');
+    g.font='600 10.5px ui-monospace,SFMono-Regular,Menlo,monospace';
+    const tw3=g.measureText(lab).width+10;
+    g.fillStyle=h.meta.t==='door'?'#1F5E78':(LT?'#1B1A18':'#F4F1EA');
+    if(g.roundRect){g.beginPath();g.roundRect(cx2-tw3/2,top2-11,tw3,15,4);g.fill()}
+    g.fillStyle=h.meta.t==='door'?'#E8F7FD':(LT?'#FBFAF7':'#15181B');g.fillText(lab,cx2,top2)});
   /* подсказка по наведению: рамка, название и размер проёма */
   if(V3.hover!=null){const h=HITS.find(x=>x.meta.i===V3.hover);
     if(h){const cx0=h.q.reduce((a,p)=>a+p[0],0)/h.q.length,cy0=h.q.reduce((a,p)=>a+p[1],0)/h.q.length;
@@ -1399,10 +1430,11 @@ function wallSVG(){
 }
 /* чистый план для заказа: комнаты, проёмы, размеры — уходит в корзину и в кабинет */
 function orderPlanSVG(m,cfg){
-  const b=roomBox(m),rooms=planOf(m,cfg),ops=cfg&&cfg.openings?cfg.openings:[];
-  const pad=42,k=Math.min(420/b.w,320/b.d),W=b.w*k,D=b.d*k;
+  const b=roomBox(m),rooms=planOf(m,cfg),ops=cfg?openingsOf(m,cfg):[];
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
-  let o=`<svg viewBox="0 0 ${W+pad*2} ${D+pad*2}" class="op-svg" role="img" aria-label="Планировка ${m.name}">`;
+  const exL=N&&N.side&&!N.right?N.vw:0,exR=N&&N.side&&N.right?N.vw:0,exB=N&&!N.side?N.vd:0;
+  const pad=46,k=Math.min(420/(b.w+exL+exR),320/(b.d+exB)),W=b.w*k,D=b.d*k,offx=exL*k;
+  let o=`<svg viewBox="0 0 ${(b.w+exL+exR)*k+pad*2} ${(b.d+exB)*k+pad*2+18}" class="op-svg" role="img" aria-label="Планировка ${m.name}"><g transform="translate(${offx},0)">`;
   if(N){const tw=N.side?N.vw*k:W,td=N.side?D:N.vd*k,tx=N.side?(N.right?pad+W:pad-tw):pad,ty=N.side?pad:pad+D;
     o+=`<rect x="${tx}" y="${ty}" width="${tw}" height="${td}" fill="rgba(242,180,92,.10)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
       <text x="${tx+tw/2}" y="${ty+td/2}" text-anchor="middle" class="n">Терраса ${verA(m)} м²</text>`}
@@ -1424,8 +1456,8 @@ function orderPlanSVG(m,cfg){
     <line x1="${pad+W+16}" y1="${pad}" x2="${pad+W+16}" y2="${pad+D}" stroke="var(--line2)"/>
     <text x="${pad+W+28}" y="${pad+D/2}" text-anchor="middle" class="n" transform="rotate(90 ${pad+W+28} ${pad+D/2})">${(b.d*1000).toLocaleString('ru-RU')}</text>`;
   const pr=cfg?partsOf(m,cfg):basePartsOf(m);
-  o+=`<text x="${pad}" y="${pad+D+26}" class="n">${rooms.length} ${plural(rooms.length,['комната','комнаты','комнат'])} · перегородки ${pr.wall} м · двери ${pr.idoor} + ${pr.edoor} входная · окон ${ops.filter(p=>p.t!=='door').length}</text>`;
-  return o+'</svg>';
+  o+=`<text x="${pad}" y="${pad+(b.d+exB)*k+30}" class="n">${rooms.length} ${plural(rooms.length,['комната','комнаты','комнат'])} · перегородки ${pr.wall} м · двери ${pr.idoor} + ${pr.edoor} входная · окон ${ops.filter(p=>p.t!=='door').length}</text>`;
+  return o+'</g></svg>';
 }
 function planSVG(m){
   const inset=!!(m.ver&&m.ver.inset);
@@ -1550,7 +1582,7 @@ const CALC=[
    {id:'150',name:'150 мм',txt:'R 3,9 — круглый год до −25 °C. Каркас 50×150',abs:m=>wallA(m)*850},
    {id:'200',name:'200 мм',txt:'R 5,3 — зима в Подмосковье с запасом. Каркас 50×200',abs:m=>wallA(m)*1700},
    {id:'250',name:'250 мм',txt:'R 6,6 — Урал и Сибирь, перекрёстный каркас',abs:m=>wallA(m)*2700}]},
- {key:'win',title:'Профиль окон',hint:m=>`${WIN_TYPES.reduce((s,w)=>s+(m.wins[w[0]]||0),0)} окон в базе`,items:[
+ {key:'win',title:'Профиль окон',hint:m=>`в цене 2 окна: ${WIN_TYPES.filter(w=>m.wins[w[0]]).map(w=>`${w[1].replace('Окно ','').replace('Панорамное ','')}${m.wins[w[0]]>1?' ×'+m.wins[w[0]]:''}`).join(', ')}`,items:[
    {id:'wood',name:'Деревянные',txt:'Сосна, однокамерный стеклопакет, покраска — на 20% дешевле ПВХ',abs:m=>baseWin(m)*(winK.wood-1)},
    {id:'pvc',name:'ПВХ двухкамерные',txt:'Профиль 70 мм, графитовая ламинация — входят в цену',abs:m=>0},
    {id:'alu',name:'Тёплый алюминий',txt:'Тонкий профиль, панорамные створки',abs:m=>baseWin(m)*(winK.alu-1)}]},
@@ -1632,15 +1664,17 @@ function winsGroup(base,cur,k,attr){
   <div class="wins">${WIN_TYPES.map(w=>{const n=cur[w[0]]||0,b=base[w[0]]||0;
     return `<div class="win-row ${n?'':'off'}"><div><b>${w[1]} см</b><small>${w[2]}${b?` · в базе ${b} шт`:''}</small></div><em class="num">${rub(w[3]*k)}</em>
     <div class="cnt"><button type="button" data-${attr}="${w[0]}:-1" aria-label="Убрать ${w[1]}">−</button><b class="num">${n}</b><button type="button" data-${attr}="${w[0]}:1" aria-label="Добавить ${w[1]}">+</button></div></div>`}).join('')}</div>
-  <small class="note">Окна из базовой комплектации уже в цене дома: добавленное окно прибавляется к смете, убранное — вычитается. Цена показана для выбранного профиля.</small></div>`}
+  <small class="note">В цену дома входят два окна проекта. Каждое следующее окно добавляется к смете по цене выбранного профиля, убранное — вычитается.</small></div>`}
 /* ---------- визуальный редактор планировки ---------- */
 const PLAN_SNAP=.1;
 const snap=v=>Math.round(v/PLAN_SNAP)*PLAN_SNAP;
 function plannerSVG(m,cfg){
-  const b=roomBox(m),rooms=cfg.rooms||[],W=520,pad=34;
-  const k=Math.min((W-pad*2)/b.w,(360-pad*2)/b.d),PW=b.w*k,PD=b.d*k,H=PD+pad*2;
+  const b=roomBox(m),rooms=cfg.rooms||[],pad=46;
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
-  let o=`<svg viewBox="0 0 ${W} ${H}" class="pl-svg" data-k="${k}" data-pad="${pad}" role="img" aria-label="Редактор планировки">`;
+  const exL=N&&N.side&&!N.right?N.vw:0,exR=N&&N.side&&N.right?N.vw:0,exB=N&&!N.side?N.vd:0;
+  const k=Math.min(470/(b.w+exL+exR),380/(b.d+exB)),PW=b.w*k,PD=b.d*k;
+  const offx=exL*k,W=(b.w+exL+exR)*k+pad*2,H=(b.d+exB)*k+pad*2;
+  let o=`<svg viewBox="0 0 ${W} ${H}" class="pl-svg" data-k="${k}" data-pad="${pad}" data-offx="${offx}" role="img" aria-label="Редактор планировки"><g transform="translate(${offx},0)">`;
   /* сетка 0,5 м */
   for(let gx=0;gx<=b.w+.01;gx+=.5)o+=`<line x1="${pad+gx*k}" y1="${pad}" x2="${pad+gx*k}" y2="${pad+PD}" stroke="var(--line)" stroke-width="${gx%1<.01?1:.5}"/>`;
   for(let gy=0;gy<=b.d+.01;gy+=.5)o+=`<line x1="${pad}" y1="${pad+gy*k}" x2="${pad+PW}" y2="${pad+gy*k}" stroke="var(--line)" stroke-width="${gy%1<.01?1:.5}"/>`;
@@ -1665,18 +1699,22 @@ function plannerSVG(m,cfg){
     else if(p.wall===1){const cyp=pad+(b.d/2-p.u)*k;y1=cyp-sz/2;y2=cyp+sz/2;x1=x2=pad+PW}
     else{const cyp=pad+(b.d/2-p.u)*k;y1=cyp-sz/2;y2=cyp+sz/2;x1=x2=pad}
     const nm=p.t==='door'?'Входная дверь 90 × 205 см':`${openName(p.t)} · ${Math.round(s0[0]*100)} × ${Math.round(s0[1]*100)} см`;
+    const lab=p.t==='door'?'дверь 90':`${Math.round(s0[0]*100)}×${Math.round(s0[1]*100)}`;
+    const lx=(x1+x2)/2+(p.wall===1?16:p.wall===2?-16:0),ly=(y1+y2)/2+(p.wall===0?22:p.wall===3?-14:4);
+    const anchor=p.wall===1?'start':p.wall===2?'end':'middle';
     o+=`<g class="pl-op ${p.t==='door'?'door':'win'}" data-oid="${i}"><title>${nm} — тяните вдоль стены</title>
-      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="8" stroke-linecap="butt"/>
-      <line class="pl-oin" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="3" stroke-linecap="butt"/>
-      <circle cx="${(x1+x2)/2}" cy="${(y1+y2)/2}" r="11" class="pl-ohit"/></g>`});
-  o+=`<text x="${pad}" y="${pad-12}" class="pl-t">${b.w} м</text><text x="${pad+PW+6}" y="${pad+12}" class="pl-t">${b.d} м</text>`;
-  return o+'</svg>';
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="13" stroke-linecap="butt"/>
+      <line class="pl-oin" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="6" stroke-linecap="butt"/>
+      <text x="${lx}" y="${ly}" text-anchor="${anchor}" class="pl-lab">${lab}</text>
+      <circle cx="${(x1+x2)/2}" cy="${(y1+y2)/2}" r="13" class="pl-ohit"/></g>`});
+  o+=`<text x="${pad}" y="${pad-14}" class="pl-t">${b.w} м</text><text x="${pad-8}" y="${pad+12}" text-anchor="end" class="pl-t">${b.d} м</text>`;
+  return o+'</g></svg>';
 }
 /* перетаскивание и изменение размера комнат мышью или пальцем */
 function bindPlanner(){
   const svg=document.querySelector('.pl-svg');if(!svg||svg.__b)return;svg.__b=1;
   const m=byId((location.hash.split('/')[2]||'').split('?')[0]);if(!m)return;
-  const cfg=getCfg(m),b=roomBox(m),k=+svg.dataset.k,pad=+svg.dataset.pad;
+  const cfg=getCfg(m),b=roomBox(m),k=+svg.dataset.k,pad=+svg.dataset.pad+(+svg.dataset.offx||0);
   let drag=null;
   const pt=e=>{const r=svg.getBoundingClientRect(),sc=svg.viewBox.baseVal.width/r.width;
     return{x:((e.clientX-r.left)*sc-pad)/k,y:((e.clientY-r.top)*sc-pad)/k}};
@@ -2038,7 +2076,7 @@ function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>
   <div><h4>Дома</h4><ul>${MODELS.slice(0,4).map(m=>`<li><a href="#/house/${m.id}">${m.w}×${m.d} · ${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>&nbsp;</h4><ul>${MODELS.slice(4).map(m=>`<li><a href="#/house/${m.id}">${m.w}×${m.d} · ${m.name}</a></li>`).join('')}</ul></div>
-  <div><h4>Покупателю</h4><ul><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
+  <div><h4>Покупателю</h4><ul><li><a href="#/admin">Панель менеджера</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
   <div><h4>Связь</h4><ul><li><a class="num" style="font-size:16px;color:var(--text)" href="tel:+79998886099">+7 999 888-60-99</a></li><li style="color:var(--muted);font-size:13.5px">Ежедневно 9:00–21:00</li><li><a href="#" data-contact>Заказать звонок</a></li></ul></div>
   </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span></div></footer>`}
 
@@ -2468,6 +2506,42 @@ addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest('.ter
 addEventListener('scroll',()=>document.querySelectorAll('.term.open').forEach(placeTip),true);
 try{if(localStorage.getItem('kontur-theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}
 
+/* ---------- панель менеджера: все заявки по клиентам ---------- */
+const ORDER_ST=[['new','Новая'],['call','Связались'],['visit','Выезд инженера'],['contract','Договор'],['build','Стройка'],['done','Сдан']];
+function allOrders(){const out=[];
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+    if(k&&k.indexOf('kontur.orders.')===0){const owner=k.slice(14);
+      (JSON.parse(localStorage.getItem(k))||[]).forEach((o,idx)=>out.push({...o,_key:k.slice(7),_idx:idx,_owner:owner}))}}}catch(e){}
+  return out.sort((a,b)=>b.at-a.at)}
+const adminState={q:'',st:'all'};
+function adminView(){
+  const users=store.get('users',{}),list=allOrders();
+  const q=adminState.q.trim().toLowerCase();
+  const rows=list.filter(o=>(adminState.st==='all'||(o.status||'new')===adminState.st)&&
+    (!q||[o.no,o.fio,o.phone,o.email,o.region,o._owner].join(' ').toLowerCase().includes(q)));
+  const sum=list.reduce((s,o)=>s+o.items.reduce((a,it)=>a+itemTotal(it),0),0);
+  const byClient={};rows.forEach(o=>{const key=o.email||o.phone||o._owner;(byClient[key]=byClient[key]||[]).push(o)});
+  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера · прототип</span><h1>Заявки клиентов</h1></div>
+    <p style="color:var(--muted);max-width:48ch">Все заявки собраны по клиентам: контакты, состав заказа, спецификация и нарисованная планировка для бригады и договора. Сейчас данные берутся из этого браузера — в рабочей версии сюда же придут заявки с сервера.</p></div>
+    <div class="adm-stats">${[['Заявок',list.length],['Клиентов',new Set(list.map(o=>o.email||o.phone||o._owner)).size],['В работе',list.filter(o=>!['new','done'].includes(o.status||'new')).length],['Сумма',rub(sum)]].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
+    <div class="adm-bar"><input id="admQ" placeholder="Поиск: номер, ФИО, телефон, почта, регион" value="${esc(adminState.q)}">
+      <div class="tabs" style="margin:0"><button type="button" class="pill ${adminState.st==='all'?'on':''}" data-adst="all">Все</button>${ORDER_ST.map(s=>`<button type="button" class="pill ${adminState.st===s[0]?'on':''}" data-adst="${s[0]}">${s[1]}</button>`).join('')}</div></div>
+    <div class="adm-list" style="margin-bottom:90px">${Object.keys(byClient).length?Object.keys(byClient).map(ck=>{const os=byClient[ck],o0=os[0],u=users[o0.email]||{};
+      return `<div class="adm-client"><header><div><b>${esc(o0.fio||u.name||'Без имени')}</b>
+          <span class="num">${esc(o0.phone||'')}${o0.email?' · '+esc(o0.email):' · гость'}</span></div>
+          <span class="num" style="color:var(--muted)">${os.length} ${plural(os.length,['заявка','заявки','заявок'])}</span></header>
+        ${os.map(o=>`<div class="adm-order"><div class="adm-row">
+            <b class="num">№ ${o.no}</b><span class="num">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
+            <span>${esc(o.region||'участок не указан')}</span>
+            <b class="num">${rub(o.items.reduce((a,it)=>a+itemTotal(it),0))}</b>
+            <select data-adstatus="${o._key}|${o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></div>
+          ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}
+          ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
+            return `<details class="spec-det"><summary>${m.name} ${m.w}×${m.d} · ${rub(itemTotal(it))}</summary>
+              <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
+              ${!it.custom&&it.cfg?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details>`}).join('')}
+        </div>`).join('')}</div>`}).join(''):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Оформите заказ из корзины — он появится здесь.</p></div>`}</div></div>`}
+
 /* ---------- router ---------- */
 const app=document.getElementById('app');
 function render(){
@@ -2479,6 +2553,7 @@ function render(){
   else if(a==='catalog')html=catalogView();
   else if(a==='custom')html=customView();
   else if(a==='how')html=howView();
+  else if(a==='admin')html=adminView();
   else if(a==='house')html=modelView(b);
   else if(a==='cart')html=cartView();
   else if(a==='account')html=accountView(b);
@@ -2515,9 +2590,10 @@ function bind(){
     const list=b.dataset.f==='all'?MODELS:MODELS.filter(m=>String(m.floors)===b.dataset.f);
     document.getElementById('catGrid').innerHTML=list.map(card).join('');paint()});
   document.getElementById('checkout')?.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);
-    const key='orders.'+user.email,orders=store.get(key,[]);
-    orders.push({no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:cart.slice(),phone:f.get('phone'),region:f.get('region'),comment:f.get('comment'),stage:0});
-    store.set(key,orders);cart=[];saveCart();toast('Заявка отправлена');location.hash='#/account/orders'});
+    const key='orders.'+(user?user.email:'guest'),orders=store.get(key,[]);
+    orders.push({no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:cart.slice(),fio:f.get('fio'),email:user?user.email:'',
+      phone:f.get('phone'),region:f.get('region'),comment:f.get('comment'),stage:0,status:'new'});
+    store.set(key,orders);cart=[];saveCart();toast('Заявка отправлена');location.hash=user?'#/account/orders':'#/'});
   document.getElementById('profile')?.addEventListener('submit',e=>{e.preventDefault();user.name=new FormData(e.target).get('name').trim()||user.name;store.set('user',user);updateHeader();toast('Профиль сохранён');render()});
   document.getElementById('logout')?.addEventListener('click',()=>{user=null;store.set('user',null);loadUserData();updateHeader();toast('Вы вышли из аккаунта');location.hash='#/'});
 }
@@ -2527,6 +2603,8 @@ document.addEventListener('click',e=>{
     const on=favs.includes(id);toast(on?'Добавлено в избранное':'Убрано из избранного');
     if(f.classList.contains('fav-inline')){f.style.color=on?'var(--lamp)':'';f.style.borderColor=on?'var(--lamp)':'';f.querySelector('svg').setAttribute('fill',on?'currentColor':'none')}
     if(/account/.test(location.hash))render();else document.querySelectorAll(`.fav[data-fav="${id}"]`).forEach(b=>b.classList.toggle('on',on));return}
+  const ads=e.target.closest('[data-adst]');
+  if(ads){adminState.st=ads.dataset.adst;app.innerHTML=adminView()+footer();paint();bind();return}
   const tg=e.target.closest('[data-theme-toggle]');
   if(tg){const light=document.documentElement.getAttribute('data-theme')==='light';
     setTheme(light?'dark':'light');return}
@@ -2634,7 +2712,12 @@ const customNum=(e,commit)=>{const n=e.target.closest('[data-cnum]');if(!n)retur
   if(isNaN(v)||v<min||v>max){if(commit){v=Math.min(max,Math.max(min,isNaN(v)?customState[n.dataset.cnum]:v));n.value=v}else return true}
   customState[n.dataset.cnum]=Math.round(v*2)/2;refreshCustom(commit);return true};
 document.addEventListener('change',e=>{if(!customNum(e,true)&&e.target.closest('[data-crange]'))refreshCustom(true)});
+document.addEventListener('change',e=>{const s=e.target.closest('[data-adstatus]');if(!s)return;
+  const [key,idx]=s.dataset.adstatus.split('|'),list=store.get(key,[]);
+  if(list[+idx]){list[+idx].status=s.value;list[+idx].stage=Math.max(0,ORDER_ST.findIndex(x=>x[0]===s.value)-1);store.set(key,list);toast('Статус обновлён')}});
 document.addEventListener('input',e=>{
+  if(e.target.id==='admQ'){adminState.q=e.target.value;const pos=e.target.selectionStart;
+    app.innerHTML=adminView()+footer();paint();bind();const n=document.getElementById('admQ');if(n){n.focus();n.setSelectionRange(pos,pos)}return}
   const rr=e.target.closest('[data-room]');
   if(rr){const [i,k]=rr.dataset.room.split(':');const m=byId((location.hash.split('/')[2]||'').split('?')[0]);
     if(m){const cfg=getCfg(m);cfg.rooms=cfg.rooms||defaultRooms(m);

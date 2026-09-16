@@ -809,7 +809,10 @@ function heroScene(){
   heroRAF=requestAnimationFrame(tick);
 }
 /* ---------- схематичная 3D-модель дома ---------- */
-const V3={yaw:-.68,pitch:.72,mode:'plan'};
+const V3={yaw:-.68,pitch:.72,mode:'plan',hover:null,mx:0,my:0};
+const HITS=[];
+const inPoly=(x,y,q)=>{let c=false;for(let i=0,j=q.length-1;i<q.length;j=i++){
+  if((q[i][1]>y)!==(q[j][1]>y)&&x<(q[j][0]-q[i][0])*(y-q[i][1])/(q[j][1]-q[i][1])+q[i][0])c=!c}return c};
 const FAC={proff:{c:'#5A5F63',dir:'v',step:.09},imit:{c:'#3C3B38',dir:'h',step:.22},vagonka:{c:'#46443F',dir:'h',step:.12},shtil:{c:'#3F3E3A',dir:'h',step:.16},
   plank:{c:'#4B3D2E',dir:'v',step:.15},fibro:{c:'#55585B',dir:'v',step:.95}};
 const ROOF_COL={prof:'#2C2E31',metal:'#232527',soft:'#1E2022',falz:'#36393C'};
@@ -1100,8 +1103,13 @@ function plan3D(o){
   if(ne>2)seg(x,.5,x,-.5,'#4FA3C4',H*.95,{door:1,top:1});
   if(ne>3)seg(.5,-z,-.5,-z,'#4FA3C4',H*.95,{door:1,top:1});
   /* окна — в наружных стенах, мимо перегородок и мимо входа */
-  if(o.openings&&o.mdl){o.openings.forEach(p=>{const g2=openQuad(o.mdl,p,H*.94);
-      q(g2.p,p.t==='door'?'#4FA3C4':'#F4F1EA',g2.n,p.t==='door'?{door:1,both:1,top:1}:{win:1,both:1,top:1})});
+  if(o.openings&&o.mdl){o.openings.forEach((p,i)=>{
+      const sz=openSz(p.t),meta={i,t:p.t,name:p.t==='door'?'Входная дверь':openName(p.t),
+        size:`${Math.round(sz[0]*100)} × ${Math.round(sz[1]*100)} см`};
+      const frame=openQuad(o.mdl,p,H*1.16,.12);      /* тёмная рама чуть выше стены */
+      const leaf=openQuad(o.mdl,p,H*1.02,0);         /* полотно */
+      q(frame.p,'#15181B',frame.n,{both:1,top:1,frameO:1});
+      q(leaf.p,p.t==='door'?'#63BEE0':'#FBFAF7',leaf.n,p.t==='door'?{door:1,both:1,top:1,meta}:{win:1,both:1,top:1,meta})});
     return{F,wh:H,rh:H,w,d,labels,plan:1}}
   winLayout(o,w,d).forEach(win=>{
     let u=win.u;
@@ -1158,6 +1166,7 @@ function draw3D(){
   Object.keys(decals).forEach(k=>decals[k].forEach(dd=>faces.push(dd)));
   top.forEach(o2=>faces.push(o2));
   const path=q=>{g.beginPath();q.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath()};
+  HITS.length=0;
   faces.forEach(o2=>{const f=o2.f,q=o2.q;
     path(q);
     if(f.glow){
@@ -1168,14 +1177,15 @@ function draw3D(){
         for(let i=1;i<f.mull;i++){const t=i/f.mull,a=lerp3(f.p[0],f.p[1],t),b=lerp3(f.p[3],f.p[2],t),A=pr(a),B=pr(b);
           g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke()}}
       g.strokeStyle='rgba(16,18,20,.9)';g.lineWidth=1.5;path(q);g.stroke();return}
-    if(f.win){g.fillStyle='#F4F1EA';g.fill();
-      g.strokeStyle='rgba(20,22,24,.75)';g.lineWidth=1.5;path(q);g.stroke();
-      const A=pr(f.p[0]),B=pr(f.p[1]);g.strokeStyle='rgba(120,170,200,.6)';g.lineWidth=1.2;
-      g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke();return}
-    if(f.door){g.fillStyle='#4FA3C4';g.fill();
-      g.strokeStyle='rgba(10,24,32,.9)';g.lineWidth=1.6;path(q);g.stroke();
-      const A=pr(f.p[0]),B=pr(f.p[1]);g.strokeStyle='rgba(148,214,240,.7)';g.lineWidth=1.4;
-      g.beginPath();g.moveTo(A[0],A[1]);g.lineTo(B[0],B[1]);g.stroke();return}
+    if(f.frameO){g.fillStyle='#15181B';g.fill();g.strokeStyle='rgba(8,10,12,.9)';g.lineWidth=1;g.stroke();return}
+    if(f.win||f.door){
+      const hov=f.meta&&V3.hover===f.meta.i;
+      if(hov){g.save();g.shadowColor=f.door?'rgba(99,190,224,.85)':'rgba(255,255,255,.8)';g.shadowBlur=20}
+      g.fillStyle=f.door?(hov?'#8AD4F0':'#63BEE0'):(hov?'#FFFFFF':'#FBFAF7');g.fill();
+      if(hov)g.restore();
+      g.strokeStyle=hov?(f.door?'#BDE9FA':'#FFFFFF'):'rgba(12,14,16,.9)';g.lineWidth=hov?2.6:1.4;path(q);g.stroke();
+      if(f.meta)HITS.push({q,meta:f.meta});
+      return}
     const lit=.55+.55*Math.max(0,o2.rn[0]*-.32+o2.rn[1]*.72+o2.rn[2]*.5);
     g.fillStyle=shade(f.c,Math.min(1.5,lit));g.fill();
     if(f.det&&s>6&&f.p.length>3){g.save();g.clip();g.strokeStyle='rgba(0,0,0,.22)';g.lineWidth=1;
@@ -1189,10 +1199,28 @@ function draw3D(){
   const LT=isLight();
   if(G.labels&&G.labels.length){g.textAlign='center';
     G.labels.forEach(l=>{const p=pr(l.p);
-      g.font='600 12px ui-sans-serif,system-ui,sans-serif';g.strokeStyle=LT?'rgba(246,244,240,.9)':'rgba(12,13,14,.85)';g.lineWidth=3;
+      g.font='600 12px ui-sans-serif,system-ui,sans-serif';
+      const tw2=g.measureText(l.t).width+16;
+      g.fillStyle=LT?'rgba(255,255,255,.72)':'rgba(12,14,16,.55)';
+      if(g.roundRect){g.beginPath();g.roundRect(p[0]-tw2/2,p[1]-13,tw2,30,8);g.fill()}
+      g.strokeStyle=LT?'rgba(246,244,240,.9)':'rgba(12,13,14,.85)';g.lineWidth=3;
       g.strokeText(l.t,p[0],p[1]);g.fillStyle=LT?'rgba(27,26,24,.95)':'rgba(240,237,231,.95)';g.fillText(l.t,p[0],p[1]);
       g.font='11px ui-monospace,SFMono-Regular,Menlo,monospace';g.strokeText(l.s,p[0],p[1]+14);
       g.fillStyle=LT?'rgba(150,92,20,.95)':'rgba(242,180,92,.9)';g.fillText(l.s,p[0],p[1]+14)})}
+  /* подсказка по наведению: рамка, название и размер проёма */
+  if(V3.hover!=null){const h=HITS.find(x=>x.meta.i===V3.hover);
+    if(h){const cx0=h.q.reduce((a,p)=>a+p[0],0)/h.q.length,cy0=h.q.reduce((a,p)=>a+p[1],0)/h.q.length;
+      const title=h.meta.name,sub=h.meta.size;
+      g.font='600 12.5px ui-sans-serif,system-ui,sans-serif';const tw=Math.max(g.measureText(title).width,74)+22;
+      let bx=Math.min(Math.max(8,cx0-tw/2),W-tw-8),by=Math.max(8,cy0-58);
+      g.fillStyle=LT?'rgba(255,255,255,.96)':'rgba(20,23,26,.96)';
+      g.strokeStyle=h.meta.t==='door'?'#63BEE0':(LT?'rgba(28,26,24,.35)':'rgba(255,255,255,.55)');g.lineWidth=1.4;
+      g.beginPath();g.roundRect?g.roundRect(bx,by,tw,44,10):g.rect(bx,by,tw,44);g.fill();g.stroke();
+      g.textAlign='left';g.fillStyle=LT?'#1B1A18':'#F2F0EA';g.fillText(title,bx+11,by+19);
+      g.font='11.5px ui-monospace,SFMono-Regular,Menlo,monospace';g.fillStyle=h.meta.t==='door'?'#63BEE0':(LT?'#8A5716':'#F2B45C');
+      g.fillText(sub,bx+11,by+35);
+      g.strokeStyle=h.meta.t==='door'?'rgba(99,190,224,.6)':'rgba(242,180,92,.55)';g.lineWidth=1.2;
+      g.beginPath();g.moveTo(bx+tw/2,by+44);g.lineTo(cx0,cy0);g.stroke()}}
   g.font='11px ui-monospace,SFMono-Regular,Menlo,monospace';g.fillStyle=LT?'rgba(40,36,30,.6)':'rgba(236,232,225,.5)';g.textAlign='center';
   g.fillText(V3.mode==='plan'?`${String(G.w).replace('.',',')} × ${String(G.d).replace('.',',')} м · стены срезаны на 1,15 м`
     :`${String(G.w).replace('.',',')} × ${String(G.d).replace('.',',')} м · конёк ${G.rh.toFixed(1).replace('.',',')} м`,W/2,H-16);
@@ -1202,7 +1230,14 @@ function mount3D(o){const cv=document.getElementById('viz3d');if(!cv)return;cv._
     cv.addEventListener('pointerdown',e=>{last=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)});
     cv.addEventListener('pointermove',e=>{if(!last)return;V3.yaw+=(e.clientX-last[0])*.009;
       V3.pitch=Math.max(-.02,Math.min(.95,V3.pitch+(e.clientY-last[1])*.005));last=[e.clientX,e.clientY];draw3D()});
-    const up=()=>last=null;cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);cv.addEventListener('pointerleave',up)}
+    const up=()=>last=null;cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);cv.addEventListener('pointerleave',up);
+    /* подсветка проёма под курсором */
+    cv.addEventListener('pointermove',e=>{if(last)return;
+      const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*(cv.clientWidth/r.width),y=(e.clientY-r.top)*(cv.clientHeight/r.height);
+      const hit=HITS.find(h=>inPoly(x,y,h.q));
+      const id=hit?hit.meta.i:null;
+      if(id!==V3.hover){V3.hover=id;cv.style.cursor=id!=null?'pointer':'grab';draw3D()}});
+    cv.addEventListener('pointerleave',()=>{if(V3.hover!=null){V3.hover=null;draw3D()}})}
   draw3D()}
 const VIEWS={corner:[-.68,.72],front:[0,.62],side:[-1.57,.62],top:[-.68,1.05]};
 function vizBlock(){V3.mode='plan';return `<div class="viz"><canvas id="viz3d" aria-label="3D-планировка дома"></canvas>
@@ -1450,7 +1485,7 @@ function openCenter(m,p){const r=boxRect(m),cx=r.x0+r.w/2,cz=r.z0+r.d/2;
   if(p.wall===1)return{x:r.x0+r.w,z:cz-p.u,horiz:0};
   return{x:r.x0,z:cz-p.u,horiz:0}}
 /* четырёхугольник проёма для 3D-планировки */
-function openQuad(m,p,h){const c=openCenter(m,p),s=openSz(p.t)[0]/2,o=.05,
+function openQuad(m,p,h,grow){const c=openCenter(m,p),s=openSz(p.t)[0]/2+(grow||0),o=.05,
   n=p.wall===0?[0,0,1]:p.wall===3?[0,0,-1]:p.wall===1?[1,0,0]:[-1,0,0];
   const dx=c.horiz?s:0,dz=c.horiz?0:s,ox=c.horiz?0:n[0]*o,oz=c.horiz?n[2]*o:0;
   return{p:[[c.x-dx+ox,.06,c.z-dz+oz],[c.x+dx+ox,.06,c.z+dz+oz],[c.x+dx+ox,h,c.z+dz+oz],[c.x-dx+ox,h,c.z-dz+oz]],n}}
@@ -1738,7 +1773,7 @@ function estimateHTML(m){const cfg=getCfg(m),e=computeCalc(m,cfg);
   <p class="note">Предварительный расчёт. Точная смета — после выезда инженера на участок, цена фиксируется в договоре.</p>`}
 function refreshCalc(m,groups){
   if(groups){const g=document.getElementById('calcGroups');if(g){g.innerHTML=calcGroups(m);bindPlanner()}}
-  const cfg0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:cfg0.facade,roof:cfg0.roof,wins:winsOf(m,cfg0),terrace:cfg0.terrace,plan:planOf(m,cfg0),mdl:m,ver:m.ver,parts:partsOf(m,cfg0),winSides:m.winSides,roofShape:m.roofShape,openings:cfg0.openings});
+  const cfg0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:cfg0.facade,roof:cfg0.roof,wins:winsOf(m,cfg0),terrace:cfg0.terrace,plan:planOf(m,cfg0),mdl:m,ver:m.ver,parts:partsOf(m,cfg0),winSides:m.winSides,roofShape:m.roofShape,openings:openingsOf(m,cfg0)});
   const es=document.getElementById('estimate');if(es)es.innerHTML=estimateHTML(m);
   const e=computeCalc(m,getCfg(m));const tp=document.getElementById('topPrice');if(tp)tp.textContent=rub(e.total);
   const tl=document.getElementById('topPkg');if(tl)tl.textContent=PKGS.find(p=>p.id===getCfg(m).pkg).name+' · '+rub(e.total/m.area)+' за м²';
@@ -1847,7 +1882,11 @@ const cVer=c=>{const base=c.planBase&&byId(c.planBase);
   return c.veranda?{w:c.w,d:Math.max(.8,c.veranda/c.w),pos:'front'}:null};
 const cParts=c=>({...basePartsOf({plan:cPlan(c)}),...(c.parts||{})});
 const customViz=()=>({w:customState.w,d:customState.d,floors:customState.floors==='2'?2:customState.floors==='1.5'?1.5:1,
-  facade:'imit',roof:customState.opts.includes('metal')?'metal':'prof',wins:cWins(customState),terrace:0,plan:cPlan(customState),ver:cVer(customState),parts:cParts(customState),winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides,roofShape:(customState.planBase&&byId(customState.planBase)||{}).roofShape});
+  facade:'imit',roof:customState.opts.includes('metal')?'metal':'prof',wins:cWins(customState),terrace:0,plan:cPlan(customState),ver:cVer(customState),parts:cParts(customState),
+  winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides,roofShape:(customState.planBase&&byId(customState.planBase)||{}).roofShape,
+  mdl:cModel(),openings:autoOpenings(cModel(),{parts:cParts(customState)})});
+const cModel=()=>({w:customState.w,d:customState.d,ver:cVer(customState),plan:cPlan(customState),
+  wins:cWins(customState),winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides});
 function refreshCustom(groups){
   mount3D(customViz());
   if(groups){const g=document.getElementById('calcGroups');if(g){const a=document.activeElement,id=a&&a.id,pos=a&&a.selectionStart;g.innerHTML=customGroups();if(id){const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}}}}
@@ -2459,7 +2498,7 @@ function paint(){
   document.querySelectorAll('.reveal').forEach(el=>{const r=el.getBoundingClientRect();if(r.top>innerHeight*1.12)io.observe(el)});
   document.querySelectorAll('input[type=range]').forEach(r=>r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%'));
   if(document.getElementById('viz3d')){const mm=byId((location.hash.split('/')[2]||''));
-    if(mm){const c0=getCfg(mm);mount3D({w:mm.w,d:mm.d,floors:mm.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(mm,c0),terrace:c0.terrace,plan:planOf(mm,c0),mdl:mm,ver:mm.ver,parts:partsOf(mm,c0),winSides:mm.winSides,roofShape:mm.roofShape,openings:c0.openings})}
+    if(mm){const c0=getCfg(mm);mount3D({w:mm.w,d:mm.d,floors:mm.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(mm,c0),terrace:c0.terrace,plan:planOf(mm,c0),mdl:mm,ver:mm.ver,parts:partsOf(mm,c0),winSides:mm.winSides,roofShape:mm.roofShape,openings:openingsOf(mm,c0)})}
     else mount3D(customViz())}
   bindPlanner();
   const bars=document.getElementById('bars');
@@ -2602,7 +2641,7 @@ document.addEventListener('input',e=>{
       const v=k==='n'?rr.value:Math.max(.5,Math.min(24,parseFloat(String(rr.value).replace(',','.'))||1));
       cfg.rooms[+i]={...cfg.rooms[+i],[k]:v};
       const es=document.getElementById('estimate');if(es)es.innerHTML=estimateHTML(m);
-      const c0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(m,c0),terrace:c0.terrace,plan:planOf(m,c0),mdl:m,ver:m.ver,parts:partsOf(m,c0),winSides:m.winSides,roofShape:m.roofShape,openings:c0.openings})}
+      const c0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(m,c0),terrace:c0.terrace,plan:planOf(m,c0),mdl:m,ver:m.ver,parts:partsOf(m,c0),winSides:m.winSides,roofShape:m.roofShape,openings:openingsOf(mm,c0)})}
     return}
   if(customNum(e,false))return;
   const cr=e.target.closest('[data-crange]');

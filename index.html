@@ -133,6 +133,9 @@ p{margin:0}
 .pc-plan text{font-family:var(--body);font-size:11px;fill:var(--text)}
 .pc-plan text.n{font-family:var(--mono);font-size:10px;fill:var(--muted)}
 .pc-plan text.r{font-weight:500;font-size:11.5px}
+.pc-plan text.lab-w,.pc-plan text.lab-d{font-family:var(--mono);font-size:9.5px;font-weight:600;paint-order:stroke;stroke:var(--panel2);stroke-width:3px}
+.pc-plan text.lab-w{fill:var(--text)}
+.pc-plan text.lab-d{fill:#4FA3C4}
 .mgr-auth{max-width:440px;margin:60px auto 100px;display:grid;gap:14px;border:1px solid var(--line);border-radius:22px;padding:30px;background:var(--panel)}
 .mgr-auth h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,3vw,32px);line-height:1.15}
 .mgr-auth form{display:grid;gap:12px;margin-top:6px}
@@ -684,6 +687,14 @@ function variant(m,sizeId){
 }
 const byId=id=>{if(!id)return null;const p=String(id).split('@'),m=MODELS.find(x=>x.id===p[0]);return m?(p[1]?variant(m,p[1]):m):null};
 const nativeOf=m=>m.native||m.id;
+/* на странице «Свой размер» редактор работает с виртуальной моделью */
+function customModel(){const c=customState,base=c.planBase&&byId(c.planBase);
+  return{id:'custom',custom:1,name:'Свой проект',w:c.w,d:c.d,floors:c.floors==='2'?2:c.floors==='1.5'?1.5:1,
+    area:cArea(c),ver:cVer(c),plan:cPlan(c),wins:cWinsBase(c),winSides:base?base.winSides:[2,1,1,.6],roofShape:base?base.roofShape:null}}
+function curModel(){const h=location.hash;
+  if(h.indexOf('#/custom')===0)return customModel();
+  return byId((h.split('/')[2]||'').split('?')[0])}
+function refreshAny(m,groups){if(m&&m.id==='custom')refreshCustom(true);else refreshCalc(m,groups)}
 /* минимальная цена проекта: самый маленький размер в холодном контуре */
 const minPrice=m=>Math.min.apply(null,SIZES.map(s=>variant(m,s.id).price))*PKGS[0].k;
 const verA=m=>m.ver?Math.round(m.ver.w*m.ver.d*10)/10:0;
@@ -700,7 +711,7 @@ const nicheOf=(o,w,d)=>{if(!(o.ver&&o.ver.inset))return null;
 const roomBox=(m)=>{const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
   if(!N)return{w:m.w,d:m.d,ox:0,oy:0};
   if(N.side)return{w:m.w-N.vw,d:m.d,ox:N.right?0:N.vw,oy:0};
-  return{w:m.w,d:m.d-N.vd,ox:0,oy:0}};
+  return{w:m.w,d:m.d,ox:0,oy:0}};
 /* сдвиг веранды вдоль фасада: по центру, к правому или левому краю — как на фотографии проекта */
 const verOff=m=>{if(!m.ver)return 0;const free=(m.w-Math.min(m.w,m.ver.w))/2;
   return m.ver.pos==='front-right'?free:m.ver.pos==='front-left'?-free:0};
@@ -1321,8 +1332,9 @@ function p3Wall(g,x1,z1,x2,z2,th,col,holes){
     if(h.type==='win'){
       put(a,b,0,.82,col);                                     /* подоконная часть */
       const fr=put(a,b,.82,P3H,'#FFFFFF');                    /* белая рама */
-      if(fr){fr.scale.z=1.05;fr.material.color.set('#F7F6F2')}
-      const gl=put(a+.012,b-.012,.9,P3H-.02,'#BFE3F2',.55);   /* стекло */
+      if(fr){fr.scale.z=1.25;fr.material.color.set('#FFFFFF')}
+      const gl=put(a+.02,b-.02,.9,P3H-.03,'#3FB2F0',.72);     /* стекло — насыщенно-голубое */
+      if(gl){gl.scale.z=1.4;gl.material.emissive.set('#1E7FB8');gl.material.emissiveIntensity=.55;gl.material.roughness=.15;gl.material.metalness=.1}
       [fr,gl].forEach(mm=>{if(mm){mm.userData.meta=h.meta;P3.picks.push(mm)}})}
     else if(h.type==='door'){
       const len=(b-a)*L,hinge=a*L,leaf=p3Box(len*.92,Math.min(2.05,P3H*1.2),.05,'#4FA3C4');
@@ -1335,7 +1347,7 @@ function p3Wall(g,x1,z1,x2,z2,th,col,holes){
 function p3Build(o){
   const m=o.mdl,b=roomBox(m),r0=boxRect(m),g=new THREE.Group();P3.picks=[];
   const LT=isLight();
-  const cWall=LT?'#DAD4C9':'#E4DFD5',cPart=LT?'#E9E5DD':'#CFC9BE',cFloor=LT?'#B9B0A3':'#8D857A';
+  const cWall='#B98A5C',cPart='#D2AC80',cFloor='#8D857A';
   /* пол дома и терраса */
   const fullW=m.w,fullD=m.d;
   const base=p3Box(fullW,.12,fullD,LT?'#9A9185':'#5B554D');base.position.set(0,-.06,0);g.add(base);
@@ -1362,11 +1374,24 @@ function p3Build(o){
   const ops=o.openings||[];
   const edges=[[0,r0.x0,r0.z0+r0.d,r0.x0+r0.w,r0.z0+r0.d],[1,r0.x0+r0.w,r0.z0+r0.d,r0.x0+r0.w,r0.z0],
                [3,r0.x0+r0.w,r0.z0,r0.x0,r0.z0],[2,r0.x0,r0.z0,r0.x0,r0.z0+r0.d]];
+  const notch=N&&!N.side?N:null;
+  if(notch){/* фасад разрезается вырезом: слева стена по фасаду, в вырезе — стена в глубине и боковая */
+    const zf=r0.z0+r0.d,zb=notch.z2;
+    const segs=[];
+    if(notch.nl>r0.x0+.05)segs.push([0,r0.x0,zf,notch.nl,zf]);
+    segs.push([0,notch.nl,zb,notch.nr,zb]);
+    if(!notch.openLeft)segs.push([-1,notch.nl,zb,notch.nl,zf]);
+    if(notch.nr<r0.x0+r0.w-.05){segs.push([0,notch.nr,zf,r0.x0+r0.w,zf]);segs.push([-1,notch.nr,zf,notch.nr,zb])}
+    edges.splice(0,1,...segs.filter(s=>s[0]===0));
+    segs.filter(s=>s[0]===-1).forEach(s=>p3Wall(g,s[1],s[2],s[3],s[4],P3T,cWall,[]));
+    if(notch.openRight){const e1=edges.find(e=>e[0]===1);if(e1){e1[2]=zb}}}
   edges.forEach(([wall,x1,z1,x2,z2])=>{const L=Math.hypot(x2-x1,z2-z1);
-    const holes=ops.filter(p=>p.wall===wall).map((p,k)=>{const c=openCenter(m,p),s=openSz(p.t)[0];
+    const holes=ops.filter(p=>p.wall===wall).map((p,k)=>{const c0=openCenter(m,p),s=openSz(p.t)[0];
+      /* проём фасада, попавший в вырез, переезжает на стену выреза */
+      const c=wall===0&&notch?{...c0,z:(c0.x>=notch.nl-.01&&c0.x<=notch.nr+.01)?notch.z2:r0.z0+r0.d}:c0;
       const along=((c.x-x1)*(x2-x1)+(c.z-z1)*(z2-z1))/(L*L);
       const meta={t:p.t,name:p.t==='door'?'Входная дверь':openName(p.t),size:`${Math.round(s*100)} × ${Math.round(openSz(p.t)[1]*100)} см`};
-      return{a:along-s/2/L,b:along+s/2/L,type:p.t==='door'?'door':'win',meta,c}});
+      return{a:along-s/2/L,b:along+s/2/L,type:p.t==='door'?'door':'win',meta,c,off:Math.abs(((c.x-x1)*(z2-z1)-(c.z-z1)*(x2-x1))/L)>.05}}).filter(h=>!h.off&&h.b>0&&h.a<1);
     p3Wall(g,x1,z1,x2,z2,P3T,cWall,holes);
     holes.forEach(h=>{const lab=p3Label(h.type==='door'?'дверь':h.meta.size.replace(' см','').replace(/ × /g,'×'),null,
         h.type==='door'?{bg:'#1F5E78',fg:'#E8F7FD',scale:.0032}:{bg:'#F7F6F2',fg:'#15181B',scale:.0032});
@@ -1382,7 +1407,9 @@ function p3Build(o){
   const doorOn=inner.map(()=>[]);for(let i=0;i<nd&&inner.length;i++)doorOn[i%inner.length].push([.5,.3,.7][Math.floor(i/inner.length)%3]);
   inner.forEach((e,i)=>{const L=Math.hypot(e[2]-e[0],e[3]-e[1]),dw=Math.min(.8,L*.45)/L;
     const holes=doorOn[i].map(f=>({a:f-dw/2,b:f+dw/2,type:'door',meta:{t:'idoor',name:'Межкомнатная дверь',size:'80 × 205 см'}}));
-    p3Wall(g,e[0],e[1],e[2],e[3],P3TI,cPart,holes)});
+    p3Wall(g,e[0],e[1],e[2],e[3],P3TI,cPart,holes);
+    holes.forEach(h=>{const f=(h.a+h.b)/2,lab=p3Label('дверь 80',null,{bg:'#1F5E78',fg:'#E8F7FD',scale:.0028});
+      lab.position.set(e[0]+(e[2]-e[0])*f,P3H+.28,e[1]+(e[3]-e[1])*f);g.add(lab)})});
   return g}
 function p3Fit(){if(!P3.group||!P3.cam)return;
   const box=new THREE.Box3().setFromObject(P3.group),c=box.getCenter(new THREE.Vector3()),s=box.getSize(new THREE.Vector3());
@@ -1598,10 +1625,10 @@ function wallSVG(){
 function orderPlanSVG(m,cfg){
   const b=roomBox(m),rooms=planOf(m,cfg),ops=cfg?openingsOf(m,cfg):[];
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
-  const exL=N&&N.side&&!N.right?N.vw:0,exR=N&&N.side&&N.right?N.vw:0,exB=N&&!N.side?N.vd:0;
+  const exL=N&&N.side&&!N.right?N.vw:0,exR=N&&N.side&&N.right?N.vw:0,exB=0;
   const pad=46,k=Math.min(420/(b.w+exL+exR),320/(b.d+exB)),W=b.w*k,D=b.d*k,offx=exL*k;
   let o=`<svg viewBox="0 0 ${(b.w+exL+exR)*k+pad*2} ${(b.d+exB)*k+pad*2+18}" class="op-svg" role="img" aria-label="Планировка ${m.name}"><g transform="translate(${offx},0)">`;
-  if(N){const tw=N.side?N.vw*k:W,td=N.side?D:N.vd*k,tx=N.side?(N.right?pad+W:pad-tw):pad,ty=N.side?pad:pad+D;
+  if(N){const tw=N.vw*k,td=N.side?D:N.vd*k,tx=N.side?(N.right?pad+W:pad-tw):pad+(N.nl+m.w/2)*k,ty=N.side?pad:pad+D-td;
     o+=`<rect x="${tx}" y="${ty}" width="${tw}" height="${td}" fill="rgba(242,180,92,.10)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
       <text x="${tx+tw/2}" y="${ty+td/2}" text-anchor="middle" class="n">Терраса ${verA(m)} м²</text>`}
   rooms.forEach(r=>{const x=pad+(r[1]-b.ox)*k,y=pad+(r[2]-b.oy)*k,rw=r[3]*k,rd=r[4]*k;
@@ -1609,14 +1636,32 @@ function orderPlanSVG(m,cfg){
       <text x="${x+rw/2}" y="${y+rd/2-2}" text-anchor="middle" class="r">${r[0]}</text>
       <text x="${x+rw/2}" y="${y+rd/2+13}" text-anchor="middle" class="n">${(r[3]*r[4]).toFixed(1).replace('.',',')} м² · ${r[3].toFixed(1).replace('.',',')}×${r[4].toFixed(1).replace('.',',')}</text>`});
   o+=`<rect x="${pad}" y="${pad}" width="${W}" height="${D}" fill="none" stroke="#ECE8E1" stroke-width="3"/>`;
+  /* межкомнатные двери — там же, где в 3D */
+  (function(){const r0=boxRect(m),eps=.08,onBox=e=>(Math.abs(e[0]-e[2])<eps&&(Math.abs(e[0]-r0.x0)<eps||Math.abs(e[0]-(r0.x0+r0.w))<eps))||
+      (Math.abs(e[1]-e[3])<eps&&(Math.abs(e[1]-r0.z0)<eps||Math.abs(e[1]-(r0.z0+r0.d))<eps));
+    const inner=[],seen={},key=e=>e.map(v=>v.toFixed(2)).join('|');
+    rooms.forEach(rm=>{const x1=-m.w/2+rm[1],z1=-m.d/2+rm[2],x2=x1+rm[3],z2=z1+rm[4];
+      [[x1,z1,x2,z1],[x2,z1,x2,z2],[x2,z2,x1,z2],[x1,z2,x1,z1]].forEach(e=>{if(onBox(e))return;
+        const a=key(e),bb=key([e[2],e[3],e[0],e[1]]);if(seen[a]||seen[bb])return;seen[a]=1;inner.push(e)})});
+    const nd=cfg?partsOf(m,cfg).idoor:0;
+    for(let i=0;i<nd&&inner.length;i++){const e=inner[i%inner.length],f=[.5,.3,.7][Math.floor(i/inner.length)%3];
+      const L=Math.hypot(e[2]-e[0],e[3]-e[1]),dw=Math.min(.8,L*.45)/2/L;
+      const P=t2=>[pad+(e[0]+(e[2]-e[0])*t2+m.w/2-b.ox)*k,pad+(e[1]+(e[3]-e[1])*t2+m.d/2-b.oy)*k];
+      const A=P(f-dw),B=P(f+dw),vert=Math.abs(e[0]-e[2])<eps;
+      o+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#141618" stroke-width="6"/>
+        <line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#4FA3C4" stroke-width="3"/>
+        <text x="${(A[0]+B[0])/2+(vert?8:0)}" y="${(A[1]+B[1])/2+(vert?3:-7)}" text-anchor="${vert?'start':'middle'}" class="lab-d">дверь 80</text>`}})();
   ops.forEach(p=>{const sz=openSz(p.t)[0]*k,c=p.t==='door'?'#4FA3C4':'#F4F1EA';
     let x1,y1,x2,y2;
     if(p.wall===0){const cx=pad+(p.u+b.w/2)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad+D}
     else if(p.wall===3){const cx=pad+(b.w/2-p.u)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad}
     else if(p.wall===1){const cy=pad+(b.d/2-p.u)*k;y1=cy-sz/2;y2=cy+sz/2;x1=x2=pad+W}
     else{const cy=pad+(b.d/2-p.u)*k;y1=cy-sz/2;y2=cy+sz/2;x1=x2=pad}
-    o+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#141618" stroke-width="7"/>
-      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="3.4"/>`});
+    const s0=openSz(p.t),lab=p.t==='door'?`вход ${Math.round(s0[0]*100)}×${Math.round(s0[1]*100)}`:`окно ${Math.round(s0[0]*100)}×${Math.round(s0[1]*100)}`;
+    const lx=(x1+x2)/2+(p.wall===1?10:p.wall===2?-10:0),ly=(y1+y2)/2+(p.wall===0?17:p.wall===3?-9:4);
+    o+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#141618" stroke-width="8"/>
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="4"/>
+      <text x="${lx}" y="${ly}" text-anchor="${p.wall===1?'start':p.wall===2?'end':'middle'}" class="${p.t==='door'?'lab-d':'lab-w'}">${lab}</text>`});
   o+=`<line x1="${pad}" y1="${pad-16}" x2="${pad+W}" y2="${pad-16}" stroke="var(--line2)"/>
     <text x="${pad+W/2}" y="${pad-21}" text-anchor="middle" class="n">${(b.w*1000).toLocaleString('ru-RU')}</text>
     <line x1="${pad+W+16}" y1="${pad}" x2="${pad+W+16}" y2="${pad+D}" stroke="var(--line2)"/>
@@ -1837,7 +1882,7 @@ const snap=v=>Math.round(v/PLAN_SNAP)*PLAN_SNAP;
 function plannerSVG(m,cfg){
   const b=roomBox(m),rooms=cfg.rooms||[],pad=46;
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
-  const exL=N&&N.side&&!N.right?N.vw:0,exR=N&&N.side&&N.right?N.vw:0,exB=N&&!N.side?N.vd:0;
+  const exL=N&&N.side&&!N.right?N.vw:0,exR=N&&N.side&&N.right?N.vw:0,exB=0;
   const k=Math.min(470/(b.w+exL+exR),380/(b.d+exB)),PW=b.w*k,PD=b.d*k;
   const offx=exL*k,W=(b.w+exL+exR)*k+pad*2,H=(b.d+exB)*k+pad*2;
   let o=`<svg viewBox="0 0 ${W} ${H}" class="pl-svg" data-k="${k}" data-pad="${pad}" data-offx="${offx}" role="img" aria-label="Редактор планировки"><g transform="translate(${offx},0)">`;
@@ -1845,8 +1890,8 @@ function plannerSVG(m,cfg){
   for(let gx=0;gx<=b.w+.01;gx+=.5)o+=`<line x1="${pad+gx*k}" y1="${pad}" x2="${pad+gx*k}" y2="${pad+PD}" stroke="var(--line)" stroke-width="${gx%1<.01?1:.5}"/>`;
   for(let gy=0;gy<=b.d+.01;gy+=.5)o+=`<line x1="${pad}" y1="${pad+gy*k}" x2="${pad+PW}" y2="${pad+gy*k}" stroke="var(--line)" stroke-width="${gy%1<.01?1:.5}"/>`;
   /* терраса — за пределами рабочего пятна */
-  if(N){const tw=N.side?N.vw*k:PW,td=N.side?PD:N.vd*k;
-    const tx=N.side?(N.right?pad+PW:pad-tw):pad,ty=N.side?pad:pad+PD;
+  if(N){const tw=N.vw*k,td=N.side?PD:N.vd*k;
+    const tx=N.side?(N.right?pad+PW:pad-tw):pad+(N.nl+m.w/2)*k,ty=N.side?pad:pad+PD-td;
     o+=`<rect x="${tx}" y="${ty}" width="${tw}" height="${td}" fill="rgba(242,180,92,.09)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
       <text x="${tx+tw/2}" y="${ty+td/2}" text-anchor="middle" class="pl-t">Терраса</text>`}
   o+=`<rect x="${pad}" y="${pad}" width="${PW}" height="${PD}" fill="none" stroke="var(--text)" stroke-width="3"/>`;
@@ -1877,9 +1922,13 @@ function plannerSVG(m,cfg){
   return o+'</g></svg>';
 }
 /* перетаскивание и изменение размера комнат мышью или пальцем */
+let p3Pend=0;
+function live3D(m){if(p3Pend)return;p3Pend=requestAnimationFrame(()=>{p3Pend=0;const cfg=getCfg(m);
+  mount3D({w:m.w,d:m.d,floors:m.floors,facade:cfg.facade,roof:cfg.roof,wins:winsOf(m,cfg),terrace:cfg.terrace||0,
+    plan:planOf(m,cfg),mdl:m,ver:m.ver,parts:partsOf(m,cfg),winSides:m.winSides,roofShape:m.roofShape,openings:openingsOf(m,cfg)})})}
 function bindPlanner(){
   const svg=document.querySelector('.pl-svg');if(!svg||svg.__b)return;svg.__b=1;
-  const m=byId((location.hash.split('/')[2]||'').split('?')[0]);if(!m)return;
+  const m=curModel();if(!m)return;
   const cfg=getCfg(m),b=roomBox(m),k=+svg.dataset.k,pad=+svg.dataset.pad+(+svg.dataset.offx||0);
   let drag=null;
   const pt=e=>{const r=svg.getBoundingClientRect(),sc=svg.viewBox.baseVal.width/r.width;
@@ -1909,7 +1958,7 @@ function bindPlanner(){
       ci.setAttribute('cx',(x1+x2)/2);ci.setAttribute('cy',(y1+y2)/2);
       if(tx){tx.setAttribute('x',(x1+x2)/2+(o.wall===1?16:o.wall===2?-16:0));tx.setAttribute('y',(y1+y2)/2+(o.wall===0?22:o.wall===3?-14:4));
         tx.setAttribute('text-anchor',o.wall===1?'start':o.wall===2?'end':'middle')}
-      return}
+      live3D(m);return}
     const p=pt(e),dx=p.x-drag.sx,dy=p.y-drag.sy,r=drag.r,cur=cfg.rooms[drag.i];
     if(drag.mode==='move'){
       cur.x=Math.max(0,Math.min(b.w-r.w,snap((r.x||0)+dx)));
@@ -1924,8 +1973,8 @@ function bindPlanner(){
     ts[0].setAttribute('x',x+rw/2);ts[0].setAttribute('y',y+rd/2-3);
     ts[1].setAttribute('x',x+rw/2);ts[1].setAttribute('y',y+rd/2+13);
     ts[1].textContent=`${(cur.w*cur.d).toFixed(1).replace('.',',')} м² · ${cur.w.toFixed(1).replace('.',',')}×${cur.d.toFixed(1).replace('.',',')}`;
-    hh.setAttribute('x',x+rw-11);hh.setAttribute('y',y+rd-11)});
-  const up=()=>{if(!drag)return;drag=null;refreshCalc(m,true)};
+    hh.setAttribute('x',x+rw-11);hh.setAttribute('y',y+rd-11);live3D(m)});
+  const up=()=>{if(!drag)return;drag=null;refreshAny(m,true)};
   svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
 }
 
@@ -2024,7 +2073,7 @@ const insDelta=c=>c.contour==='cold'?0:(INS.find(i=>i.id===c.ins).mm-INS.find(i=
 const pilesCount=c=>{const st=c.floors==='1'?2.5:2;return (Math.ceil(c.w/st)+1)*(Math.ceil(c.d/st)+1)};
 const cWinK=c=>c.contour==='cold'?.8:c.contour==='prem'?1.2:1;
 const cWinsBase=c=>{const S=cArea(c);return{w120150:Math.max(1,Math.round(S/28)),w120100:Math.max(1,Math.round(S/22)),w6090:1}};
-const cWins=c=>({...cWinsBase(c),...(c.wins||{})});
+const cWins=c=>{const cc=calcState.custom;return cc&&cc.openings?winsFromOpenings(cc.openings):({...cWinsBase(c),...(c.wins||{})})};
 const cWinsDelta=c=>{const b=cWinsBase(c),cur=cWins(c),k=cWinK(c);
   return WIN_TYPES.reduce((s,w)=>s+((cur[w[0]]||0)-(b[w[0]]||0))*w[3]*k,0)};
 const cPile=c=>PILES.find(p=>p[0]===c.pile);
@@ -2066,6 +2115,7 @@ function customGroups(){const c=customState;
   <div class="cg"><div class="cg-h"><h3>Фундамент</h3><span class="num">${pilesCount(c)} опор · шаг ${c.floors==='1'?'2,5':'2,0'} м</span></div>
     <div class="opts">${[['blocks','Бетонные блоки 400×200×200','на рубероиде, лаги 100×150 — входят в цену',0]].concat(PILES.map(p=>[p[0],p[1],`${p[3]} · ${pilesCount(c)} шт × ${rub(p[2])}`,pilesCount(c)*p[2]]))
       .map(p=>`<button type="button" class="opt ${c.pile===p[0]?'on':''}" data-copt="pile:${p[0]}"><b>${p[1]}</b><small>${p[2]}</small><em class="num ${p[3]?'':'z'}">${p[3]?'+ '+rub(p[3]):'включено'}</em></button>`).join('')}</div></div>
+  ${roomsGroup(customModel(),getCfg(customModel()))}
   ${winsGroup(cWinsBase(c),cWins(c),cWinK(c),'cwin')}
   ${partsGroup(basePartsOf({plan:cPlan(c)}),cParts(c),'cpart')}
   <div class="cg"><div class="cg-h"><h3>Улучшения</h3><span>можно несколько</span></div><div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">${CUSTOM_OPTS.map(o=>{const v=o[2](c);if(v===null)return '';
@@ -2094,10 +2144,11 @@ const cParts=c=>({...basePartsOf({plan:cPlan(c)}),...(c.parts||{})});
 const customViz=()=>({w:customState.w,d:customState.d,floors:customState.floors==='2'?2:customState.floors==='1.5'?1.5:1,
   facade:'imit',roof:customState.opts.includes('metal')?'metal':'prof',wins:cWins(customState),terrace:0,plan:cPlan(customState),ver:cVer(customState),parts:cParts(customState),
   winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides,roofShape:(customState.planBase&&byId(customState.planBase)||{}).roofShape,
-  mdl:cModel(),openings:autoOpenings(cModel(),{parts:cParts(customState)})});
+  mdl:customModel(),plan:planOf(customModel(),getCfg(customModel())),openings:openingsOf(customModel(),getCfg(customModel()))});
 const cModel=()=>({w:customState.w,d:customState.d,ver:cVer(customState),plan:cPlan(customState),
   wins:cWins(customState),winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides});
 function refreshCustom(groups){
+  if(groups){const g=document.getElementById('calcGroups');if(g)setTimeout(bindPlanner,0)}
   mount3D(customViz());
   if(groups){const g=document.getElementById('calcGroups');if(g){const a=document.activeElement,id=a&&a.id,pos=a&&a.selectionStart;g.innerHTML=customGroups();if(id){const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}}}}
   const es=document.getElementById('estimate');if(es)es.innerHTML=customEstimate();
@@ -2872,39 +2923,39 @@ document.addEventListener('click',e=>{
     if(k==='contour')customState.ins=baseIns(customState);
     refreshCustom(true);return}
   if(e.target.closest('[data-cadd]')){const cfg=JSON.parse(JSON.stringify(customState));cart.push({id:'custom',custom:true,cfg,total:computeCustom(cfg).total});saveCart();toast(`Дом ${fmtM(cfg.w)}×${fmtM(cfg.d)} добавлен в корзину`);return}
-  const o=e.target.closest('[data-opt]');if(o){const [k,v]=o.dataset.opt.split(':');const m=byId(location.hash.split('/')[2]);if(m){getCfg(m)[k]=v;refreshCalc(m,true)}return}
+  const o=e.target.closest('[data-opt]');if(o){const [k,v]=o.dataset.opt.split(':');const m=curModel();if(m){getCfg(m)[k]=v;refreshAny(m,true)}return}
   const pr2=e.target.closest('[data-planready]');
-  if(pr2){const m=byId(location.hash.split('/')[2]);
+  if(pr2){const m=curModel();
     if(m){const cfg=getCfg(m);cfg.planReady=1;showPlanCard(m,cfg);toast('Планировка сохранена — уйдёт в заказ')}return}
   const pcc=e.target.closest('[data-plancard-close]');
   if(pcc){document.querySelector('.plan-card')?.remove();return}
   const oa=e.target.closest('[data-openadd]');
-  if(oa){const m=byId(location.hash.split('/')[2]);
+  if(oa){const m=curModel();
     if(m){const cfg=getCfg(m);cfg.openings=cfg.openings||autoOpenings(m,cfg);
       const id=oa.dataset.openadd,p=placeOpening(m,cfg,id);
       if(p){cfg.openings=cfg.openings.concat([p]);
         if(id==='door')cfg.parts={...partsOf(m,cfg),edoor:(partsOf(m,cfg).edoor||1)+1};
-        refreshCalc(m,true)}
+        refreshAny(m,true)}
       else toast('На стенах нет места — передвиньте проёмы')}return}
   const od=e.target.closest('[data-opendel]');
-  if(od){const m=byId(location.hash.split('/')[2]);
-    if(m){const cfg=getCfg(m);cfg.openings=(cfg.openings||autoOpenings(m,cfg)).slice(0,-1);refreshCalc(m,true)}return}
+  if(od){const m=curModel();
+    if(m){const cfg=getCfg(m);cfg.openings=(cfg.openings||autoOpenings(m,cfg)).slice(0,-1);refreshAny(m,true)}return}
   const ps=e.target.closest('[data-plansrc]');
-  if(ps){const m=byId((location.hash.split('/')[2]||'').split('?')[0]);
+  if(ps){const m=curModel();
     if(m){const cfg=getCfg(m);
       if(ps.dataset.plansrc==='own'){cfg.rooms=defaultRooms(m);cfg.openings=autoOpenings(m,cfg)}
       else{cfg.rooms=null;cfg.openings=null}
-      cfg.parts={};refreshCalc(m,true)}return}
+      cfg.parts={};refreshAny(m,true)}return}
   const ra=e.target.closest('[data-roomadd]');
-  if(ra){const m=byId((location.hash.split('/')[2]||'').split('?')[0]);
+  if(ra){const m=curModel();
     if(m){const cfg=getCfg(m),b=roomBox(m),rooms=cfg.rooms||defaultRooms(m);
       const w=Math.min(3,b.w),d=Math.min(3,b.d),sp=freeSpot(rooms,b,w,d);
-      cfg.rooms=rooms.concat([{n:'Комната',x:sp.x,y:sp.y,w,d}]);cfg.parts={};refreshCalc(m,true)}return}
+      cfg.rooms=rooms.concat([{n:'Комната',x:sp.x,y:sp.y,w,d}]);cfg.parts={};refreshAny(m,true)}return}
   const rd=e.target.closest('[data-roomdel]');
-  if(rd){const m=byId((location.hash.split('/')[2]||'').split('?')[0]);
-    if(m){const cfg=getCfg(m);cfg.rooms=(cfg.rooms||[]).filter((_,i)=>i!==+rd.dataset.roomdel);if(!cfg.rooms.length)cfg.rooms=null;cfg.parts={};refreshCalc(m,true)}return}
+  if(rd){const m=curModel();
+    if(m){const cfg=getCfg(m);cfg.rooms=(cfg.rooms||[]).filter((_,i)=>i!==+rd.dataset.roomdel);if(!cfg.rooms.length)cfg.rooms=null;cfg.parts={};refreshAny(m,true)}return}
   const pq=e.target.closest('[data-part]');
-  if(pq){const a=pq.dataset.part.split(':'),m=byId(location.hash.split('/')[2]);
+  if(pq){const a=pq.dataset.part.split(':'),m=curModel();
     if(m){const cfg=getCfg(m),cur=partsOf(m,cfg),next=Math.max(0,Math.min(60,(cur[a[0]]||0)+ +a[1]));
       cfg.parts={...cur,[a[0]]:next};
       /* входные двери живут и на схеме: добавляем и убираем проёмы вместе со счётчиком */
@@ -2912,12 +2963,12 @@ document.addEventListener('click',e=>{
         const doors=cfg.openings.filter(p=>p.t==='door');
         if(next>doors.length){const p=placeOpening(m,cfg,'door');if(p)cfg.openings=cfg.openings.concat([p])}
         else if(next<doors.length){const i=cfg.openings.map(p=>p.t).lastIndexOf('door');if(i>=0)cfg.openings=cfg.openings.filter((_,k)=>k!==i)}}
-      refreshCalc(m,true)}return}
+      refreshAny(m,true)}return}
   const pc=e.target.closest('[data-cpart]');
   if(pc){const a=pc.dataset.cpart.split(':');const cur=cParts(customState);
     customState.parts={...cur,[a[0]]:Math.max(0,Math.min(60,(cur[a[0]]||0)+ +a[1]))};refreshCustom(true);return}
   const wq=e.target.closest('[data-win]');
-  if(wq){const [id,dl]=wq.dataset.win.split(':');const m=byId(location.hash.split('/')[2]);
+  if(wq){const [id,dl]=wq.dataset.win.split(':');const m=curModel();
     if(m){const cfg=getCfg(m);
       if(cfg.openings){
         if(+dl>0){const p=placeOpening(m,cfg,id);if(p)cfg.openings=cfg.openings.concat([p]);else toast('На стенах нет места — передвиньте проёмы')}
@@ -2925,7 +2976,7 @@ document.addEventListener('click',e=>{
           if(i>=0)cfg.openings=cfg.openings.filter((_,k)=>k!==i);else toast('Таких окон уже нет')}
         cfg.wins={}}
       else{const cur=winsOf(m,cfg);cfg.wins={...cur,[id]:Math.max(0,Math.min(12,(cur[id]||0)+ +dl))}}
-      refreshCalc(m,true)}return}
+      refreshAny(m,true)}return}
   const wc=e.target.closest('[data-cwin]');
   if(wc){const [id,dl]=wc.dataset.cwin.split(':');const cur=cWins(customState);
     customState.wins={...cur,[id]:Math.max(0,Math.min(12,(cur[id]||0)+ +dl))};refreshCustom(true);return}
@@ -2936,7 +2987,7 @@ document.addEventListener('click',e=>{
   if(vw3&&P3.host&&P3.host.isConnected){P3.view=vw3.dataset.view;p3Fit();return}
   const vw=e.target.closest('[data-view]');
   if(vw){const v=VIEWS[vw.dataset.view];if(v){V3.yaw=v[0];V3.pitch=V3.mode==='plan'?Math.max(v[1],.62):v[1];draw3D()}return}
-  const rs=e.target.closest('[data-reset]');if(rs){const m=byId(rs.dataset.reset);calcState[m.id]=defaultCfg(m);refreshCalc(m,true);toast('Настройки сброшены');return}
+  const rs=e.target.closest('[data-reset]');if(rs){const m=byId(rs.dataset.reset);calcState[m.id]=defaultCfg(m);refreshAny(m,true);toast('Настройки сброшены');return}
   const j=e.target.closest('[data-jump]');if(j){e.preventDefault();document.getElementById(j.dataset.jump)?.scrollIntoView({behavior:'smooth'});return}
   if(e.target.closest('[data-contact]')){openContact();return}
   const a=e.target.closest('[data-add]');if(a){const m=byId(a.dataset.add),cfg=JSON.parse(JSON.stringify(getCfg(m))),key=JSON.stringify(cfg);
@@ -2949,7 +3000,9 @@ document.addEventListener('click',e=>{
 const customNum=(e,commit)=>{const n=e.target.closest('[data-cnum]');if(!n)return false;
   let v=parseFloat(String(n.value).replace(',','.'));const min=+n.min,max=+n.max;
   if(isNaN(v)||v<min||v>max){if(commit){v=Math.min(max,Math.max(min,isNaN(v)?customState[n.dataset.cnum]:v));n.value=v}else return true}
-  customState[n.dataset.cnum]=Math.round(v*2)/2;refreshCustom(commit);return true};
+  customState[n.dataset.cnum]=Math.round(v*2)/2;
+  if(commit&&calcState.custom){calcState.custom.rooms=null;calcState.custom.openings=null}
+  refreshCustom(commit);return true};
 document.addEventListener('change',e=>{if(!customNum(e,true)&&e.target.closest('[data-crange]'))refreshCustom(true)});
 document.addEventListener('change',e=>{const s=e.target.closest('[data-adstatus]');if(!s||!mgrSession())return;
   const [key,idx]=s.dataset.adstatus.split('|'),list=store.get(key,[]);
@@ -2958,7 +3011,7 @@ document.addEventListener('input',e=>{
   if(e.target.id==='admQ'){adminState.q=e.target.value;const pos=e.target.selectionStart;
     app.innerHTML=adminView()+footer();paint();bind();const n=document.getElementById('admQ');if(n){n.focus();n.setSelectionRange(pos,pos)}return}
   const rr=e.target.closest('[data-room]');
-  if(rr){const [i,k]=rr.dataset.room.split(':');const m=byId((location.hash.split('/')[2]||'').split('?')[0]);
+  if(rr){const [i,k]=rr.dataset.room.split(':');const m=curModel();
     if(m){const cfg=getCfg(m);cfg.rooms=cfg.rooms||defaultRooms(m);
       const v=k==='n'?rr.value:Math.max(.5,Math.min(24,parseFloat(String(rr.value).replace(',','.'))||1));
       cfg.rooms[+i]={...cfg.rooms[+i],[k]:v};

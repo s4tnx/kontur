@@ -805,6 +805,27 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
   .cg-swipe{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--dim);display:flex;align-items:center;gap:6px}
   .cg-swipe::after{content:"→";color:var(--lamp)}
 }
+
+/* документы по заявке */
+.docs{border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:10px;background:var(--panel)}
+.docs-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.docs-h b{font-weight:500;font-size:15px}
+.docs-h small{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.doc{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.doc i{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-family:var(--mono);font-size:10px;font-weight:600;background:var(--panel2);color:var(--lamp2);border:1px solid var(--line)}
+.doc div{min-width:0;display:grid;gap:2px}
+.doc b{font-weight:500;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc span{font-size:12px;color:var(--muted)}
+.doc .acts{display:flex;gap:6px}
+.doc .acts button{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:12.5px;cursor:pointer}
+.doc .acts button:hover{border-color:var(--lamp)}
+.doc .acts button.del{color:var(--muted)}
+.docs-up{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:6px;border-top:1px solid var(--line)}
+.docs-up select{height:38px;border-radius:999px;border:1px solid var(--line2);background:var(--bg);color:var(--text);font:inherit;font-size:13px;padding:0 12px}
+.docs-up label.btn{height:38px;cursor:pointer}
+.docs-up input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.docs-empty{font-size:13px;color:var(--muted);margin:0}
+@media (max-width:560px){.doc{grid-template-columns:32px 1fr}.doc .acts{grid-column:2}.docs-up select,.docs-up label.btn{flex:1 1 100%;justify-content:center}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 
@@ -880,7 +901,7 @@ const MODELS=[
  {id:'seliger',size:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
  {id:'valdai',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
  {id:'vuoksa',size:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right',inset:1},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,3.4],['Спальня',0,3.4,2.4,4.6],['Спальня',2.4,3.4,2.2,2.6],['С/у',4.6,3.4,1.4,2.6]]},
- {id:'karelia',size:'8x8',winSides:[3,1,.6,.5],ver:{w:5,d:2,pos:'front-right',inset:1},photo:'h8x8.jpg',w:8,d:8,name:'Карелия',floors:1.5,area:96,beds:3,baths:1,price:5610000,weeks:12,days:8,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Мансарда со вторым светом и тремя спальнями',plan:[['Гостиная',0,0,5,4],['Кухня',5,0,3,4],['Спальня',0,4,3,4],['С/у',3,4,2,2],['Лестница',5,4,3,2]]},
+ {id:'karelia',size:'karelia',door:{wall:0,f:.498},winSides:[3,1,1.2,1.4],ver:{w:3,d:9.05,pos:'side-right',inset:1},photo:'h8x8.jpg',w:16.24,d:9.05,name:'Карелия',floors:1,area:147,beds:3,baths:2,price:0,weeks:12,days:10,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Одноэтажный дом с тремя спальнями, гостиной с выходом на террасу, двумя санузлами и техпомещением',plan:[['С/у',0,0,2.64,2.3],['Гардероб',0,2.3,2.64,2.27],['Спальня',2.64,0,2.89,4.57],['Спальня',5.53,0,2.93,4.57],['Гостиная',8.46,0,4.78,6.04],['Спальня',0,4.57,3.47,4.48],['Холл',3.47,4.57,4.99,1.47],['С/у',3.47,6.04,1.98,3.01],['Прихожая',5.45,6.04,2.28,3.01],['Тех. пом.',7.73,6.04,1.97,3.01],['Кухня',9.7,6.04,3.54,3.01]]},
  {id:'altai',size:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:2,area:172,beds:4,baths:2,price:9110000,weeks:16,days:12,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.2,5.2],['Спальня',0,5.2,4.2,4.8],['Кухня-гостиная',4.2,0,3.2,10]]},
  {id:'baikal',size:'12x10',winSides:[3,1,.8,.5],ver:{w:7,d:2.5,pos:'front-left',inset:1},photo:'h12x10.jpg',w:12,d:10,name:'Байкал',floors:2,area:208,beds:5,baths:2,price:11110000,weeks:18,days:14,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Большой семейный дом с котельной и террасой',plan:[['Гостиная',0,0,7,4.5],['Спальня',0,4.5,4,3],['С/у',4,4.5,3,3],['Кухня',7,0,5,4],['Котельная',7,4,5,2],['Холл',7,6,5,4]]},
 ];
@@ -892,7 +913,11 @@ const PKGS=[
 ];
 const STAGES=['Заявка','Проект','Фундамент','Каркас','Сдача'];
 /* размеры — отдельный справочник: любой дом строится в любом из них */
-const SIZES=MODELS.map(m=>({id:m.size,w:m.w,d:m.d,days:m.days}));
+const SIZES=[{id:'6x4',w:6,d:4,days:3},{id:'6x5',w:6,d:5,days:3},{id:'6x6',w:6,d:6,days:4},{id:'6x7',w:6,d:7,days:5},
+  {id:'6x8',w:6,d:8,days:5},{id:'8x8',w:8,d:8,days:8},{id:'10x10',w:10,d:10,days:12},{id:'12x10',w:12,d:10,days:14}];
+/* проектный размер, если его нет в размерном ряду (Карелия по чертежу) */
+const fmtD=v=>typeof v==='number'?String(+v.toFixed(2)).replace('.',','):String(v);
+const ownSize=m=>!SIZES.some(s=>s.id===(m.native?byId(m.native).size:m.size));
 /* старые ссылки и сохранённые данные, где домом называли размер */
 const LEGACY={'6x4':'ladoga','6x5':'onega','6x6':'seliger','6x7':'valdai','6x8':'vuoksa','8x8':'karelia','10x10':'altai','12x10':'baikal'};
 /* ставка за м2 тёплого контура по площади — из базовых восьми проектов */
@@ -924,7 +949,7 @@ function curModel(){const h=location.hash;
   return byId((h.split('/')[2]||'').split('?')[0])}
 function refreshAny(m,groups){if(m&&m.id==='custom')refreshCustom(true);else refreshCalc(m,groups)}
 /* минимальная цена проекта: самый маленький размер в холодном контуре */
-const minPrice=m=>Math.min.apply(null,SIZES.map(s=>variant(m,s.id).price))*PKGS[0].k;
+const minPrice=m=>Math.min.apply(null,[...SIZES.map(s=>variant(m,s.id).price),byId(nativeOf(m)).price])*PKGS[0].k;
 const verA=m=>m.ver?Math.round(m.ver.w*m.ver.d*10)/10:0;
 /* встроенная терраса — вырез в габарите: жилая площадь меньше пятна застройки */
 /* габарит W×D включает террасу. Площадь дома = (габарит − терраса) × этажность; общая = дом + терраса */
@@ -943,7 +968,7 @@ const nicheOf=(o,w,d)=>{if(!(o.ver&&o.ver.inset))return null;
 /* пятно, свободное под комнаты: терраса вычитается из габарита */
 const roomBox=(m)=>{const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
   if(!N)return{w:m.w,d:m.d,ox:0,oy:0};
-  if(N.side)return{w:m.w-N.vw,d:m.d,ox:N.right?0:N.vw,oy:0};
+  if(N.side)return{w:+(m.w-N.vw).toFixed(2),d:m.d,ox:N.right?0:+N.vw.toFixed(2),oy:0};
   return{w:m.w,d:m.d,ox:0,oy:0}};
 /* сдвиг веранды вдоль фасада: по центру, к правому или левому краю — как на фотографии проекта */
 const verOff=m=>{if(!m.ver)return 0;const free=(m.w-Math.min(m.w,m.ver.w))/2;
@@ -1769,7 +1794,7 @@ function scaleSVG(){
   for(let i=0;i<=Wm;i+=2){o+=`<line x1="${bx+i*s}" y1="${by+6}" x2="${bx+i*s}" y2="${by+10}" stroke="rgba(236,232,225,.3)"/><text x="${bx+i*s}" y="${by+24}" text-anchor="middle">${i}</text>`}
   for(let i=0;i<=Dm;i+=2){o+=`<text x="${bx-10}" y="${by-i*s+4}" text-anchor="end">${i}</text>`}
   list.forEach(m=>{o+=`<rect class="fp" data-fp="${m.id}" x="${bx}" y="${by-m.d*s}" width="${m.w*s}" height="${m.d*s}"/>`});
-  list.forEach(m=>{o+=`<text data-fpl="${m.id}" x="${bx+m.w*s-6}" y="${by-m.d*s+15}" text-anchor="end">${m.w}×${m.d}</text>`});
+  list.forEach(m=>{o+=`<text data-fpl="${m.id}" x="${bx+m.w*s-6}" y="${by-m.d*s+15}" text-anchor="end">${fmtD(m.w)}×${fmtD(m.d)}</text>`});
   o+=`<text x="${bx+Wm*s}" y="${by+24}" text-anchor="end" dx="26">м</text></svg>`;return o;
 }
 function home(){
@@ -1796,7 +1821,7 @@ function home(){
     </div>
     <div class="scroll-cue" aria-hidden="true"></div>
   </div>
-  <div class="wrap under-hero"><span class="label">Каркасные дома в скандинавском стиле</span><p>Центральный фронтон со вторым светом, два жилых крыла, фальцевая кровля и тёплый контур 200 мм — так выглядит «${hero.name}» ${hero.w}×${hero.d}.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#/house/${hero.id}">Смотреть дом</a><a class="btn" href="#/custom">Свой размер</a></div></div>
+  <div class="wrap under-hero"><span class="label">Каркасные дома в скандинавском стиле</span><p>Высокий фронтон, панорамное остекление, фальцевая кровля и тёплый контур до 250 мм — восемь проектов, каждый в любом из восьми размеров.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#/catalog">Смотреть дома</a><a class="btn" href="#/custom">Свой размер</a></div></div>
 
   <section class="wrap"><div class="manifesto">
     <p class="two-tone reveal">Дом — это не <em>стены.</em> Это <em>тепло,</em> которое чувствуешь, когда за окном <em>минус тридцать.</em></p>
@@ -2044,6 +2069,8 @@ function autoOpenings(m,cfg){
   const ed=(cfg&&cfg.parts&&cfg.parts.edoor)||1;
   const pref=terrWall>=0?terrWall:0;
   for(let i=0;i<ed;i++){
+    if(!i&&m.door){const len=wallLen(m,m.door.wall),u=freeU(m,ops,-1,m.door.wall,(m.door.f-.5)*len,openSz('door')[0]);
+      if(u!=null){ops.push({t:'door',wall:m.door.wall,u});continue}}
     const order=i?[2,1,3,0]:[pref,0,1,2,3];let placed=false;
     for(const wall of order){const len=wallLen(m,wall),u=freeU(m,ops,-1,wall,i?0:len*.22,openSz('door')[0]);
       if(u!=null){ops.push({t:'door',wall,u});placed=true;break}}
@@ -2163,7 +2190,7 @@ function optDelta(m,group,id,cfg){const g=CALC.find(x=>x.key===group);const def=
 function computeCalc(m,cfg){
   cfg={...defaultCfg(m,cfg.pkg),...cfg};
   if(cfg.pkg==='cold')cfg={...cfg,ins:'100'};   /* холодный контур — без утепления */
-  const lines=[[`«${m.name}» ${m.w}×${m.d}, холодный контур`,m.price*PKGS[0].k]];
+  const lines=[[`«${m.name}» ${fmtD(m.w)}×${fmtD(m.d)}, холодный контур`,m.price*PKGS[0].k]];
   CALC.forEach(g=>{const it=g.items.find(i=>i.id===cfg[g.key]);const d=optDelta(m,g.key,cfg[g.key],cfg);if(Math.round(d))lines.push([`${g.title}: ${it.name.toLowerCase()}`,d])});
   const wd=winsDelta(m,cfg);if(Math.round(wd))lines.push(['Окна: изменение комплекта',wd]);
   const pd=partsDelta(m,cfg);if(Math.round(pd))lines.push(['Перегородки и двери: изменение',pd]);
@@ -2344,7 +2371,7 @@ function bindPlanner(){
 function roomsGroup(m,cfg){
   const own=!!(cfg.rooms&&cfg.rooms.length),rooms=own?cfg.rooms:defaultRooms(m),b=roomBox(m),
     auto=basePartsOf({plan:planOf(m,{rooms})}),fit=roomsArea(rooms)<=b.w*b.d+.01;
-  return `<div class="cg"><div class="cg-h"><h3>Планировка</h3><span class="num">${b.w} × ${b.d} м под комнаты · ${roomsArea(rooms)} м²</span></div>
+  return `<div class="cg"><div class="cg-h"><h3>Планировка</h3><span class="num">${fmtD(b.w)} × ${fmtD(b.d)} м под комнаты · ${roomsArea(rooms)} м²</span></div>
   <div class="tabs"><button type="button" class="pill ${own?'':'on'}" data-plansrc="project">Проектная</button><button type="button" class="pill ${own?'on':''}" data-plansrc="own">Своя планировка</button></div>
   ${own?`${plannerSVG(m,cfg)}
     <small class="note" style="margin-top:8px">Перетаскивайте комнаты мышью, тяните за уголок — меняется размер. Окна и двери тащите вдоль стены или на другую стену — они «прилипают» к ближайшей. Шаг сетки 0,5 м, привязка 10 см.</small>
@@ -2547,27 +2574,27 @@ function customView(){
 function modelView(id){
   const m=byId(id);if(!m)return notFound();
   const i=MODELS.findIndex(x=>x.id===nativeOf(m)),prev=MODELS[i-1],next=MODELS[i+1];
-  const on=favs.includes(nativeOf(m));const cfg=getCfg(m);const est=computeCalc(m,cfg);const sz=m.native?'@'+m.size:'';
+  const on=favs.includes(nativeOf(m));const cfg=getCfg(m);const est=computeCalc(m,cfg);const sz=ownSize(m)&&!m.native?'':'@'+m.size;
   return `<div class="wrap">
-  <div class="crumbs"><a href="#/">Главная</a>/<a href="#/catalog">Каталог</a>/<span>${m.name} ${m.w}×${m.d}</span></div>
+  <div class="crumbs"><a href="#/">Главная</a>/<a href="#/catalog">Каталог</a>/<span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)}</span></div>
   <div class="model">
-    <div class="stage">${m.photo?`<img src="${m.photo}" alt="Каркасный дом «${m.name}» ${m.w}×${m.d} м вечером">`:`<canvas data-scene="${m.id}" data-fw=".62" data-fh=".6"></canvas>`}<div class="tag"><span class="num">${m.w}×${m.d} м</span><span class="num">${livingA(m)} м² дом</span>${verA(m)?`<span class="num">${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}</span>`:''}<span>${floorsTxt(m.floors)}</span></div></div>
+    <div class="stage">${m.photo?`<img src="${m.photo}" alt="Каркасный дом «${m.name}» ${fmtD(m.w)}×${fmtD(m.d)} м вечером">`:`<canvas data-scene="${m.id}" data-fw=".62" data-fh=".6"></canvas>`}<div class="tag"><span class="num">${fmtD(m.w)}×${fmtD(m.d)} м</span><span class="num">${livingA(m)} м² дом</span>${verA(m)?`<span class="num">${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}</span>`:''}<span>${floorsTxt(m.floors)}</span></div></div>
     <div class="info">
-      <h1><small class="num">Проект ${String(i+1).padStart(2,'0')} из ${MODELS.length} · ${m.w}×${m.d} м · ${String(m.area).replace('.',',')} м²</small>${m.name}</h1>
+      <h1><small class="num">Проект ${String(i+1).padStart(2,'0')} из ${MODELS.length} · ${fmtD(m.w)}×${fmtD(m.d)} м · ${String(m.area).replace('.',',')} м²</small>${m.name}</h1>
       <p style="color:var(--muted);font-size:18px;max-width:40ch">${m.lead}.</p>
-      <div style="display:grid;gap:10px"><span class="label">Размер дома · планировка и вид «${m.name}» сохраняются</span><div class="size-switch">${SIZES.map(s=>`<a class="pill num ${s.id===m.size?'on':''}" href="#/house/${nativeOf(m)}@${s.id}">${s.w}×${s.d}</a>`).join('')}</div>
+      <div style="display:grid;gap:10px"><span class="label">Размер дома · планировка и вид «${m.name}» сохраняются</span><div class="size-switch">${ownSize(m)?(()=>{const n=byId(nativeOf(m));return `<a class="pill num ${m.native?'':'on'}" href="#/house/${n.id}">${fmtD(n.w)}×${fmtD(n.d)} · по чертежу</a>`})():''}${SIZES.map(s=>`<a class="pill num ${s.id===m.size?'on':''}" href="#/house/${nativeOf(m)}@${s.id}">${s.w}×${s.d}</a>`).join('')}</div>
         <small class="note">Проект «${m.name}» строится в любом из восьми размеров: площадь, комплект окон, планировка, срок и цена пересчитываются, сам дом остаётся тот же.</small></div>
       <div class="price-row"><div><small id="topPkg">${PKGS.find(p=>p.id===cfg.pkg).name} · ${rub(est.total/m.area)} за м² · сборка ${est.days} ${plural(est.days,['день','дня','дней'])}</small><b class="num" id="topPrice">${rub(est.total)}</b></div>
         <div class="buy"><a class="btn lamp" href="#calc" data-jump="calc">Рассчитать стоимость</a><button class="btn" data-add="${m.id}">В корзину</button><button class="circ fav-inline ${on?'':''}" data-fav="${nativeOf(m)}" aria-label="В избранное" style="${on?'color:var(--lamp);border-color:var(--lamp)':''}">${HEART.replace('fill="none"',on?'fill="currentColor"':'fill="none"')}</button></div></div>
       <div class="specs">${[
-        ['Размер',`${m.w} × ${m.d} м, с террасой`],['Площадь дома',`${String(livingA(m)).replace('.',',')} м²${m.floors>1?' · все этажи':''}`],['Терраса в габарите',verA(m)?`${String(verA(m)).replace('.',',')} м² · ${String(m.ver.w).replace('.',',')} × ${String(m.ver.d).replace('.',',')} м`:'нет'],['Общая площадь',`${String(m.area).replace('.',',')} м² · дом${m.floors>1?' (все этажи)':''} + терраса`],['Пятно застройки',`${m.w*m.d} м²`],['Этажность',floorsTxt(m.floors)],['Спальни',m.beds],['Санузлы',m.baths],
+        ['Размер',`${fmtD(m.w)} × ${fmtD(m.d)} м, с террасой`],['Площадь дома',`${String(livingA(m)).replace('.',',')} м²${m.floors>1?' · все этажи':''}`],['Терраса в габарите',verA(m)?`${String(verA(m)).replace('.',',')} м² · ${String(m.ver.w).replace('.',',')} × ${String(m.ver.d).replace('.',',')} м`:'нет'],['Общая площадь',`${String(m.area).replace('.',',')} м² · дом${m.floors>1?' (все этажи)':''} + терраса`],['Пятно застройки',`${m.w*m.d} м²`],['Этажность',floorsTxt(m.floors)],['Спальни',m.beds],['Санузлы',m.baths],
         ['Высота потолка',m.floors===1.5?'2,7 м / второй свет':'2,6 м'],['Стена','каркас 50×100…50×200'],['Утепление','каменная вата 100–250 мм'],['Мембраны','ветро-влагозащита + пароизоляция'],['Фундамент',m.base],['Кровля','профлист, цвет на выбор'],
         ['Окна',`${WIN_TYPES.reduce((s,w)=>s+(m.wins[w[0]]||0),0)} шт, ПВХ 2-камерные`],['Сборка на участке',`${m.days} ${plural(m.days,['день','дня','дней'])}`]
       ].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
     </div>
   </div></div>
   <section class="wrap" id="calc" style="border-top:1px solid var(--line)">
-    <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Калькулятор</span><h2 style="max-width:18ch">Соберите свой «${m.name}» и узнайте цену</h2></div><p>Выберите фундамент, фасад, кровлю и оснащение — смета справа пересчитается сразу. Площади посчитаны для размера ${m.w}×${m.d} м.</p></div>
+    <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Калькулятор</span><h2 style="max-width:18ch">Соберите свой «${m.name}» и узнайте цену</h2></div><p>Выберите фундамент, фасад, кровлю и оснащение — смета справа пересчитается сразу. Площади посчитаны для размера ${fmtD(m.w)}×${fmtD(m.d)} м.</p></div>
     <div class="calc"><div class="calc-groups" id="calcGroups">${calcGroups(m)}</div><aside class="estimate" id="estimate">${estimateHTML(m)}</aside></div>
   </section>
   <section class="wrap" id="planning" style="border-top:1px solid var(--line)">
@@ -2578,10 +2605,10 @@ function modelView(id){
   <section class="wrap" style="border-top:1px solid var(--line)"><div class="plan-sec">
     <div style="display:grid;gap:22px"><span class="label">Планировка</span><h2 style="font-size:clamp(28px,3.4vw,46px)">${m.floors===1?'План дома':'План первого этажа'}</h2>
       <p style="color:var(--muted);max-width:44ch">Размеры по осям в миллиметрах. Внутренние перегородки можно переставить — цена каркаса не меняется.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">${prev?`<a class="btn" href="#/house/${prev.id}${sz}">← «${prev.name}» ${m.w}×${m.d}</a>`:''}${next?`<a class="btn" href="#/house/${next.id}${sz}">«${next.name}» ${m.w}×${m.d} →</a>`:''}</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${prev?`<a class="btn" href="#/house/${prev.id}${sz}">← «${prev.name}»${sz?` ${fmtD(m.w)}×${fmtD(m.d)}`:''}</a>`:''}${next?`<a class="btn" href="#/house/${next.id}${sz}">«${next.name}»${sz?` ${fmtD(m.w)}×${fmtD(m.d)}`:''} →</a>`:''}</div></div>
     <div class="plan">${planSVG({...m,plan:planOf(m,getCfg(m))})}</div>
   </div></section>
-  <section class="wrap" style="border:0"><div class="sec-head"><h2>Другие дома ${m.w}×${m.d}</h2><a class="btn" href="#/catalog/${m.size}">Все дома ${m.w}×${m.d}</a></div>
+  <section class="wrap" style="border:0"><div class="sec-head"><h2>${ownSize(m)&&!m.native?'Другие проекты':`Другие дома ${fmtD(m.w)}×${fmtD(m.d)}`}</h2><a class="btn" href="#/catalog${ownSize(m)&&!m.native?'':'/'+m.size}">${ownSize(m)&&!m.native?'Весь каталог':`Все дома ${fmtD(m.w)}×${fmtD(m.d)}`}</a></div>
     <div class="grid">${MODELS.filter(x=>x.id!==nativeOf(m)).slice(Math.max(0,Math.min(i-2,MODELS.length-5)),Math.max(0,Math.min(i-2,MODELS.length-5))+4).map(x=>card(x,m.size)).join('')}</div></section>`;
 }
 function cartView(){
@@ -2631,7 +2658,7 @@ function itemSpec(it){
   const wins=winsOf(m,c),nw=WIN_TYPES.reduce((s,w)=>s+(wins[w[0]]||0),0),pr=partsOf(m,c);
   const rooms=(c.rooms&&c.rooms.length)?c.rooms:defaultRooms(m);
   const e=computeCalc(m,c);
-  return [['Проект',`«${m.name}» ${m.w} × ${m.d} м`],['Площадь',`${livingA(m)} м² дом${verA(m)?` + ${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}`:''}`],
+  return [['Проект',`«${m.name}» ${fmtD(m.w)} × ${fmtD(m.d)} м`],['Площадь',`${livingA(m)} м² дом${verA(m)?` + ${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}`:''}`],
     ['Комплектация',nm('pkg')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')],['Кровля',nm('roof')],
     ['Фундамент',c.found==='blocks'?'бетонные блоки 400×200×200':`${nm('found')} · ${pileCount(m)} шт`],
     ['Окна',`${nw} шт, профиль: ${nm('win').toLowerCase()}`],
@@ -2641,6 +2668,41 @@ function itemSpec(it){
     ['Дополнительно',c.extras.length?c.extras.map(k=>(EXTRAS.find(x=>x[0]===k)||[,''])[1]).join(', '):'нет'],
     ['Доставка',`${c.km} км × ${DELIVERY_RATE} ₽`],['Сборка',`${e.days} ${plural(e.days,['день','дня','дней'])}`]]}
 function plural(n,f){const a=n%10,b=n%100;return a===1&&b!==11?f[0]:a>=2&&a<=4&&(b<10||b>=20)?f[1]:f[2]}
+/* ---------- документы по заявке: договор, смета, чертежи, акты, фото — видят и клиент, и менеджер ---------- */
+const DOC_CATS=['Договор','Смета','Проект и чертежи','Акт','Фото стройки','План участка','Другое'];
+const DOC_MAX=3*1024*1024;
+const docsOf=no=>store.get('docs.'+no,[]);
+const docExt=n=>{const e=(String(n).split('.').pop()||'').toUpperCase();return e.length<=4?e:'ФАЙЛ'};
+const docSize=b=>b>1048576?(b/1048576).toFixed(1).replace('.',',')+' МБ':Math.max(1,Math.round(b/1024))+' КБ';
+function docsBlock(no,role){const list=docsOf(no);
+  return `<div class="docs" data-docs="${no}" data-role="${role}">
+    <div class="docs-h"><b>Документы по дому <span class="num" style="color:var(--muted)">· ${list.length}</span></b><small>${role==='manager'?'клиент видит все файлы':'загружает менеджер и вы'}</small></div>
+    ${list.length?list.slice().reverse().map(d=>`<div class="doc"><i>${esc(docExt(d.name))}</i>
+      <div><b title="${esc(d.name)}">${esc(d.name)}</b><span>${esc(d.cat)} · ${docSize(d.size)} · ${new Date(d.at).toLocaleDateString('ru-RU')} · ${d.by==='manager'?'менеджер'+(d.who?' '+esc(d.who):''):'клиент'}</span></div>
+      <div class="acts"><button type="button" data-docget="${no}|${d.id}">Скачать</button>${role==='manager'||d.by==='client'?`<button type="button" class="del" data-docdel="${no}|${d.id}" aria-label="Удалить ${esc(d.name)}">Удалить</button>`:''}</div></div>`).join('')
+      :`<p class="docs-empty">${role==='manager'?'Загрузите договор, смету, чертежи или акты — они появятся у клиента в личном кабинете.':'Здесь появятся договор, смета, чертежи и акты от менеджера. Вы тоже можете прикрепить файлы — например, план участка.'}</p>`}
+    <div class="docs-up"><select data-doccat aria-label="Тип документа">${DOC_CATS.map(c=>`<option ${role==='client'&&c==='План участка'?'selected':''}>${c}</option>`).join('')}</select>
+      <label class="btn"><input type="file" multiple data-docup="${no}" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.doc,.docx,.xls,.xlsx,.dwg,.txt">Загрузить файлы</label>
+      <small class="note" style="margin:0">до 3 МБ на файл · в прототипе файлы хранятся в этом браузере</small></div></div>`}
+function refreshDocs(no){document.querySelectorAll(`[data-docs="${no}"]`).forEach(el=>{el.outerHTML=docsBlock(no,el.dataset.role)})}
+document.addEventListener('change',async e=>{const inp=e.target.closest&&e.target.closest('[data-docup]');if(!inp)return;
+  const box=inp.closest('[data-docs]'),no=inp.dataset.docup,role=box.dataset.role,cat=box.querySelector('[data-doccat]').value;
+  const files=[...inp.files];let added=0,skipped=[];
+  const s=role==='manager'&&typeof mgrSession==='function'?mgrSession():null,who=s&&mgrAccounts()[s.login]?mgrAccounts()[s.login].name:'';
+  for(const f of files){if(f.size>DOC_MAX){skipped.push(f.name);continue}
+    const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});
+    const list=docsOf(no);list.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:f.name,type:f.type,size:f.size,cat,by:role,who,at:Date.now(),data});
+    try{localStorage.setItem('kontur.docs.'+no,JSON.stringify(list));added++}catch(err){skipped.push(f.name+' (нет места в браузере)')}}
+  refreshDocs(no);
+  if(added)toast(added===1?'Файл загружен':`Загружено файлов: ${added}`);
+  if(skipped.length)setTimeout(()=>toast('Не загружено: '+skipped.join(', ')+' — лимит 3 МБ'),added?2300:0)});
+document.addEventListener('click',e=>{
+  const g=e.target.closest&&e.target.closest('[data-docget]');
+  if(g){const [no,id]=g.dataset.docget.split('|'),d=docsOf(no).find(x=>x.id===id);if(!d)return;
+    fetch(d.data).then(r=>r.blob()).then(b=>{const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=d.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)});return}
+  const x=e.target.closest&&e.target.closest('[data-docdel]');
+  if(x){const [no,id]=x.dataset.docdel.split('|'),d=docsOf(no).find(y=>y.id===id);if(!d||!confirm(`Удалить «${d.name}»?`))return;
+    store.set('docs.'+no,docsOf(no).filter(y=>y.id!==id));refreshDocs(no);toast('Файл удалён')}});
 function accountView(tab){
   if(!user)return `<div class="wrap"><div class="page-h"><h1>Личный кабинет</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">Войдите, чтобы увидеть заявки и избранное</p><p>Здесь хранятся ваши дома, этапы стройки и контакты.</p><button class="btn solid" data-login>Войти или зарегистрироваться</button></div>
     ${favs.length?`<div class="sec-head"><h2>Избранное на этом устройстве</h2></div><div class="grid" style="margin-bottom:80px">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:''}</div>`;
@@ -2653,10 +2715,11 @@ function accountView(tab){
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn solid" type="submit">Сохранить</button><button class="btn" type="button" id="logout">Выйти</button></div></form>`
    :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">Заявка № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span class="status">${STAGES[o.stage]}</span></header>
       <div style="display:grid;gap:10px">${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
-        return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${m.w}×${m.d} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
+        return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
         <details class="spec-det"><summary>Спецификация и планировка</summary>
           <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
           ${!it.custom&&it.cfg&&it.cfg.rooms?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details></div>`}).join('')}</div>
+      ${docsBlock(o.no,'client')}
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
   const orders_n=orders.length;
@@ -3082,7 +3145,7 @@ function showPlanCard(m,cfg){
   const el=document.createElement('div');el.className='plan-card';
   el.innerHTML=`<div class="pc-h"><span class="label">Планировка сохранена</span>
       <button type="button" data-plancard-close aria-label="Скрыть">✕</button></div>
-    <b>${m.name} · ${m.w}×${m.d} м</b>
+    <b>${m.name} · ${fmtD(m.w)}×${fmtD(m.d)} м</b>
     <div class="pc-plan">${orderPlanSVG(m,cfg)}</div>
     <small class="note">Эта схема уйдёт в заявку: её увидят в личном кабинете, в бригаде и в договоре.</small>`;
   document.body.appendChild(el);
@@ -3203,9 +3266,10 @@ function adminView(){
             <select data-adstatus="${o._key}|${o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></div>
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
-            return `<details class="spec-det"><summary>${m.name} ${m.w}×${m.d} · ${rub(itemTotal(it))}</summary>
+            return `<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
               <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
               ${!it.custom&&it.cfg?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details>`}).join('')}
+          ${docsBlock(o.no,'manager')}
         </div>`).join('')}</div>`}).join(''):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Оформите заказ из корзины — он появится здесь.</p></div>`}</div></div>`}
 
 /* ---------- router ---------- */

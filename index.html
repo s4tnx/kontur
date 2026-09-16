@@ -387,6 +387,13 @@ section{padding:clamp(70px,10vw,130px) 0;border-bottom:1px solid var(--line)}
 .viz{position:relative;border:1px solid var(--line);border-radius:22px;background:radial-gradient(120% 90% at 50% 0%,var(--panel2),var(--bg) 70%);overflow:hidden}
 .viz canvas{width:100%;height:clamp(340px,46vh,480px);display:block;cursor:grab;touch-action:none}
 .viz canvas:active{cursor:grabbing}
+.p3-wrap{min-height:520px}
+#plan3d{position:absolute;inset:0;border-radius:inherit;overflow:hidden}
+#plan3d canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+#plan3d canvas:active{cursor:grabbing}
+.p3-tip{position:absolute;z-index:5;pointer-events:none;display:grid;gap:2px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:8px 12px;box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.p3-tip b{font-size:13px;font-weight:600}
+.p3-tip span{font-family:var(--mono);font-size:12px;color:var(--lamp2)}
 .viz-modes{position:absolute;left:16px;top:16px;display:flex;gap:6px;background:rgba(20,22,24,.7);border:1px solid var(--line);border-radius:999px;padding:4px}
 .viz-modes button{font-size:12.5px;color:var(--muted);background:transparent;border:0;border-radius:999px;padding:7px 16px;cursor:pointer;transition:.2s}
 .viz-modes button:hover{color:var(--text)}
@@ -636,6 +643,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   <main id="app"></main>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 /* ---------- data ---------- */
 const MODELS=[
@@ -1262,7 +1271,8 @@ function draw3D(){
   g.fillText(V3.mode==='plan'?`${String(G.w).replace('.',',')} × ${String(G.d).replace('.',',')} м · стены срезаны на 1,15 м`
     :`${String(G.w).replace('.',',')} × ${String(G.d).replace('.',',')} м · конёк ${G.rh.toFixed(1).replace('.',',')} м`,W/2,H-16);
 }
-function mount3D(o){const cv=document.getElementById('viz3d');if(!cv)return;cv.__o=o;
+function mount3D(o){if(o&&o.mdl&&mountPlan3(o))return;
+  const cv=document.getElementById('viz3d');if(!cv)return;cv.__o=o;
   if(!cv.__bound){cv.__bound=1;let last=null;
     cv.addEventListener('pointerdown',e=>{last=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)});
     cv.addEventListener('pointermove',e=>{if(!last)return;V3.yaw+=(e.clientX-last[0])*.009;
@@ -1277,7 +1287,157 @@ function mount3D(o){const cv=document.getElementById('viz3d');if(!cv)return;cv._
     cv.addEventListener('pointerleave',()=>{if(V3.hover!=null){V3.hover=null;draw3D()}})}
   draw3D()}
 const VIEWS={corner:[-.68,.72],front:[0,.62],side:[-1.57,.62],top:[-.68,1.05]};
-function vizBlock(){V3.mode='plan';return `<div class="viz"><canvas id="viz3d" aria-label="3D-планировка дома"></canvas>
+/* ---------- 3D-планировка на three.js: только просмотр, данные — из редактора ---------- */
+const P3={r:null,scene:null,cam:null,ctl:null,group:null,host:null,raf:0,hover:null,picks:[],view:'corner',o:null};
+const P3H=1.25;          /* высота среза стен */
+const P3T=.16,P3TI=.09;  /* толщина наружных стен и перегородок */
+function p3Label(text,sub,opt){
+  opt=opt||{};const c=document.createElement('canvas'),x=c.getContext('2d'),s=4;
+  x.font=`600 ${15*s}px system-ui,sans-serif`;const w1=x.measureText(text).width;
+  x.font=`500 ${12*s}px ui-monospace,monospace`;const w2=sub?x.measureText(sub).width:0;
+  const W=Math.max(w1,w2)+26*s,H=(sub?44:28)*s;c.width=W;c.height=H;
+  x.fillStyle=opt.bg||'rgba(20,22,25,.82)';
+  x.beginPath();(x.roundRect?x.roundRect(0,0,W,H,10*s):x.rect(0,0,W,H));x.fill();
+  if(opt.border){x.strokeStyle=opt.border;x.lineWidth=2*s;x.stroke()}
+  x.textAlign='center';x.fillStyle=opt.fg||'#F2F0EA';x.font=`600 ${15*s}px system-ui,sans-serif`;
+  x.fillText(text,W/2,(sub?19:19)*s);
+  if(sub){x.fillStyle=opt.sub||'#F2B45C';x.font=`500 ${12*s}px ui-monospace,monospace`;x.fillText(sub,W/2,36*s)}
+  const tex=new THREE.CanvasTexture(c);tex.anisotropy=4;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,transparent:true}));
+  const k=(opt.scale||.0042)/s*4;sp.scale.set(W*k,H*k,1);sp.renderOrder=10;return sp}
+function p3Box(w,h,d,color,op){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.85,metalness:0,transparent:op!=null,opacity:op==null?1:op}));
+  m.castShadow=true;m.receiveShadow=true;return m}
+/* стена вдоль отрезка (x1,z1)-(x2,z2) с проёмами: [{a,b,type,meta}] в долях длины */
+function p3Wall(g,x1,z1,x2,z2,th,col,holes){
+  const L=Math.hypot(x2-x1,z2-z1);if(L<.05)return;
+  const ang=Math.atan2(z2-z1,x2-x1),ux=(x2-x1)/L,uz=(z2-z1)/L;
+  const put=(s0,s1,y0,y1,color,op)=>{const len=(s1-s0)*L;if(len<.02||y1-y0<.02)return null;
+    const mid=(s0+s1)/2*L,mesh=p3Box(len,y1-y0,th,color,op);
+    mesh.position.set(x1+ux*mid,(y0+y1)/2,z1+uz*mid);mesh.rotation.y=-ang;g.add(mesh);return mesh};
+  const hs=(holes||[]).slice().sort((a,b)=>a.a-b.a);let t=0;
+  hs.forEach(h=>{const a=Math.max(t,h.a),b=Math.min(1,h.b);
+    if(a>t)put(t,a,0,P3H,col);
+    if(h.type==='win'){
+      put(a,b,0,.82,col);                                     /* подоконная часть */
+      const fr=put(a,b,.82,P3H,'#FFFFFF');                    /* белая рама */
+      if(fr){fr.scale.z=1.05;fr.material.color.set('#F7F6F2')}
+      const gl=put(a+.012,b-.012,.9,P3H-.02,'#BFE3F2',.55);   /* стекло */
+      [fr,gl].forEach(mm=>{if(mm){mm.userData.meta=h.meta;P3.picks.push(mm)}})}
+    else if(h.type==='door'){
+      const len=(b-a)*L,hinge=a*L,leaf=p3Box(len*.92,Math.min(2.05,P3H*1.2),.05,'#4FA3C4');
+      const open=-.55;const cx=x1+ux*hinge,cz=z1+uz*hinge;
+      const pivot=new THREE.Group();pivot.position.set(cx,0,cz);pivot.rotation.y=-ang+open;
+      leaf.position.set(len*.46,leaf.geometry.parameters.height/2,0);pivot.add(leaf);g.add(pivot);
+      leaf.userData.meta=h.meta;P3.picks.push(leaf)}
+    t=Math.max(t,b)});
+  if(t<1)put(t,1,0,P3H,col)}
+function p3Build(o){
+  const m=o.mdl,b=roomBox(m),r0=boxRect(m),g=new THREE.Group();P3.picks=[];
+  const LT=isLight();
+  const cWall=LT?'#DAD4C9':'#E4DFD5',cPart=LT?'#E9E5DD':'#CFC9BE',cFloor=LT?'#B9B0A3':'#8D857A';
+  /* пол дома и терраса */
+  const fullW=m.w,fullD=m.d;
+  const base=p3Box(fullW,.12,fullD,LT?'#9A9185':'#5B554D');base.position.set(0,-.06,0);g.add(base);
+  const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
+  if(N){const tw=N.side?N.vw:N.vw,td=N.side?m.d:N.vd;
+    const deck=p3Box(tw,.05,td,'#A07A52');
+    deck.position.set((N.nl+N.nr)/2,.025,N.side?0:(N.z2+m.d/2)/2);g.add(deck);
+    const lab=p3Label('Терраса',`${verA(m)} м²`,{scale:.004});lab.position.set((N.nl+N.nr)/2,.9,N.side?0:(N.z2+m.d/2)/2);g.add(lab);
+    /* перила по открытым краям */
+    const rail=(x1,z1,x2,z2)=>{const L=Math.hypot(x2-x1,z2-z1),n=Math.max(2,Math.round(L/1.2));
+      for(let i=0;i<=n;i++){const p=p3Box(.07,.95,.07,'#7A5A3C');p.position.set(x1+(x2-x1)*i/n,.47,z1+(z2-z1)*i/n);g.add(p)}
+      const top=p3Box(L,.06,.07,'#7A5A3C');top.position.set((x1+x2)/2,.95,(z1+z2)/2);top.rotation.y=-Math.atan2(z2-z1,x2-x1);g.add(top)};
+    if(N.side){const ex=N.right?m.w/2:-m.w/2;rail(ex,-m.d/2,ex,m.d/2)}
+    else rail(N.nl,m.d/2,N.nr,m.d/2)}
+  /* комнаты: подсветка пола и подписи */
+  const tints=['#E9C98F','#A9CBB7','#B7C3E0','#E3B3A6','#CDBBE0','#D9D59C','#9FD0D6'];
+  const rooms=o.plan||[];
+  rooms.forEach((rm,i)=>{const x=-m.w/2+rm[1],z=-m.d/2+rm[2];
+    const fl=new THREE.Mesh(new THREE.BoxGeometry(rm[3]-.04,.02,rm[4]-.04),new THREE.MeshStandardMaterial({color:tints[i%tints.length],roughness:.95,transparent:true,opacity:LT?.55:.35}));
+    fl.position.set(x+rm[3]/2,.012,z+rm[4]/2);fl.receiveShadow=true;g.add(fl);
+    const lab=p3Label(rm[0],`${(rm[3]*rm[4]).toFixed(1).replace('.',',')} м²`,{scale:.0042});
+    lab.position.set(x+rm[3]/2,.35,z+rm[4]/2);g.add(lab)});
+  /* наружные стены с проёмами */
+  const ops=o.openings||[];
+  const edges=[[0,r0.x0,r0.z0+r0.d,r0.x0+r0.w,r0.z0+r0.d],[1,r0.x0+r0.w,r0.z0+r0.d,r0.x0+r0.w,r0.z0],
+               [3,r0.x0+r0.w,r0.z0,r0.x0,r0.z0],[2,r0.x0,r0.z0,r0.x0,r0.z0+r0.d]];
+  edges.forEach(([wall,x1,z1,x2,z2])=>{const L=Math.hypot(x2-x1,z2-z1);
+    const holes=ops.filter(p=>p.wall===wall).map((p,k)=>{const c=openCenter(m,p),s=openSz(p.t)[0];
+      const along=((c.x-x1)*(x2-x1)+(c.z-z1)*(z2-z1))/(L*L);
+      const meta={t:p.t,name:p.t==='door'?'Входная дверь':openName(p.t),size:`${Math.round(s*100)} × ${Math.round(openSz(p.t)[1]*100)} см`};
+      return{a:along-s/2/L,b:along+s/2/L,type:p.t==='door'?'door':'win',meta,c}});
+    p3Wall(g,x1,z1,x2,z2,P3T,cWall,holes);
+    holes.forEach(h=>{const lab=p3Label(h.type==='door'?'дверь':h.meta.size.replace(' см','').replace(/ × /g,'×'),null,
+        h.type==='door'?{bg:'#1F5E78',fg:'#E8F7FD',scale:.0032}:{bg:'#F7F6F2',fg:'#15181B',scale:.0032});
+      lab.position.set(h.c.x,P3H+.32,h.c.z);g.add(lab)})});
+  /* перегородки и межкомнатные двери */
+  const eps=.08,onBox=e=>(Math.abs(e[0]-e[2])<eps&&(Math.abs(e[0]-r0.x0)<eps||Math.abs(e[0]-(r0.x0+r0.w))<eps))||
+    (Math.abs(e[1]-e[3])<eps&&(Math.abs(e[1]-r0.z0)<eps||Math.abs(e[1]-(r0.z0+r0.d))<eps));
+  const inner=[],seen={},key=e=>e.map(v=>v.toFixed(2)).join('|');
+  rooms.forEach(rm=>{const x1=-m.w/2+rm[1],z1=-m.d/2+rm[2],x2=x1+rm[3],z2=z1+rm[4];
+    [[x1,z1,x2,z1],[x2,z1,x2,z2],[x2,z2,x1,z2],[x1,z2,x1,z1]].forEach(e=>{if(onBox(e))return;
+      const k1=key(e),k2=key([e[2],e[3],e[0],e[1]]);if(seen[k1]||seen[k2])return;seen[k1]=1;inner.push(e)})});
+  const nd=o.parts&&o.parts.idoor!=null?o.parts.idoor:Math.max(0,rooms.length-1);
+  const doorOn=inner.map(()=>[]);for(let i=0;i<nd&&inner.length;i++)doorOn[i%inner.length].push([.5,.3,.7][Math.floor(i/inner.length)%3]);
+  inner.forEach((e,i)=>{const L=Math.hypot(e[2]-e[0],e[3]-e[1]),dw=Math.min(.8,L*.45)/L;
+    const holes=doorOn[i].map(f=>({a:f-dw/2,b:f+dw/2,type:'door',meta:{t:'idoor',name:'Межкомнатная дверь',size:'80 × 205 см'}}));
+    p3Wall(g,e[0],e[1],e[2],e[3],P3TI,cPart,holes)});
+  return g}
+function p3Fit(){if(!P3.group||!P3.cam)return;
+  const box=new THREE.Box3().setFromObject(P3.group),c=box.getCenter(new THREE.Vector3()),s=box.getSize(new THREE.Vector3());
+  const R=Math.max(s.x,s.z)*.62+1.2,v={corner:[-.72,.92],front:[0,.72],side:[1.5708,.72],top:[0,1.45]}[P3.view]||[-.72,.92];
+  const dist=R/Math.tan(P3.cam.fov*Math.PI/360)*.9;
+  P3.cam.position.set(c.x+Math.sin(v[0])*Math.cos(v[1])*dist,Math.sin(v[1])*dist,c.z+Math.cos(v[0])*Math.cos(v[1])*dist);
+  P3.ctl.target.copy(c);P3.ctl.update()}
+function mountPlan3(o){
+  const host=document.getElementById('plan3d');if(!host||!window.THREE)return false;
+  if(P3.host!==host){
+    if(P3.r){cancelAnimationFrame(P3.raf);P3.r.dispose()}
+    P3.host=host;P3.scene=new THREE.Scene();
+    P3.r=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    P3.r.setPixelRatio(Math.min(2,devicePixelRatio||1));P3.r.shadowMap.enabled=true;P3.r.shadowMap.type=THREE.PCFSoftShadowMap;
+    P3.r.outputEncoding=THREE.sRGBEncoding;
+    host.appendChild(P3.r.domElement);
+    P3.cam=new THREE.PerspectiveCamera(38,1,.1,200);
+    P3.ctl=new THREE.OrbitControls(P3.cam,P3.r.domElement);
+    Object.assign(P3.ctl,{enableDamping:true,dampingFactor:.08,enablePan:false,minPolarAngle:.12,maxPolarAngle:1.38,minDistance:4,maxDistance:60});
+    P3.scene.add(new THREE.HemisphereLight(0xffffff,0x6b6258,.95));
+    const sun=new THREE.DirectionalLight(0xffffff,.85);sun.position.set(-8,16,10);sun.castShadow=true;
+    sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:14,bottom:-14});P3.scene.add(sun);
+    const ground=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.ShadowMaterial({opacity:.22}));
+    ground.rotation.x=-Math.PI/2;ground.position.y=-.12;ground.receiveShadow=true;P3.scene.add(ground);
+    const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=host.parentElement.querySelector('.p3-tip');
+    P3.r.domElement.addEventListener('pointermove',e=>{const rc=P3.r.domElement.getBoundingClientRect();
+      mouse.set((e.clientX-rc.left)/rc.width*2-1,-(e.clientY-rc.top)/rc.height*2+1);ray.setFromCamera(mouse,P3.cam);
+      const hit=ray.intersectObjects(P3.picks,false)[0];
+      P3.picks.forEach(pm=>{if(pm.userData.base==null)pm.userData.base=pm.material.emissive.getHex();pm.material.emissive.setHex(0x000000)});
+      if(hit&&hit.object.userData.meta&&tip){const mt=hit.object.userData.meta;
+        P3.picks.filter(pm=>pm.userData.meta===mt).forEach(pm=>pm.material.emissive.setHex(mt.t==='door'||mt.t==='idoor'?0x1b5e7a:0x6a6a6a));
+        tip.hidden=false;tip.innerHTML=`<b>${mt.name}</b><span>${mt.size}</span>`;
+        tip.style.left=(e.clientX-rc.left+14)+'px';tip.style.top=(e.clientY-rc.top+14)+'px';P3.r.domElement.style.cursor='pointer'}
+      else if(tip){tip.hidden=true;P3.r.domElement.style.cursor='grab'}});
+    P3.r.domElement.addEventListener('pointerleave',()=>{if(tip)tip.hidden=true});
+    const loop=()=>{if(!P3.host||!P3.host.isConnected){cancelAnimationFrame(P3.raf);return}
+      const w=P3.host.clientWidth,h=P3.host.clientHeight;
+      if(P3.r.domElement.width!==Math.floor(w*P3.r.getPixelRatio())||P3.r.domElement.height!==Math.floor(h*P3.r.getPixelRatio())){
+        P3.r.setSize(w,h,false);P3.cam.aspect=w/Math.max(1,h);P3.cam.updateProjectionMatrix()}
+      P3.ctl.update();P3.r.render(P3.scene,P3.cam);P3.raf=requestAnimationFrame(loop)};
+    P3.raf=requestAnimationFrame(loop);P3.fresh=true}
+  if(P3.group){P3.scene.remove(P3.group);P3.group.traverse(n=>{if(n.geometry)n.geometry.dispose();if(n.material){if(n.material.map)n.material.map.dispose();n.material.dispose()}})}
+  P3.group=p3Build(o);P3.scene.add(P3.group);P3.o=o;
+  if(P3.fresh){p3Fit();P3.fresh=false}
+  return true}
+
+function vizBlock(){V3.mode='plan';
+  if(window.THREE)return `<div class="viz p3-wrap"><div id="plan3d" aria-label="3D-планировка дома"></div>
+  <div class="p3-tip" hidden></div>
+  <div class="viz-modes"><span style="padding:7px 14px;font-size:12.5px;color:var(--muted)">3D-планировка · только просмотр</span></div>
+  <div class="viz-ctl">${[['corner','Угол'],['front','Фасад'],['side','Бок'],['top','Сверху']].map(v=>`<button type="button" data-view="${v[0]}">${v[1]}</button>`).join('')}</div>
+  <span class="viz-hint"><i style="display:inline-block;width:9px;height:9px;background:#F4F1EA;border:1px solid rgba(20,22,24,.5);border-radius:2px;margin-right:5px"></i>окна
+    <i style="display:inline-block;width:9px;height:9px;background:#4FA3C4;border-radius:2px;margin:0 5px 0 12px"></i>двери
+    <span style="margin-left:12px;opacity:.7">вращайте мышью · колесо — масштаб</span></span></div>`;
+  return `<div class="viz"><canvas id="viz3d" aria-label="3D-планировка дома"></canvas>
   <div class="viz-modes"><button type="button" class="on" data-vmode="plan">Планировка</button></div>
   <div class="viz-ctl">${[['corner','Угол'],['front','Фасад'],['side','Бок'],['top','Сверху']].map(v=>`<button type="button" data-view="${v[0]}">${v[1]}</button>`).join('')}</div>
   <span class="viz-hint"><i style="display:inline-block;width:9px;height:9px;background:#F4F1EA;border:1px solid rgba(20,22,24,.5);border-radius:2px;margin-right:5px"></i>окна
@@ -1734,15 +1894,21 @@ function bindPlanner(){
   svg.addEventListener('pointermove',e=>{
     if(!drag)return;
     if(drag.mode==='open'){const p=pt(e),o=cfg.openings[drag.i],sz=openSz(o.t)[0];
-      const len=wallLen(m,o.wall),lim=len/2-sz/2-.2;
-      const d1=(o.wall===0?p.x-drag.p0.x:o.wall===3?-(p.x-drag.p0.x):-(p.y-drag.p0.y));
-      o.u=Math.max(-lim,Math.min(lim,snap(drag.u0+d1)));
-      const g2=svg.querySelector(`[data-oid="${drag.i}"]`),lns=g2.querySelectorAll('line'),ci=g2.querySelector('circle');
-      const b2=roomBox(m),szk=sz*k;
-      if(o.wall===0||o.wall===3){const cxp=pad+((o.wall===0?o.u+b2.w/2:b2.w/2-o.u))*k;
-        lns.forEach(ln=>{ln.setAttribute('x1',cxp-szk/2);ln.setAttribute('x2',cxp+szk/2)});ci.setAttribute('cx',cxp)}
-      else{const cyp=pad+(b2.d/2-o.u)*k;
-        lns.forEach(ln=>{ln.setAttribute('y1',cyp-szk/2);ln.setAttribute('y2',cyp+szk/2)});ci.setAttribute('cy',cyp)}
+      /* ближайшая стена к курсору: снизу фасад, справа 1, слева 2, сверху тыл */
+      const dist=[[0,Math.abs(p.y-b.d)],[3,Math.abs(p.y)],[1,Math.abs(p.x-b.w)],[2,Math.abs(p.x)]].sort((a,c)=>a[1]-c[1]);
+      const wall=dist[0][0],len=wallLen(m,wall),lim=Math.max(0,len/2-sz/2-.2);
+      let u=wall===0?p.x-b.w/2:wall===3?b.w/2-p.x:b.d/2-p.y;
+      if(len>=sz+.4){o.wall=wall;o.u=Math.max(-lim,Math.min(lim,snap(u)))}
+      const g2=svg.querySelector(`[data-oid="${drag.i}"]`),lns=g2.querySelectorAll('line'),ci=g2.querySelector('circle'),tx=g2.querySelector('text');
+      const szk=sz*k,P0=+svg.dataset.pad,PW2=b.w*k,PD2=b.d*k;let x1,y1,x2,y2;
+      if(o.wall===0){const cx=P0+(o.u+b.w/2)*k;x1=cx-szk/2;x2=cx+szk/2;y1=y2=P0+PD2}
+      else if(o.wall===3){const cx=P0+(b.w/2-o.u)*k;x1=cx-szk/2;x2=cx+szk/2;y1=y2=P0}
+      else if(o.wall===1){const cy=P0+(b.d/2-o.u)*k;y1=cy-szk/2;y2=cy+szk/2;x1=x2=P0+PW2}
+      else{const cy=P0+(b.d/2-o.u)*k;y1=cy-szk/2;y2=cy+szk/2;x1=x2=P0}
+      lns.forEach(ln=>{ln.setAttribute('x1',x1);ln.setAttribute('y1',y1);ln.setAttribute('x2',x2);ln.setAttribute('y2',y2)});
+      ci.setAttribute('cx',(x1+x2)/2);ci.setAttribute('cy',(y1+y2)/2);
+      if(tx){tx.setAttribute('x',(x1+x2)/2+(o.wall===1?16:o.wall===2?-16:0));tx.setAttribute('y',(y1+y2)/2+(o.wall===0?22:o.wall===3?-14:4));
+        tx.setAttribute('text-anchor',o.wall===1?'start':o.wall===2?'end':'middle')}
       return}
     const p=pt(e),dx=p.x-drag.sx,dy=p.y-drag.sy,r=drag.r,cur=cfg.rooms[drag.i];
     if(drag.mode==='move'){
@@ -1769,7 +1935,7 @@ function roomsGroup(m,cfg){
   return `<div class="cg"><div class="cg-h"><h3>Планировка</h3><span class="num">${b.w} × ${b.d} м под комнаты · ${roomsArea(rooms)} м²</span></div>
   <div class="tabs"><button type="button" class="pill ${own?'':'on'}" data-plansrc="project">Проектная</button><button type="button" class="pill ${own?'on':''}" data-plansrc="own">Своя планировка</button></div>
   ${own?`${plannerSVG(m,cfg)}
-    <small class="note" style="margin-top:8px">Перетаскивайте комнаты мышью, тяните за уголок — меняется размер. Проёмы двигаются вдоль своей стены. Шаг сетки 0,5 м, привязка 10 см.</small>
+    <small class="note" style="margin-top:8px">Перетаскивайте комнаты мышью, тяните за уголок — меняется размер. Окна и двери тащите вдоль стены или на другую стену — они «прилипают» к ближайшей. Шаг сетки 0,5 м, привязка 10 см.</small>
     <div class="op-pal"><span class="label" style="margin-right:4px">Добавить</span>
       ${WIN_TYPES.map(w=>`<button type="button" class="chipx win" data-openadd="${w[0]}" title="${w[1]} · ${w[2]}">${w[1].replace('Окно ','')} см · ${rub(w[3]*winK[cfg.win])}</button>`).join('')}
       <button type="button" class="chipx door" data-openadd="door">Входная дверь · ${rub(PARTS[2][3])}</button>
@@ -2495,7 +2661,7 @@ function setTheme(mode){
   if(mode==='light')document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.removeAttribute('data-theme');
   try{localStorage.setItem('kontur-theme',mode)}catch(e){}
-  if(typeof draw3D==='function')draw3D();
+  if(P3.host&&P3.host.isConnected&&P3.o)mountPlan3(P3.o);else if(typeof draw3D==='function')draw3D();
   document.querySelectorAll('canvas[data-scene]').forEach(c=>{const m=byId(c.dataset.scene);if(m)
     scene(c,m,{fixed:!!c.dataset.fixed,hz:+c.dataset.hz||.64,gy:+c.dataset.gy||.84,fw:+c.dataset.fw||.6,fh:+c.dataset.fh||.6,stars:c.dataset.stars!=='0',seed:m.w*13+m.d*7})});
 }
@@ -2619,7 +2785,7 @@ function paint(){
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px 12% 0px'});
   document.querySelectorAll('.reveal').forEach(el=>{const r=el.getBoundingClientRect();if(r.top>innerHeight*1.12)io.observe(el)});
   document.querySelectorAll('input[type=range]').forEach(r=>r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%'));
-  if(document.getElementById('viz3d')){const mm=byId((location.hash.split('/')[2]||''));
+  if(document.getElementById('viz3d')||document.getElementById('plan3d')){const mm=byId((location.hash.split('/')[2]||''));
     if(mm){const c0=getCfg(mm);mount3D({w:mm.w,d:mm.d,floors:mm.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(mm,c0),terrace:c0.terrace,plan:planOf(mm,c0),mdl:mm,ver:mm.ver,parts:partsOf(mm,c0),winSides:mm.winSides,roofShape:mm.roofShape,openings:openingsOf(mm,c0)})}
     else mount3D(customViz())}
   bindPlanner();
@@ -2766,6 +2932,8 @@ document.addEventListener('click',e=>{
   const vm=e.target.closest('[data-vmode]');
   if(vm){V3.mode=vm.dataset.vmode;if(V3.mode==='plan'&&V3.pitch<.5)V3.pitch=.72;if(V3.mode==='out'&&V3.pitch>.8)V3.pitch=.3;
     document.querySelectorAll('[data-vmode]').forEach(b=>b.classList.toggle('on',b.dataset.vmode===V3.mode));draw3D();return}
+  const vw3=e.target.closest('[data-view]');
+  if(vw3&&P3.host&&P3.host.isConnected){P3.view=vw3.dataset.view;p3Fit();return}
   const vw=e.target.closest('[data-view]');
   if(vw){const v=VIEWS[vw.dataset.view];if(v){V3.yaw=v[0];V3.pitch=V3.mode==='plan'?Math.max(v[1],.62):v[1];draw3D()}return}
   const rs=e.target.closest('[data-reset]');if(rs){const m=byId(rs.dataset.reset);calcState[m.id]=defaultCfg(m);refreshCalc(m,true);toast('Настройки сброшены');return}

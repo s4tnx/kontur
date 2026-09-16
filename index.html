@@ -31,6 +31,8 @@
 :root[data-theme="light"] nav.main a:hover{color:#1B1A18}
 :root[data-theme="light"] .logo,:root[data-theme="light"] .acct,:root[data-theme="light"] .icon-btn,:root[data-theme="light"] .theme-btn{color:#1B1A18}
 :root[data-theme="light"] .logo i{color:var(--muted)}
+:root[data-theme="light"] .estimate{background:linear-gradient(180deg,#FFFFFF,#F3EFE8)}
+:root[data-theme="light"] .est-meta div{background:#F6F3EE}
 /* на главной шапка лежит на тёмном фото — там подписи остаются светлыми */
 :root[data-theme="light"] body.at-home:not(.scrolled) nav.main{color:rgba(255,255,255,.86)}
 :root[data-theme="light"] body.at-home:not(.scrolled) .logo,
@@ -38,6 +40,7 @@
 :root[data-theme="light"] body.at-home:not(.scrolled) .icon-btn,
 :root[data-theme="light"] body.at-home:not(.scrolled) .theme-btn,
 :root[data-theme="light"] body.at-home:not(.scrolled) .head-tel,
+:root[data-theme="light"] body.at-home:not(.scrolled) .m-burger,
 :root[data-theme="light"] body.at-home:not(.scrolled) .contact-btn{color:#F7F5F1;border-color:rgba(255,255,255,.42)}
 :root[data-theme="light"] .stat span{color:rgba(27,26,24,.72)}
 :root[data-theme="light"] .stats{background:rgba(255,255,255,.72)}
@@ -624,6 +627,157 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 
 .reveal.in{animation:up .9s cubic-bezier(.2,.8,.1,1) both}
 @keyframes up{from{opacity:.15;transform:translateY(40px)}to{opacity:1;transform:none}}
+
+/* ================= мобильная версия ================= */
+.badge[hidden]{display:none!important}
+.m-burger,.m-call,.tabbar{display:none}
+.m-burger{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:transparent;color:inherit;place-items:center;cursor:pointer;padding:0}
+.m-burger i{display:block;width:18px;height:1.6px;background:currentColor;border-radius:2px;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .2s}
+.m-burger b{display:grid;gap:5px}
+body.menu-open .m-burger i:first-child{transform:translateY(3.3px) rotate(45deg)}
+body.menu-open .m-burger i:last-child{transform:translateY(-3.3px) rotate(-45deg)}
+.credit{color:var(--dim)}
+.credit b{font-weight:500;color:var(--muted)}
+/* меню на весь экран */
+.mnav{position:fixed;inset:0;z-index:29;display:none;background:rgba(10,11,12,.94);backdrop-filter:blur(22px) saturate(1.3);-webkit-backdrop-filter:blur(22px) saturate(1.3);
+  opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s;overflow-y:auto;overscroll-behavior:contain}
+.mnav::before{content:"";position:absolute;right:-30%;top:-10%;width:90vw;height:90vw;border-radius:50%;background:radial-gradient(circle,rgba(231,163,92,.18),transparent 65%);pointer-events:none}
+body.menu-open .mnav{opacity:1;visibility:visible}
+.mnav-in{position:relative;min-height:100%;display:grid;align-content:space-between;gap:26px;padding:84px 18px calc(28px + env(safe-area-inset-bottom))}
+.mnav-links{display:grid}
+.mnav-links a{display:grid;grid-template-columns:34px 1fr auto;align-items:baseline;gap:8px;padding:13px 0;border-bottom:1px solid var(--line);
+  font-family:var(--display);font-weight:600;font-size:clamp(24px,7.4vw,32px);letter-spacing:-.02em;line-height:1.1;color:var(--text)}
+.mnav-links a span{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--dim);letter-spacing:.08em}
+.mnav-links a em{font-style:normal;font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.mnav-links a.on{color:var(--lamp)}
+.mnav-links a:active{color:var(--lamp)}
+body.menu-open .mnav-links a,body.menu-open .mnav-quick,body.menu-open .mnav-contact{animation:mIn .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*45ms + 60ms)}
+@keyframes mIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.mnav-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mnav-quick>*{display:grid;justify-items:center;gap:6px;padding:14px 6px;border:1px solid var(--line);border-radius:18px;background:rgba(236,232,225,.03);color:var(--text);font:inherit;font-size:12.5px;cursor:pointer;position:relative}
+.mnav-quick svg{width:20px;height:20px;color:var(--lamp)}
+.mnav-quick .badge{top:8px;right:calc(50% - 22px)}
+.mnav-contact{display:grid;gap:10px;padding:18px;border-radius:22px;border:1px solid var(--line2);background:linear-gradient(160deg,rgba(231,163,92,.12),rgba(236,232,225,.02))}
+.mnav-contact small{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mnav-contact .tel{font-family:var(--display);font-weight:600;font-size:clamp(22px,6.6vw,28px);letter-spacing:-.01em;color:var(--text)}
+.mnav-contact .btn{justify-content:center;height:50px}
+.mnav .credit{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-align:center;margin:0}
+:root[data-theme="light"] .mnav{background:rgba(246,244,240,.95)}
+:root[data-theme="light"] .mnav-quick>*{background:#fff}
+:root[data-theme="light"] body.menu-open header.top .logo,:root[data-theme="light"] body.menu-open header.top .icon-btn,:root[data-theme="light"] body.menu-open header.top .m-burger,:root[data-theme="light"] body.menu-open header.top .m-call{color:#1B1A18}
+body.menu-open{overflow:hidden}
+body.menu-open header.top{background:transparent!important;border-color:transparent!important;backdrop-filter:none!important}
+
+@media (max-width:900px){
+  .m-burger{display:grid}
+  .mnav{display:block}
+}
+@media (max-width:760px){
+  html,body{overflow-x:clip}
+  header.top{height:62px;gap:8px;padding:0 14px}
+  header.top .logo{gap:9px}
+  header.top .logo svg{width:27px;height:24px}
+  header.top .logo b{font-size:15px}
+  .tools{gap:6px}
+  .tools .icon-btn[href="#/account/fav"],.tools .acct,.tools .theme-btn{display:none!important}
+  .icon-btn,.m-burger{width:40px;height:40px}
+  .m-call{display:grid;color:var(--lamp)!important;border-color:rgba(231,163,92,.45)!important}
+  /* нижняя панель как в приложении */
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;
+    height:64px;padding:6px;border-radius:24px;background:rgba(22,24,26,.84);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);
+    border:1px solid var(--line2);box-shadow:0 18px 50px rgba(0,0,0,.45);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+  .tabbar a{position:relative;display:grid;place-items:center;align-content:center;gap:3px;border-radius:18px;font-size:10.5px;color:var(--muted);letter-spacing:.01em;-webkit-tap-highlight-color:transparent;transition:color .2s,background .25s}
+  .tabbar svg{width:22px;height:22px;transition:transform .25s}
+  .tabbar a.on{color:var(--text);background:rgba(231,163,92,.15)}
+  .tabbar a.on svg{color:var(--lamp);transform:translateY(-1px)}
+  .tabbar a:active svg{transform:scale(.88)}
+  .tabbar .badge{top:3px;right:calc(50% - 21px)}
+  :root[data-theme="light"] .tabbar{background:rgba(255,255,255,.88);box-shadow:0 14px 40px rgba(28,26,24,.16)}
+  body.menu-open .tabbar{transform:translateY(calc(100% + 30px))}
+  body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom));max-width:calc(100vw - 32px);text-align:center}
+  .plan-card{right:10px;left:10px;width:auto;bottom:calc(84px + env(safe-area-inset-bottom))}
+  /* сетки не распирают экран */
+  .tech>*,.calc>*,.model>*,.plan-sec>*,.cart>*,.acc>*,.build>*,.wall-build>*,.plan-split>*,.manifesto>*,.faq>*,.sizes>*,.two-col>*,.step-body>*,.mat>*{min-width:0}
+  .layers div{grid-template-columns:30px 1fr auto;gap:10px}
+  svg{max-width:100%}
+  .btn{height:48px}
+  .field input,.field textarea,.field select{font-size:16px}
+  /* модальные окна — шторкой снизу */
+  .modal{place-items:end stretch;padding:0}
+  .dialog{width:100%;max-height:92vh;overflow-y:auto;border-radius:26px 26px 0 0;padding:26px 18px calc(24px + env(safe-area-inset-bottom));animation:sheet .45s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes sheet{from{transform:translateY(100%)}to{transform:none}}
+  /* подвал */
+  footer{padding:40px 0 24px}
+  .foot-grid{grid-template-columns:1fr 1fr;gap:26px 16px}
+  .foot-grid>div:first-child{grid-column:1/-1}
+  .copy{flex-direction:column;gap:6px}
+}
+/* таблица цен — карточками */
+@media (max-width:640px){
+  .table-wrap{border:0;border-radius:0;overflow:visible}
+  .price-table,.price-table tbody{display:block;min-width:0}
+  .price-table thead{display:none}
+  .price-table tr{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;padding:16px;margin-bottom:10px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
+  .price-table tbody tr:hover{background:var(--panel)}
+  .price-table td{display:block;padding:0;border:0;text-align:left;white-space:normal}
+  .price-table tr:not(:last-child) td:nth-child(2){text-align:right;color:var(--muted);align-self:center}
+  .price-table tr:not(:last-child) td:nth-child(3){grid-column:1/-1;font-family:var(--display);font-weight:600;font-size:22px;color:var(--lamp2);padding:10px 0 2px;border-top:1px solid var(--line)}
+  .price-table tr:not(:last-child) td:nth-child(4),.price-table tr:not(:last-child) td:nth-child(5){font-size:14px}
+  .price-table tr:not(:last-child) td:nth-child(n+3):not(:last-child)::before{display:block;font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+  .price-table tr:not(:last-child) td:nth-child(3)::before{content:"Холодный контур"}
+  .price-table tr:not(:last-child) td:nth-child(4)::before{content:"Тёплый"}
+  .price-table tr:not(:last-child) td:nth-child(5)::before{content:"Под ключ"}
+  .price-table td:last-child{grid-column:1/-1}
+  .price-table td:last-child a{display:flex;justify-content:center;align-items:center;height:44px;border-radius:999px;border:1px solid var(--line2);text-decoration:none;color:var(--text)!important}
+  .price-table tr:last-child td{grid-column:1/-1}
+}
+
+/* плашка «Итого» и касание 3D на телефоне */
+.mdock{display:none}
+.p3-touch{display:none}
+.mnav{scrollbar-width:none}.mnav::-webkit-scrollbar{display:none}
+@media (max-width:760px){
+  .mnav-links a{padding:11px 0}
+  .buy{display:grid;grid-template-columns:1fr 46px;gap:8px}
+  .buy .btn{justify-content:center}
+  .buy .btn.lamp{grid-column:1/-1}
+  .p3-wrap{min-height:380px}
+  .mdock{display:flex;align-items:center;justify-content:space-between;gap:12px;position:fixed;left:10px;right:10px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:49;
+    padding:8px 8px 8px 18px;border-radius:20px;background:rgba(231,163,92,.14);border:1px solid rgba(231,163,92,.35);
+    backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 14px 40px rgba(0,0,0,.35);
+    opacity:0;transform:translateY(16px) scale(.98);pointer-events:none;transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1)}
+  .mdock.show{opacity:1;transform:none;pointer-events:auto}
+  .mdock small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .mdock b{font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:-.01em;color:var(--text)}
+  .mdock .btn{height:44px;padding:0 18px}
+  :root[data-theme="light"] .mdock{background:rgba(255,248,238,.92)}
+  body.menu-open .mdock{opacity:0;pointer-events:none}
+  body:has(.modal) .mdock{opacity:0;pointer-events:none}
+  .toast{bottom:calc(150px + env(safe-area-inset-bottom))}
+}
+@media (pointer:coarse){
+  .p3-touch{display:flex;align-items:center;gap:8px;position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:6;height:40px;padding:0 16px;border-radius:999px;
+    border:1px solid var(--line2);background:rgba(12,13,14,.72);backdrop-filter:blur(10px);color:#ECE8E1;font:inherit;font-size:13px;white-space:nowrap;cursor:pointer}
+  .p3-touch svg{width:16px;height:16px;color:var(--lamp)}
+  .p3-touch[hidden]{display:none}
+  .p3-wrap.p3-live{box-shadow:0 0 0 2px var(--lamp)}
+}
+
+@media (max-width:760px){
+  .mdock{background:rgba(26,24,22,.96);border-color:rgba(231,163,92,.5)}
+  :root[data-theme="light"] .mdock{background:rgba(255,250,243,.97)}
+  /* варианты калькулятора — лентой с пролистыванием */
+  .cg{padding:18px 16px;overflow:hidden}
+  .cg-h{flex-wrap:wrap;row-gap:2px}
+  .opts:has(> .opt){display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;margin:0 -16px;padding:2px 16px 4px;scroll-padding:0 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .opts:has(> .opt)::-webkit-scrollbar{display:none}
+  .opts:has(> .opt) .opt{flex:0 0 min(74%,260px);scroll-snap-align:start}
+  .opts:has(.chk){grid-template-columns:1fr!important}
+  body:has(.modal) .tabbar{transform:translateY(calc(100% + 30px))}
+  .cg-swipe{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--dim);display:flex;align-items:center;gap:6px}
+  .cg-swipe::after{content:"→";color:var(--lamp)}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 
@@ -650,10 +804,44 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
       <button class="acct" id="acctBtn"><span class="ava" id="ava"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><span id="acctName">Войти</span></button>
       <button class="theme-btn" data-theme-toggle aria-label="Светлая или тёмная тема" title="Светлая или тёмная тема">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg></button>
+      <a class="icon-btn m-call" href="tel:+79998886099" aria-label="Позвонить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></a>
+      <button class="m-burger" id="mBurger" aria-label="Меню" aria-expanded="false" aria-controls="mnav"><b><i></i><i></i></b></button>
     </div>
   </header>
   <main id="app"></main>
 </div>
+<div class="mnav" id="mnav" aria-hidden="true">
+  <div class="mnav-in">
+    <nav class="mnav-links" aria-label="Разделы">
+      <a href="#/catalog" style="--i:0"><span>01</span>Каталог<em>8 домов</em></a>
+      <a href="#/custom" style="--i:1"><span>02</span>Свой размер<em>расчёт</em></a>
+      <a href="#/prices" style="--i:2"><span>03</span>Цены</a>
+      <a href="#/sizes" style="--i:3"><span>04</span>Размеры</a>
+      <a href="#/how" style="--i:4"><span>05</span>Технологии</a>
+      <a href="#/process" style="--i:5"><span>06</span>Как строим</a>
+      <a href="#/faq" style="--i:6"><span>07</span>Вопросы</a>
+    </nav>
+    <div class="mnav-quick" style="--i:7">
+      <a href="#/account/fav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>Избранное<span class="badge" id="mFavCount" hidden></span></a>
+      <a href="#/account" data-macct><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span id="mAcctName">Кабинет</span></a>
+      <button type="button" data-theme-toggle><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg><span>Тема</span></button>
+    </div>
+    <div class="mnav-contact" style="--i:8">
+      <small>Ежедневно 9:00–21:00</small>
+      <a class="tel num" href="tel:+79998886099">+7 999 888-60-99</a>
+      <button class="btn lamp" type="button" data-contact>Заказать звонок</button>
+    </div>
+    <p class="credit">Сайт сделал <b>Никита Соловьев</b></p>
+  </div>
+</div>
+<div class="mdock" id="mdock" aria-live="polite"><div><small id="mdockLab">Итого за дом</small><b class="num" id="mdockSum"></b></div><button class="btn lamp" type="button" id="mdockGo">Смета</button></div>
+<nav class="tabbar" id="tabbar" aria-label="Быстрая навигация">
+  <a href="#/" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg><span>Главная</span></a>
+  <a href="#/catalog" data-tab="catalog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Дома</span></a>
+  <a href="#/custom" data-tab="custom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 12h7V3.5M14 20.5V14h6.5"/></svg><span>Свой размер</span></a>
+  <a href="#/cart" data-tab="cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16l-1.4 12.2a1 1 0 0 1-1 .8H6.4a1 1 0 0 1-1-.8z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg><span>Корзина</span><span class="badge" id="tabCart" hidden></span></a>
+  <a href="#/account" data-tab="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Кабинет</span></a>
+</nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -1467,6 +1655,16 @@ function mountPlan3(o){
     P3.cam=new THREE.PerspectiveCamera(38,1,.1,200);
     P3.ctl=new THREE.OrbitControls(P3.cam,P3.r.domElement);
     Object.assign(P3.ctl,{enableDamping:true,dampingFactor:.08,enablePan:false,minPolarAngle:.05,maxPolarAngle:1.25,minDistance:4,maxDistance:70});
+    if(matchMedia('(pointer:coarse)').matches){
+      const wrap=host.parentElement,cv=P3.r.domElement,btn=document.createElement('button');
+      btn.type='button';btn.className='p3-touch';
+      btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/></svg>Коснитесь, чтобы вращать';
+      wrap.appendChild(btn);
+      const live=on=>{P3.ctl.enabled=on;cv.style.touchAction=on?'none':'pan-y';btn.hidden=on;wrap.classList.toggle('p3-live',on)};
+      live(false);let y0=0;
+      btn.addEventListener('click',()=>{live(true);y0=scrollY});
+      addEventListener('scroll',()=>{if(wrap.isConnected&&P3.ctl.enabled&&Math.abs(scrollY-y0)>60)live(false)},{passive:true});
+      document.addEventListener('pointerdown',e=>{if(wrap.isConnected&&P3.ctl.enabled&&!wrap.contains(e.target))live(false)},true)}
     P3.scene.add(new THREE.HemisphereLight(0xffffff,0x6b6258,.95));
     const sun=new THREE.DirectionalLight(0xffffff,.85);sun.position.set(-8,16,10);sun.castShadow=true;
     sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:14,bottom:-14});P3.scene.add(sun);
@@ -2427,7 +2625,7 @@ function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div><h4>&nbsp;</h4><ul>${MODELS.slice(4).map(m=>`<li><a href="#/house/${m.id}">${m.w}×${m.d} · ${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>Покупателю</h4><ul><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
   <div><h4>Связь</h4><ul><li><a class="num" style="font-size:16px;color:var(--text)" href="tel:+79998886099">+7 999 888-60-99</a></li><li style="color:var(--muted);font-size:13.5px">Ежедневно 9:00–21:00</li><li><a href="#" data-contact>Заказать звонок</a></li></ul></div>
-  </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span></div></footer>`}
+  </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span><span class="credit">Сайт сделал <b>Никита Соловьев</b></span></div></footer>`}
 
 /* ---------- страница «Технологии»: узлы, сваи, материалы, конструктор стены ---------- */
 const NODES={
@@ -2934,8 +3132,16 @@ function adminView(){
 
 /* ---------- router ---------- */
 const app=document.getElementById('app');
+function setMenu(open){document.body.classList.toggle('menu-open',open);
+  document.getElementById('mnav')?.setAttribute('aria-hidden',String(!open));
+  document.getElementById('mBurger')?.setAttribute('aria-expanded',String(open))}
+function syncNav(a){
+  const tab=!a||['sizes','prices','tech','process','faq'].includes(a)?'home':a==='house'?'catalog':a;
+  document.querySelectorAll('#tabbar [data-tab]').forEach(x=>x.classList.toggle('on',x.dataset.tab===tab));
+  const cur='#/'+(a||'');document.querySelectorAll('.mnav-links a').forEach(x=>x.classList.toggle('on',x.getAttribute('href')===cur||(a==='house'&&x.getAttribute('href')==='#/catalog')))}
 function render(){
   const h=location.hash.replace(/^#\/?/,'');const [a,b]=h.split('/');
+  setMenu(false);syncNav(a);
   cancelAnimationFrame(heroRAF);window.__heroResize=null;
   let html,scrollTo=null;
   if(!a){html=home()}
@@ -2952,7 +3158,7 @@ function render(){
   if(scrollTo&&document.getElementById('heroFront')){document.getElementById(scrollTo)?.scrollIntoView({behavior:'smooth'});return}
   document.body.classList.toggle('at-home',!a||!!scrollTo);
   app.innerHTML=html+footer();
-  paint();bind();
+  paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);
   if(scrollTo)requestAnimationFrame(()=>document.getElementById(scrollTo)?.scrollIntoView());else window.scrollTo(0,0);
 }
 function paint(){
@@ -3190,6 +3396,42 @@ function openContact(){
   document.body.appendChild(el);setTimeout(()=>el.querySelector('input')?.focus(),50);
 }
 document.getElementById('acctBtn').onclick=()=>user?location.hash='#/account':openAuth();
+document.getElementById('mBurger').onclick=()=>setMenu(!document.body.classList.contains('menu-open'));
+document.getElementById('mnav').addEventListener('click',e=>{
+  const ac=e.target.closest('[data-macct]');if(ac&&!user){e.preventDefault();setMenu(false);openAuth();return}
+  const ln=e.target.closest('a');if(ln&&ln.getAttribute('href')===location.hash)setMenu(false);
+  if(e.target.closest('[data-contact]'))setMenu(false)});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('menu-open'))setMenu(false)});
+/* плашка «Итого»: видна, пока настраиваете дом, и прячется, когда смета уже на экране */
+let dockRAF=0;
+function syncDock(){dockRAF=0;const d=document.getElementById('mdock');if(!d)return;
+  const g=document.getElementById('calcGroups'),est=document.getElementById('estimate'),sum=document.getElementById('estTotal');
+  let show=false;
+  if(g&&est&&sum&&innerWidth<=760){const gr=g.getBoundingClientRect(),er=est.getBoundingClientRect();
+    show=gr.top<innerHeight*.75&&gr.bottom>0&&er.top>innerHeight-60;
+    document.getElementById('mdockSum').textContent=sum.textContent;
+    const lab=sum.previousElementSibling;if(lab)document.getElementById('mdockLab').textContent=lab.textContent}
+  d.classList.toggle('show',show)}
+const dock=()=>{if(!dockRAF)dockRAF=requestAnimationFrame(syncDock)};
+addEventListener('scroll',dock,{passive:true});addEventListener('resize',dock);
+['input','change','click'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(dock,30),true));
+/* ленты вариантов: выбранный вариант на виду, прокрутка не сбрасывается при пересчёте */
+let optsMem={};
+const optsKey=o=>(o.closest('.cg')?.querySelector('h3')?.textContent||'')+'|'+[...o.parentElement.querySelectorAll('.opts')].indexOf(o);
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#calcGroups'))return;optsMem={};
+  document.querySelectorAll('#calcGroups .opts').forEach(o=>optsMem[optsKey(o)]=o.scrollLeft)},true);
+function tuneOpts(){if(innerWidth>760)return;
+  document.querySelectorAll('#calcGroups .opts').forEach(o=>{if(o.dataset.tuned||!o.querySelector(':scope > .opt'))return;o.dataset.tuned=1;
+    const k=optsKey(o);
+    if(optsMem[k]!=null)o.scrollLeft=optsMem[k];
+    else{const on=o.querySelector('.opt.on');if(on){const x=on.getBoundingClientRect().left-o.getBoundingClientRect().left+o.scrollLeft;if(x>o.clientWidth*.5)o.scrollLeft=x-16}}
+    const h=o.closest('.cg')?.querySelector('.cg-h');
+    if(h&&!h.querySelector('.cg-swipe')&&o.scrollWidth>o.clientWidth+8){const s=document.createElement('span');s.className='cg-swipe';s.textContent=o.children.length+' варианта';
+      const n=o.children.length;s.textContent=n+' '+(n%10===1&&n%100!==11?'вариант':n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'варианта':'вариантов');h.appendChild(s)}})}
+new MutationObserver(tuneOpts).observe(document.getElementById('app'),{childList:true,subtree:true});
+addEventListener('resize',tuneOpts);
+document.getElementById('mdockGo').onclick=()=>document.getElementById('estimate')?.scrollIntoView({behavior:'smooth',block:'start'});
+addEventListener('resize',()=>{if(innerWidth>900&&document.body.classList.contains('menu-open'))setMenu(false)});
 
 /* ---------- auth ---------- */
 function openAuth(mode='in'){
@@ -3224,6 +3466,10 @@ function openAuth(mode='in'){
 function updateHeader(){
   const fc=document.getElementById('favCount'),cc=document.getElementById('cartCount');
   fc.hidden=!favs.length;fc.textContent=favs.length;cc.hidden=!cart.length;cc.textContent=cart.length;
+  const tc=document.getElementById('tabCart'),mf=document.getElementById('mFavCount'),ma=document.getElementById('mAcctName');
+  if(tc){tc.hidden=!cart.length;tc.textContent=cart.length}
+  if(mf){mf.hidden=!favs.length;mf.textContent=favs.length}
+  if(ma)ma.textContent=user?user.name.split(' ')[0]:'Кабинет';
   document.getElementById('acctName').textContent=user?user.name.split(' ')[0]:'Войти';
   document.getElementById('ava').innerHTML=user?esc(user.name[0].toUpperCase()):'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
 }

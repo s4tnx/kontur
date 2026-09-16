@@ -120,6 +120,16 @@ p{margin:0}
 .op-pal{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:12px}
 .op-pal .chipx.door{border-color:rgba(79,163,196,.5);color:#8FCBE2}
 .op-pal .chipx.win::before{content:"";display:inline-block;width:9px;height:9px;background:#F4F1EA;border:1px solid rgba(20,22,24,.4);border-radius:2px;margin-right:7px;vertical-align:-1px}
+.plan-card{position:fixed;right:18px;bottom:18px;z-index:80;width:min(360px,calc(100vw - 28px));display:grid;gap:10px;
+  background:var(--panel);border:1px solid var(--line2);border-radius:18px;padding:16px;box-shadow:0 22px 50px rgba(0,0,0,.45);animation:fade .3s both}
+.plan-card .pc-h{display:flex;justify-content:space-between;align-items:center}
+.plan-card .pc-h button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.plan-card b{font-family:var(--display);font-weight:600;font-size:15px}
+.pc-plan{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--panel2);overflow-x:auto}
+.pc-plan svg{width:100%;display:block}
+.pc-plan text{font-family:var(--body);font-size:11px;fill:var(--text)}
+.pc-plan text.n{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.pc-plan text.r{font-weight:500;font-size:11.5px}
 .spec-det{margin-top:2px}
 .spec-det summary{cursor:pointer;font-size:13px;color:var(--lamp2);width:max-content}
 .spec-det[open] summary{margin-bottom:8px}
@@ -1352,6 +1362,36 @@ function wallSVG(){
   o+=`<line x1="${x0}" y1="22" x2="${x}" y2="22" stroke="rgba(236,232,225,.4)"/><line x1="${x0}" y1="16" x2="${x0}" y2="28" stroke="rgba(236,232,225,.4)"/><line x1="${x}" y1="16" x2="${x}" y2="28" stroke="rgba(236,232,225,.4)"/><text x="${(x0+x)/2}" y="14" text-anchor="middle" class="t">≈ 232 мм при вате 150</text>`;
   o+=`<text x="${x0}" y="${y0+h+80}">улица</text><text x="${x}" y="${y0+h+80}" text-anchor="end">дом</text></svg>`;return o;
 }
+/* чистый план для заказа: комнаты, проёмы, размеры — уходит в корзину и в кабинет */
+function orderPlanSVG(m,cfg){
+  const b=roomBox(m),rooms=planOf(m,cfg),ops=cfg&&cfg.openings?cfg.openings:[];
+  const pad=42,k=Math.min(420/b.w,320/b.d),W=b.w*k,D=b.d*k;
+  const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
+  let o=`<svg viewBox="0 0 ${W+pad*2} ${D+pad*2}" class="op-svg" role="img" aria-label="Планировка ${m.name}">`;
+  if(N){const tw=N.side?N.vw*k:W,td=N.side?D:N.vd*k,tx=N.side?(N.right?pad+W:pad-tw):pad,ty=N.side?pad:pad+D;
+    o+=`<rect x="${tx}" y="${ty}" width="${tw}" height="${td}" fill="rgba(242,180,92,.10)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
+      <text x="${tx+tw/2}" y="${ty+td/2}" text-anchor="middle" class="n">Терраса ${verA(m)} м²</text>`}
+  rooms.forEach(r=>{const x=pad+(r[1]-b.ox)*k,y=pad+(r[2]-b.oy)*k,rw=r[3]*k,rd=r[4]*k;
+    o+=`<rect x="${x}" y="${y}" width="${rw}" height="${rd}" fill="rgba(236,232,225,.03)" stroke="var(--line2)"/>
+      <text x="${x+rw/2}" y="${y+rd/2-2}" text-anchor="middle" class="r">${r[0]}</text>
+      <text x="${x+rw/2}" y="${y+rd/2+13}" text-anchor="middle" class="n">${(r[3]*r[4]).toFixed(1).replace('.',',')} м² · ${r[3].toFixed(1).replace('.',',')}×${r[4].toFixed(1).replace('.',',')}</text>`});
+  o+=`<rect x="${pad}" y="${pad}" width="${W}" height="${D}" fill="none" stroke="#ECE8E1" stroke-width="3"/>`;
+  ops.forEach(p=>{const sz=openSz(p.t)[0]*k,c=p.t==='door'?'#4FA3C4':'#F4F1EA';
+    let x1,y1,x2,y2;
+    if(p.wall===0){const cx=pad+(p.u+b.w/2)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad+D}
+    else if(p.wall===3){const cx=pad+(b.w/2-p.u)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad}
+    else if(p.wall===1){const cy=pad+(b.d/2-p.u)*k;y1=cy-sz/2;y2=cy+sz/2;x1=x2=pad+W}
+    else{const cy=pad+(b.d/2-p.u)*k;y1=cy-sz/2;y2=cy+sz/2;x1=x2=pad}
+    o+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#141618" stroke-width="7"/>
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="3.4"/>`});
+  o+=`<line x1="${pad}" y1="${pad-16}" x2="${pad+W}" y2="${pad-16}" stroke="var(--line2)"/>
+    <text x="${pad+W/2}" y="${pad-21}" text-anchor="middle" class="n">${(b.w*1000).toLocaleString('ru-RU')}</text>
+    <line x1="${pad+W+16}" y1="${pad}" x2="${pad+W+16}" y2="${pad+D}" stroke="var(--line2)"/>
+    <text x="${pad+W+28}" y="${pad+D/2}" text-anchor="middle" class="n" transform="rotate(90 ${pad+W+28} ${pad+D/2})">${(b.d*1000).toLocaleString('ru-RU')}</text>`;
+  const pr=cfg?partsOf(m,cfg):basePartsOf(m);
+  o+=`<text x="${pad}" y="${pad+D+26}" class="n">${rooms.length} ${plural(rooms.length,['комната','комнаты','комнат'])} · перегородки ${pr.wall} м · двери ${pr.idoor} + ${pr.edoor} входная · окон ${ops.filter(p=>p.t!=='door').length}</text>`;
+  return o+'</svg>';
+}
 function planSVG(m){
   const inset=!!(m.ver&&m.ver.inset);
   const vd=m.ver&&!inset?m.ver.d:0,vw=m.ver?Math.min(m.w,m.ver.w):0;
@@ -1536,6 +1576,7 @@ function optDelta(m,group,id,cfg){const g=CALC.find(x=>x.key===group);const def=
   return g.items.find(i=>i.id===id).abs(m)-g.items.find(i=>i.id===def).abs(m)}
 function computeCalc(m,cfg){
   cfg={...defaultCfg(m,cfg.pkg),...cfg};
+  if(cfg.pkg==='cold')cfg={...cfg,ins:'100'};   /* холодный контур — без утепления */
   const lines=[[`«${m.name}» ${m.w}×${m.d}, холодный контур`,m.price*PKGS[0].k]];
   CALC.forEach(g=>{const it=g.items.find(i=>i.id===cfg[g.key]);const d=optDelta(m,g.key,cfg[g.key],cfg);if(Math.round(d))lines.push([`${g.title}: ${it.name.toLowerCase()}`,d])});
   const wd=winsDelta(m,cfg);if(Math.round(wd))lines.push(['Окна: изменение комплекта',wd]);
@@ -1661,7 +1702,9 @@ function roomsGroup(m,cfg){
       <input type="number" min="1" max="20" step="0.1" value="${r.d}" data-room="${i}:d" aria-label="Длина">
       <em class="num">${(r.w*r.d).toFixed(1).replace('.',',')} м²</em>
       <button type="button" data-roomdel="${i}" aria-label="Удалить">✕</button></div>`).join('')}</div>
-    <button type="button" class="btn" data-roomadd style="justify-self:start;margin-top:10px">Добавить комнату</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <button type="button" class="btn" data-roomadd>Добавить комнату</button>
+      <button type="button" class="btn lamp" data-planready>Готово — сохранить планировку</button></div>
     <small class="note">${fit?`Помещается: ${roomsArea(rooms)} из ${Math.round(b.w*b.d*10)/10} м². Считаем ${auto.wall} м перегородок и ${auto.idoor} ${plural(auto.idoor,['дверь','двери','дверей'])} — разница с проектной планировкой уходит в смету.`:`Комнаты не помещаются в пятно ${b.w} × ${b.d} м — уменьшите размеры или возьмите размер побольше.`}</small>`
    :`<small class="note">Планировка проекта: ${defaultRooms(m).map(r=>r.n).join(', ')}. Нажмите «Своя планировка», чтобы задать свои комнаты — схема, перегородки, двери и смета пересчитаются.</small>`}
   </div>`}
@@ -1672,9 +1715,11 @@ function partsGroup(base,cur,attr){
     return `<div class="win-row ${n?'':'off'}"><div><b>${p[1]}</b><small>${p[2]} · в базе ${b}</small></div><em class="num">${rub(p[3])}</em>
     <div class="cnt"><button type="button" data-${attr}="${p[0]}:-1" aria-label="Убрать">−</button><b class="num">${n}</b><button type="button" data-${attr}="${p[0]}:1" aria-label="Добавить">+</button></div></div>`}).join('')}</div>
   <small class="note">Перегородки считаются погонными метрами, двери — штуками. То, что входит в базовую планировку, уже в цене дома.</small></div>`}
-function calcGroups(m){const cfg=getCfg(m);
-  return CALC.map(g=>`<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span class="num">${g.hint(m)}</span></div><div class="opts">${g.items.map(it=>{const d=optDelta(m,g.key,it.id,cfg);
+function calcGroups(m){const cfg=getCfg(m);const cold=cfg.pkg==='cold';
+  return CALC.filter(g=>!(cold&&g.key==='ins')).map(g=>`<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span class="num">${g.hint(m)}</span></div><div class="opts">${g.items.map(it=>{const d=optDelta(m,g.key,it.id,cfg);
     return `<button type="button" class="opt ${cfg[g.key]===it.id?'on':''}" data-opt="${g.key}:${it.id}"><b>${it.name}</b><small>${optTxt(it,m)}</small><em class="num ${Math.round(d)?'':'z'}">${signRub(d)}</em></button>`}).join('')}</div></div>`).join('')+
+  (cfg.pkg==='cold'?`<div class="cg"><div class="cg-h"><h3>Утепление стен</h3><span>нет в холодном контуре</span></div>
+    <small class="note">Холодный контур — это каркас, обшивка, ветро-влагозащита, кровля, окна и дверь. Утеплитель, пароизоляция и внутренняя отделка появляются в тёплом контуре: переключите комплектацию выше, и здесь можно будет выбрать толщину каменной ваты.</small></div>`:'')+
   winsGroup(m.wins,winsOf(m,cfg),winK[cfg.win],'win')+
   roomsGroup(m,cfg)+
   partsGroup(cfg.rooms&&cfg.rooms.length?basePartsOf({plan:planOf(m,cfg)}):basePartsOf(m),partsOf(m,cfg),'part')+
@@ -1869,8 +1914,9 @@ function cartView(){
   return `<div class="wrap"><div class="page-h"><h1>Корзина</h1><span class="label num">${lines.length} ${plural(lines.length,['дом','дома','домов'])}</span></div>
   <div class="cart"><div>${lines.map((l,i)=>`<div class="line">${byId(l.m.pic||l.m.id)&&byId(l.m.pic||l.m.id).photo?`<img src="${byId(l.m.pic||l.m.id).photo}" alt="">`:`<canvas data-scene="${l.m.pic||l.m.id}" data-fw=".7" data-fh=".62" data-stars="0"></canvas>`}
     <div style="display:grid;gap:4px"><h3>${l.m.name} <span class="num" style="color:var(--muted);font-weight:400">${l.m.w}×${l.m.d}</span></h3><p>${itemDesc(l)}</p>
-      <details class="spec-det"><summary>Полное описание</summary>
-        <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div></details>
+      <details class="spec-det"><summary>Полное описание и планировка</summary>
+        <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
+        ${!l.custom&&l.cfg&&l.cfg.rooms?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(l.id),l.cfg)}</div>`:''}</details>
       <a class="link" href="${l.custom?'#/custom':'#/house/'+l.m.id}" style="justify-self:start">${l.custom?'Открыть калькулятор':'Открыть модель'}</a></div>
     <div class="r"><b class="num" style="font-size:18px">${rub(itemTotal(l))}</b><button class="link" data-remove="${i}">Удалить</button></div></div>`).join('')}</div>
   <form class="summary" id="checkout">
@@ -1909,7 +1955,7 @@ function itemSpec(it){
   const rooms=(c.rooms&&c.rooms.length)?c.rooms:defaultRooms(m);
   const e=computeCalc(m,c);
   return [['Проект',`«${m.name}» ${m.w} × ${m.d} м`],['Площадь',`${livingA(m)} м² дом${verA(m)?` + ${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}`:''}`],
-    ['Комплектация',nm('pkg')],['Утепление',`каменная вата ${nm('ins')}`],['Фасад',nm('facade')],['Кровля',nm('roof')],
+    ['Комплектация',nm('pkg')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')],['Кровля',nm('roof')],
     ['Фундамент',c.found==='blocks'?'бетонные блоки 400×200×200':`${nm('found')} · ${pileCount(m)} шт`],
     ['Окна',`${nw} шт, профиль: ${nm('win').toLowerCase()}`],
     ['Планировка',`${rooms.length} ${plural(rooms.length,['комната','комнаты','комнат'])}${c.rooms&&c.rooms.length?' (своя)':''} · перегородки ${pr.wall} м · двери ${pr.idoor} + ${pr.edoor} входная`],
@@ -1929,7 +1975,11 @@ function accountView(tab){
       <div class="field"><label for="pe">Эл. почта</label><input id="pe" value="${esc(user.email)}" disabled></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn solid" type="submit">Сохранить</button><button class="btn" type="button" id="logout">Выйти</button></div></form>`
    :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">Заявка № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span class="status">${STAGES[o.stage]}</span></header>
-      <div style="display:grid;gap:6px">${o.items.map(it=>{const m=lineModel(it);if(!m)return '';return `<div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${m.w}×${m.d} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>`}).join('')}</div>
+      <div style="display:grid;gap:10px">${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
+        return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${m.w}×${m.d} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
+        <details class="spec-det"><summary>Спецификация и планировка</summary>
+          <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
+          ${!it.custom&&it.cfg&&it.cfg.rooms?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details></div>`}).join('')}</div>
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
   const orders_n=orders.length;
@@ -2346,6 +2396,17 @@ addEventListener('pointerover',e=>{const g=e.target.closest&&e.target.closest('.
   document.querySelectorAll('.build-vis .bp').forEach(n=>n.classList.toggle('sel',n.dataset.part===p));
   box.querySelectorAll('.chipx').forEach(n=>n.classList.toggle('on',n.dataset.part===p))});
 
+/* карточка сохранённой планировки в правом нижнем углу */
+function showPlanCard(m,cfg){
+  document.querySelector('.plan-card')?.remove();
+  const el=document.createElement('div');el.className='plan-card';
+  el.innerHTML=`<div class="pc-h"><span class="label">Планировка сохранена</span>
+      <button type="button" data-plancard-close aria-label="Скрыть">✕</button></div>
+    <b>${m.name} · ${m.w}×${m.d} м</b>
+    <div class="pc-plan">${orderPlanSVG(m,cfg)}</div>
+    <small class="note">Эта схема уйдёт в заявку: её увидят в личном кабинете, в бригаде и в договоре.</small>`;
+  document.body.appendChild(el);
+}
 /* ---------- тема ---------- */
 function setTheme(mode){
   if(mode==='light')document.documentElement.setAttribute('data-theme','light');
@@ -2458,6 +2519,11 @@ document.addEventListener('click',e=>{
     refreshCustom(true);return}
   if(e.target.closest('[data-cadd]')){const cfg=JSON.parse(JSON.stringify(customState));cart.push({id:'custom',custom:true,cfg,total:computeCustom(cfg).total});saveCart();toast(`Дом ${fmtM(cfg.w)}×${fmtM(cfg.d)} добавлен в корзину`);return}
   const o=e.target.closest('[data-opt]');if(o){const [k,v]=o.dataset.opt.split(':');const m=byId(location.hash.split('/')[2]);if(m){getCfg(m)[k]=v;refreshCalc(m,true)}return}
+  const pr2=e.target.closest('[data-planready]');
+  if(pr2){const m=byId(location.hash.split('/')[2]);
+    if(m){const cfg=getCfg(m);cfg.planReady=1;showPlanCard(m,cfg);toast('Планировка сохранена — уйдёт в заказ')}return}
+  const pcc=e.target.closest('[data-plancard-close]');
+  if(pcc){document.querySelector('.plan-card')?.remove();return}
   const oa=e.target.closest('[data-openadd]');
   if(oa){const m=byId(location.hash.split('/')[2]);
     if(m){const cfg=getCfg(m);cfg.openings=cfg.openings||autoOpenings(m,cfg);

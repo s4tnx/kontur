@@ -1327,7 +1327,7 @@ function p3Wall(g,x1,z1,x2,z2,th,col,holes){
     const mid=(s0+s1)/2*L,mesh=p3Box(len,y1-y0,th,color,op);
     mesh.position.set(x1+ux*mid,(y0+y1)/2,z1+uz*mid);mesh.rotation.y=-ang;g.add(mesh);return mesh};
   const hs=(holes||[]).slice().sort((a,b)=>a.a-b.a);let t=0;
-  hs.forEach(h=>{const a=Math.max(t,h.a),b=Math.min(1,h.b);
+  hs.forEach(h=>{const a=Math.max(0,h.a),b=Math.min(1,h.b);
     if(a>t)put(t,a,0,P3H,col);
     if(h.type==='win'){
       put(a,b,0,.82,col);                                     /* подоконная часть */
@@ -1653,7 +1653,7 @@ function orderPlanSVG(m,cfg){
         <text x="${(A[0]+B[0])/2+(vert?8:0)}" y="${(A[1]+B[1])/2+(vert?3:-7)}" text-anchor="${vert?'start':'middle'}" class="lab-d">дверь 80</text>`}})();
   ops.forEach(p=>{const sz=openSz(p.t)[0]*k,c=p.t==='door'?'#4FA3C4':'#F4F1EA';
     let x1,y1,x2,y2;
-    if(p.wall===0){const cx=pad+(p.u+b.w/2)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad+D}
+    if(p.wall===0){const cx=pad+(p.u+b.w/2)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad+wall0Y(m,b,p.u)*k}
     else if(p.wall===3){const cx=pad+(b.w/2-p.u)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad}
     else if(p.wall===1){const cy=pad+(b.d/2-p.u)*k;y1=cy-sz/2;y2=cy+sz/2;x1=x2=pad+W}
     else{const cy=pad+(b.d/2-p.u)*k;y1=cy-sz/2;y2=cy+sz/2;x1=x2=pad}
@@ -1732,6 +1732,19 @@ function openQuad(m,p,h,grow){const c=openCenter(m,p),s=openSz(p.t)[0]/2+(grow||
   n=p.wall===0?[0,0,1]:p.wall===3?[0,0,-1]:p.wall===1?[1,0,0]:[-1,0,0];
   const dx=c.horiz?s:0,dz=c.horiz?0:s,ox=c.horiz?0:n[0]*o,oz=c.horiz?n[2]*o:0;
   return{p:[[c.x-dx+ox,.06,c.z-dz+oz],[c.x+dx+ox,.06,c.z+dz+oz],[c.x+dx+ox,h,c.z+dz+oz],[c.x-dx+ox,h,c.z-dz+oz]],n}}
+/* свободная позиция на стене: не ближе 15 см к соседнему проёму и не за краем стены */
+function freeU(m,ops,skip,wall,u,sz){const len=wallLen(m,wall);
+  let lo=-len/2+sz/2+.2,hi=len/2-sz/2-.2;
+  const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
+  if(N&&!N.side&&((wall===1&&N.openRight)||(wall===2&&N.openLeft))){
+    /* боковая стена обрывается у террасы: разрешена только часть до выреза */
+    const houseLen=N.z2+m.d/2;lo=Math.max(lo,len/2-houseLen+sz/2+.2)}
+  if(hi<lo)return null;
+  const others=ops.filter((o,i)=>i!==skip&&o.wall===wall).map(o=>[o.u,openSz(o.t)[0]/2]);
+  const clash=v=>others.some(([ou,oh])=>Math.abs(v-ou)<oh+sz/2+.15);
+  u=Math.max(lo,Math.min(hi,u));if(!clash(u))return +u.toFixed(2);
+  for(let dd=.1;dd<=len;dd+=.1)for(const s of[1,-1]){const v=u+s*dd;if(v>=lo&&v<=hi&&!clash(v))return +v.toFixed(2)}
+  return null}
 /* автоматическая раскладка — стартовая точка для редактора */
 function autoOpenings(m,cfg){
   const wins=winsBase(m,cfg),list=[];
@@ -1751,11 +1764,15 @@ function autoOpenings(m,cfg){
   ops.forEach(p=>{const len=wallLen(m,p.wall),k=++idx[p.wall],step=len/(cnt[p.wall]+1);
     p.u=+(-len/2+step*k).toFixed(2)});
   const ed=(cfg&&cfg.parts&&cfg.parts.edoor)||1;
-  const dw=terrWall>=0?terrWall:0;
-  for(let i=0;i<ed;i++){const len=wallLen(m,i?2:dw);
-    ops.push({t:'door',wall:i?2:dw,u:+((i?0:len*.22)).toFixed(2)})}
+  const pref=terrWall>=0?terrWall:0;
+  for(let i=0;i<ed;i++){
+    const order=i?[2,1,3,0]:[pref,0,1,2,3];let placed=false;
+    for(const wall of order){const len=wallLen(m,wall),u=freeU(m,ops,-1,wall,i?0:len*.22,openSz('door')[0]);
+      if(u!=null){ops.push({t:'door',wall,u});placed=true;break}}
+    if(!placed)ops.push({t:'door',wall:pref,u:0})}
   return ops}
-const openingsOf=(m,cfg)=>cfg&&cfg.openings?cfg.openings:autoOpenings(m,cfg);
+function tidyOpenings(m,ops){const out=[];ops.forEach(o=>{const u=freeU(m,out,-1,o.wall,o.u,openSz(o.t)[0]);out.push(u==null?o:{...o,u})});return out}
+const openingsOf=(m,cfg)=>{if(cfg&&cfg.openings){const t2=tidyOpenings(m,cfg.openings);cfg.openings=t2;return t2}return autoOpenings(m,cfg)};
 /* свободное место на стене: ставим новый проём туда, где больше всего пустого */
 function placeOpening(m,cfg,id){
   const ops=(cfg.openings||[]).slice(),sz=openSz(id)[0];
@@ -1766,7 +1783,8 @@ function placeOpening(m,cfg,id){
     for(let i=0;i<edges.length-1;i++){const g=edges[i+1]-edges[i];
       if(g>best.gap){best.gap=g;best.wall=wall;best.u=+( (edges[i]+edges[i+1])/2 ).toFixed(2)}}});
   if(best.gap<sz+.4)return null;
-  return{t:id,wall:best.wall,u:best.u}}
+  const u=freeU(m,ops,-1,best.wall,best.u,sz);
+  return u==null?null:{t:id,wall:best.wall,u}}
 const baseWin=m=>WIN_TYPES.reduce((s,w)=>s+(m.wins[w[0]]||0)*w[3],0);
 const winsDelta=(m,cfg)=>{const cur=winsOf(m,cfg),k=winK[cfg.win||'pvc'];
   return WIN_TYPES.reduce((s,w)=>s+((cur[w[0]]||0)-(m.wins[w[0]]||0))*w[3]*k,0)};
@@ -1877,6 +1895,10 @@ function winsGroup(base,cur,k,attr){
     <div class="cnt"><button type="button" data-${attr}="${w[0]}:-1" aria-label="Убрать ${w[1]}">−</button><b class="num">${n}</b><button type="button" data-${attr}="${w[0]}:1" aria-label="Добавить ${w[1]}">+</button></div></div>`}).join('')}</div>
   <small class="note">В цену дома входят два окна проекта. Каждое следующее окно добавляется к смете по цене выбранного профиля, убранное — вычитается.</small></div>`}
 /* ---------- визуальный редактор планировки ---------- */
+/* где на плане проходит фасадная стена в точке u: у выреза террасы — в его глубине */
+function wall0Y(m,b,u){const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
+  if(!N||N.side)return b.d;const x=u;/* u отсчитывается от центра фасада */
+  return (x>=N.nl-.01&&x<=N.nr+.01)?N.z2+m.d/2:b.d}
 const PLAN_SNAP=.1;
 const snap=v=>Math.round(v/PLAN_SNAP)*PLAN_SNAP;
 function plannerSVG(m,cfg){
@@ -1896,7 +1918,9 @@ function plannerSVG(m,cfg){
       <text x="${tx+tw/2}" y="${ty+td/2}" text-anchor="middle" class="pl-t">Терраса</text>`}
   o+=`<rect x="${pad}" y="${pad}" width="${PW}" height="${PD}" fill="none" stroke="var(--text)" stroke-width="3"/>`;
   rooms.forEach((r,i)=>{const x=pad+(r.x||0)*k,y=pad+(r.y||0)*k,rw=r.w*k,rd=r.d*k;
-    const over=(r.x||0)+r.w>b.w+.01||(r.y||0)+r.d>b.d+.01;
+    const Nn=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
+    const onTerr=Nn&&!Nn.side&&(r.x||0)<Nn.nr+m.w/2-.01&&(r.x||0)+r.w>Nn.nl+m.w/2+.01&&(r.y||0)+r.d>Nn.z2+m.d/2+.01;
+    const over=(r.x||0)+r.w>b.w+.01||(r.y||0)+r.d>b.d+.01||onTerr;
     o+=`<g class="pl-room${over?' bad':''}" data-rid="${i}">
       <rect x="${x}" y="${y}" width="${rw}" height="${rd}" rx="2"/>
       <text x="${x+rw/2}" y="${y+rd/2-3}" text-anchor="middle" class="pl-n">${r.n||'Комната'}</text>
@@ -1905,13 +1929,13 @@ function plannerSVG(m,cfg){
   /* проёмы: окна жёлтые, двери синие — на стенах пятна застройки */
   (cfg.openings||[]).forEach((p,i)=>{const s0=openSz(p.t),sz=s0[0]*k;
     let x1,y1,x2,y2;
-    if(p.wall===0){const cxp=pad+(p.u+b.w/2)*k;x1=cxp-sz/2;x2=cxp+sz/2;y1=y2=pad+PD}
+    if(p.wall===0){const cxp=pad+(p.u+b.w/2)*k;x1=cxp-sz/2;x2=cxp+sz/2;y1=y2=pad+wall0Y(m,b,p.u)*k}
     else if(p.wall===3){const cxp=pad+(b.w/2-p.u)*k;x1=cxp-sz/2;x2=cxp+sz/2;y1=y2=pad}
     else if(p.wall===1){const cyp=pad+(b.d/2-p.u)*k;y1=cyp-sz/2;y2=cyp+sz/2;x1=x2=pad+PW}
     else{const cyp=pad+(b.d/2-p.u)*k;y1=cyp-sz/2;y2=cyp+sz/2;x1=x2=pad}
     const nm=p.t==='door'?'Входная дверь 90 × 205 см':`${openName(p.t)} · ${Math.round(s0[0]*100)} × ${Math.round(s0[1]*100)} см`;
     const lab=p.t==='door'?'дверь 90':`${Math.round(s0[0]*100)}×${Math.round(s0[1]*100)}`;
-    const lx=(x1+x2)/2+(p.wall===1?16:p.wall===2?-16:0),ly=(y1+y2)/2+(p.wall===0?22:p.wall===3?-14:4);
+    const lx=(x1+x2)/2+(p.wall===1?16:p.wall===2?-16:0),ly=(y1+y2)/2+(p.wall===0?(wall0Y(m,b,p.u)<b.d-.01?-12:22):p.wall===3?-14:4);
     const anchor=p.wall===1?'start':p.wall===2?'end':'middle';
     o+=`<g class="pl-op ${p.t==='door'?'door':'win'}" data-oid="${i}"><title>${nm} — тяните вдоль стены</title>
       <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="13" stroke-linecap="butt"/>
@@ -1944,19 +1968,23 @@ function bindPlanner(){
     if(!drag)return;
     if(drag.mode==='open'){const p=pt(e),o=cfg.openings[drag.i],sz=openSz(o.t)[0];
       /* ближайшая стена к курсору: снизу фасад, справа 1, слева 2, сверху тыл */
-      const dist=[[0,Math.abs(p.y-b.d)],[3,Math.abs(p.y)],[1,Math.abs(p.x-b.w)],[2,Math.abs(p.x)]].sort((a,c)=>a[1]-c[1]);
-      const wall=dist[0][0],len=wallLen(m,wall),lim=Math.max(0,len/2-sz/2-.2);
-      let u=wall===0?p.x-b.w/2:wall===3?b.w/2-p.x:b.d/2-p.y;
-      if(len>=sz+.4){o.wall=wall;o.u=Math.max(-lim,Math.min(lim,snap(u)))}
+      const u0=p.x-b.w/2,y0w=wall0Y(m,b,u0);
+      const Nd=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
+      const inNotch=Nd&&!Nd.side&&u0>=Nd.nl-.05&&u0<=Nd.nr+.05&&p.y>=Nd.z2+m.d/2-.3;
+      const dist=[[0,Math.abs(p.y-y0w)],[3,Math.abs(p.y)],[1,Math.abs(p.x-b.w)],[2,Math.abs(p.x)]].sort((a,c)=>a[1]-c[1]);
+      const wall=inNotch?0:dist[0][0];
+      let u=wall===0?u0:wall===3?b.w/2-p.x:b.d/2-p.y;
+      const fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz);
+      if(fu!=null){o.wall=wall;o.u=fu}
       const g2=svg.querySelector(`[data-oid="${drag.i}"]`),lns=g2.querySelectorAll('line'),ci=g2.querySelector('circle'),tx=g2.querySelector('text');
       const szk=sz*k,P0=+svg.dataset.pad,PW2=b.w*k,PD2=b.d*k;let x1,y1,x2,y2;
-      if(o.wall===0){const cx=P0+(o.u+b.w/2)*k;x1=cx-szk/2;x2=cx+szk/2;y1=y2=P0+PD2}
+      if(o.wall===0){const cx=P0+(o.u+b.w/2)*k;x1=cx-szk/2;x2=cx+szk/2;y1=y2=P0+wall0Y(m,b,o.u)*k}
       else if(o.wall===3){const cx=P0+(b.w/2-o.u)*k;x1=cx-szk/2;x2=cx+szk/2;y1=y2=P0}
       else if(o.wall===1){const cy=P0+(b.d/2-o.u)*k;y1=cy-szk/2;y2=cy+szk/2;x1=x2=P0+PW2}
       else{const cy=P0+(b.d/2-o.u)*k;y1=cy-szk/2;y2=cy+szk/2;x1=x2=P0}
       lns.forEach(ln=>{ln.setAttribute('x1',x1);ln.setAttribute('y1',y1);ln.setAttribute('x2',x2);ln.setAttribute('y2',y2)});
       ci.setAttribute('cx',(x1+x2)/2);ci.setAttribute('cy',(y1+y2)/2);
-      if(tx){tx.setAttribute('x',(x1+x2)/2+(o.wall===1?16:o.wall===2?-16:0));tx.setAttribute('y',(y1+y2)/2+(o.wall===0?22:o.wall===3?-14:4));
+      if(tx){tx.setAttribute('x',(x1+x2)/2+(o.wall===1?16:o.wall===2?-16:0));tx.setAttribute('y',(y1+y2)/2+(o.wall===0?(wall0Y(m,b,o.u)<b.d-.01?-12:22):o.wall===3?-14:4));
         tx.setAttribute('text-anchor',o.wall===1?'start':o.wall===2?'end':'middle')}
       live3D(m);return}
     const p=pt(e),dx=p.x-drag.sx,dy=p.y-drag.sy,r=drag.r,cur=cfg.rooms[drag.i];

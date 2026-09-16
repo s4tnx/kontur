@@ -133,6 +133,12 @@ p{margin:0}
 .pc-plan text{font-family:var(--body);font-size:11px;fill:var(--text)}
 .pc-plan text.n{font-family:var(--mono);font-size:10px;fill:var(--muted)}
 .pc-plan text.r{font-weight:500;font-size:11.5px}
+.mgr-auth{max-width:440px;margin:60px auto 100px;display:grid;gap:14px;border:1px solid var(--line);border-radius:22px;padding:30px;background:var(--panel)}
+.mgr-auth h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,3vw,32px);line-height:1.15}
+.mgr-auth form{display:grid;gap:12px;margin-top:6px}
+.mgr-err{min-height:18px;font-size:13.5px;color:#E0735A}
+.mgr-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:24px 0 0;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:14px;color:var(--muted)}
+.mgr-bar b{color:var(--text);font-weight:500}
 .adm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px}
 .adm-stats div{border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:6px;background:var(--panel)}
 .adm-stats span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
@@ -2076,7 +2082,7 @@ function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>
   <div><h4>Дома</h4><ul>${MODELS.slice(0,4).map(m=>`<li><a href="#/house/${m.id}">${m.w}×${m.d} · ${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>&nbsp;</h4><ul>${MODELS.slice(4).map(m=>`<li><a href="#/house/${m.id}">${m.w}×${m.d} · ${m.name}</a></li>`).join('')}</ul></div>
-  <div><h4>Покупателю</h4><ul><li><a href="#/admin">Панель менеджера</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
+  <div><h4>Покупателю</h4><ul><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
   <div><h4>Связь</h4><ul><li><a class="num" style="font-size:16px;color:var(--text)" href="tel:+79998886099">+7 999 888-60-99</a></li><li style="color:var(--muted);font-size:13.5px">Ежедневно 9:00–21:00</li><li><a href="#" data-contact>Заказать звонок</a></li></ul></div>
   </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span></div></footer>`}
 
@@ -2513,7 +2519,42 @@ function allOrders(){const out=[];
     if(k&&k.indexOf('kontur.orders.')===0){const owner=k.slice(14);
       (JSON.parse(localStorage.getItem(k))||[]).forEach((o,idx)=>out.push({...o,_key:k.slice(7),_idx:idx,_owner:owner}))}}}catch(e){}
   return out.sort((a,b)=>b.at-a.at)}
-const adminState={q:'',st:'all'};
+const adminState={q:'',st:'all',err:'',tab:'orders'};
+const MGR_TTL=8*3600*1000;
+const mgrAccounts=()=>store.get('mgr.accounts',{});
+function mgrSession(){try{const s=JSON.parse(sessionStorage.getItem('kontur.mgr.session')||'null');
+    if(!s||Date.now()-s.at>MGR_TTL||!mgrAccounts()[s.login])return null;return s}catch(e){return null}}
+function mgrSetSession(login){try{sessionStorage.setItem('kontur.mgr.session',JSON.stringify({login,at:Date.now()}))}catch(e){}}
+function mgrLogout(){try{sessionStorage.removeItem('kontur.mgr.session')}catch(e){}}
+const mgrLock=()=>store.get('mgr.lock',{n:0,until:0});
+/* экран входа: при первом запуске — создание администратора */
+function mgrLoginView(){
+  const first=!Object.keys(mgrAccounts()).length,lock=mgrLock(),locked=lock.until>Date.now();
+  return `<div class="wrap"><div class="mgr-auth">
+    <span class="label">Панель менеджера</span>
+    <h1>${first?'Создайте учётную запись администратора':'Вход для сотрудников'}</h1>
+    <p style="color:var(--muted)">${first?'Панель ещё не настроена. Задайте логин и пароль — дальше без них сюда не попасть.':'Заявки клиентов доступны только сотрудникам «Контур Дома».'}</p>
+    <form id="mgrForm" data-mode="${first?'setup':'login'}" autocomplete="on">
+      ${first?`<div class="field"><label for="mgName">Имя</label><input id="mgName" name="name" required autocomplete="name" placeholder="Иван Петров"></div>`:''}
+      <div class="field"><label for="mgLogin">Логин</label><input id="mgLogin" name="login" required autocomplete="username" minlength="3" ${locked?'disabled':''}></div>
+      <div class="field"><label for="mgPass">Пароль</label><input id="mgPass" name="pass" type="password" required autocomplete="${first?'new-password':'current-password'}" minlength="${first?8:1}" ${locked?'disabled':''}></div>
+      ${first?`<div class="field"><label for="mgPass2">Пароль ещё раз</label><input id="mgPass2" name="pass2" type="password" required autocomplete="new-password" minlength="8"></div>
+        <small class="note">Не короче 8 символов.</small>`:''}
+      <p class="mgr-err" role="alert">${locked?`Слишком много попыток. Попробуйте через ${Math.ceil((lock.until-Date.now())/60000)} мин.`:esc(adminState.err||'')}</p>
+      <button class="btn lamp" type="submit" style="justify-content:center" ${locked?'disabled':''}>${first?'Создать и войти':'Войти'}</button>
+    </form></div></div>`}
+/* сотрудники: администратор добавляет и удаляет менеджеров */
+function mgrStaffView(s){const acc=mgrAccounts(),me=acc[s.login];
+  return `<div class="adm-client" style="margin-bottom:90px"><header><div><b>Сотрудники</b><span>доступ к панели</span></div></header>
+    ${Object.keys(acc).map(l=>`<div class="adm-order"><div class="adm-row" style="grid-template-columns:1fr 1fr 140px 120px">
+      <b>${esc(acc[l].name)}</b><span class="num">${esc(l)}</span><span>${acc[l].role==='admin'?'Администратор':'Менеджер'}</span>
+      ${me.role==='admin'&&l!==s.login?`<button type="button" class="link" data-mgrdel="${esc(l)}">Удалить</button>`:'<span></span>'}</div></div>`).join('')}
+    ${me.role==='admin'?`<form id="mgrAdd" class="adm-order" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end">
+      <div class="field"><label>Имя</label><input name="name" required></div>
+      <div class="field"><label>Логин</label><input name="login" required minlength="3" autocomplete="off"></div>
+      <div class="field"><label>Пароль</label><input name="pass" type="password" required minlength="8" autocomplete="new-password"></div>
+      <button class="btn" type="submit" style="justify-content:center">Добавить менеджера</button></form>`:''}
+  </div>`}
 function adminView(){
   const users=store.get('users',{}),list=allOrders();
   const q=adminState.q.trim().toLowerCase();
@@ -2521,7 +2562,13 @@ function adminView(){
     (!q||[o.no,o.fio,o.phone,o.email,o.region,o._owner].join(' ').toLowerCase().includes(q)));
   const sum=list.reduce((s,o)=>s+o.items.reduce((a,it)=>a+itemTotal(it),0),0);
   const byClient={};rows.forEach(o=>{const key=o.email||o.phone||o._owner;(byClient[key]=byClient[key]||[]).push(o)});
-  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера · прототип</span><h1>Заявки клиентов</h1></div>
+  const s=mgrSession(),me=mgrAccounts()[s.login];
+  const bar=`<div class="mgr-bar"><span>Вы вошли как <b>${esc(me.name)}</b> · ${me.role==='admin'?'администратор':'менеджер'}</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки</button>
+    <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
+    <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
+  if(adminState.tab==='staff')return `<div class="wrap">${bar}<div class="page-h"><h1>Сотрудники</h1></div>${mgrStaffView(s)}</div>`;
+  return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера · прототип</span><h1>Заявки клиентов</h1></div>
     <p style="color:var(--muted);max-width:48ch">Все заявки собраны по клиентам: контакты, состав заказа, спецификация и нарисованная планировка для бригады и договора. Сейчас данные берутся из этого браузера — в рабочей версии сюда же придут заявки с сервера.</p></div>
     <div class="adm-stats">${[['Заявок',list.length],['Клиентов',new Set(list.map(o=>o.email||o.phone||o._owner)).size],['В работе',list.filter(o=>!['new','done'].includes(o.status||'new')).length],['Сумма',rub(sum)]].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
     <div class="adm-bar"><input id="admQ" placeholder="Поиск: номер, ФИО, телефон, почта, регион" value="${esc(adminState.q)}">
@@ -2553,7 +2600,7 @@ function render(){
   else if(a==='catalog')html=catalogView();
   else if(a==='custom')html=customView();
   else if(a==='how')html=howView();
-  else if(a==='admin')html=adminView();
+  else if(a==='admin'){const s=mgrSession();html=s?adminView():mgrLoginView()}
   else if(a==='house')html=modelView(b);
   else if(a==='cart')html=cartView();
   else if(a==='account')html=accountView(b);
@@ -2589,6 +2636,26 @@ function bind(){
     document.querySelectorAll('#filters .pill').forEach(p=>p.classList.toggle('on',p===b));
     const list=b.dataset.f==='all'?MODELS:MODELS.filter(m=>String(m.floors)===b.dataset.f);
     document.getElementById('catGrid').innerHTML=list.map(card).join('');paint()});
+  document.getElementById('mgrForm')?.addEventListener('submit',async e=>{e.preventDefault();
+    const f=new FormData(e.target),mode=e.target.dataset.mode,login=String(f.get('login')||'').trim().toLowerCase(),pass=String(f.get('pass')||'');
+    const acc=mgrAccounts(),ph=await hash('mgr:'+login+':'+pass);
+    const fail=msg=>{adminState.err=msg;render()};
+    if(mode==='setup'){
+      if(pass.length<8)return fail('Пароль должен быть не короче 8 символов.');
+      if(pass!==f.get('pass2'))return fail('Пароли не совпадают.');
+      acc[login]={name:String(f.get('name')||'').trim()||login,ph,role:'admin',at:Date.now()};
+      store.set('mgr.accounts',acc);adminState.err='';mgrSetSession(login);toast('Администратор создан');render();return}
+    const lock=mgrLock();if(lock.until>Date.now())return render();
+    if(!acc[login]||acc[login].ph!==ph){
+      const n=lock.n+1;store.set('mgr.lock',n>=5?{n:0,until:Date.now()+5*60000}:{n,until:0});
+      return fail(n>=5?'Слишком много попыток. Вход заблокирован на 5 минут.':'Неверный логин или пароль.')}
+    store.set('mgr.lock',{n:0,until:0});adminState.err='';mgrSetSession(login);render()});
+  document.getElementById('mgrAdd')?.addEventListener('submit',async e=>{e.preventDefault();
+    const f=new FormData(e.target),login=String(f.get('login')).trim().toLowerCase(),pass=String(f.get('pass'));
+    const acc=mgrAccounts();if(acc[login])return toast('Такой логин уже есть');
+    if(pass.length<8)return toast('Пароль не короче 8 символов');
+    acc[login]={name:String(f.get('name')).trim(),ph:await hash('mgr:'+login+':'+pass),role:'manager',at:Date.now()};
+    store.set('mgr.accounts',acc);toast('Менеджер добавлен');render()});
   document.getElementById('checkout')?.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);
     const key='orders.'+(user?user.email:'guest'),orders=store.get(key,[]);
     orders.push({no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:cart.slice(),fio:f.get('fio'),email:user?user.email:'',
@@ -2603,6 +2670,10 @@ document.addEventListener('click',e=>{
     const on=favs.includes(id);toast(on?'Добавлено в избранное':'Убрано из избранного');
     if(f.classList.contains('fav-inline')){f.style.color=on?'var(--lamp)':'';f.style.borderColor=on?'var(--lamp)':'';f.querySelector('svg').setAttribute('fill',on?'currentColor':'none')}
     if(/account/.test(location.hash))render();else document.querySelectorAll(`.fav[data-fav="${id}"]`).forEach(b=>b.classList.toggle('on',on));return}
+  if(e.target.closest('[data-mgrout]')){mgrLogout();adminState.tab='orders';toast('Вы вышли из панели');render();return}
+  const mt=e.target.closest('[data-mgrtab]');if(mt){adminState.tab=mt.dataset.mgrtab;render();return}
+  const md=e.target.closest('[data-mgrdel]');
+  if(md){const acc=mgrAccounts();delete acc[md.dataset.mgrdel];store.set('mgr.accounts',acc);toast('Сотрудник удалён');render();return}
   const ads=e.target.closest('[data-adst]');
   if(ads){adminState.st=ads.dataset.adst;app.innerHTML=adminView()+footer();paint();bind();return}
   const tg=e.target.closest('[data-theme-toggle]');
@@ -2712,7 +2783,7 @@ const customNum=(e,commit)=>{const n=e.target.closest('[data-cnum]');if(!n)retur
   if(isNaN(v)||v<min||v>max){if(commit){v=Math.min(max,Math.max(min,isNaN(v)?customState[n.dataset.cnum]:v));n.value=v}else return true}
   customState[n.dataset.cnum]=Math.round(v*2)/2;refreshCustom(commit);return true};
 document.addEventListener('change',e=>{if(!customNum(e,true)&&e.target.closest('[data-crange]'))refreshCustom(true)});
-document.addEventListener('change',e=>{const s=e.target.closest('[data-adstatus]');if(!s)return;
+document.addEventListener('change',e=>{const s=e.target.closest('[data-adstatus]');if(!s||!mgrSession())return;
   const [key,idx]=s.dataset.adstatus.split('|'),list=store.get(key,[]);
   if(list[+idx]){list[+idx].status=s.value;list[+idx].stage=Math.max(0,ORDER_ST.findIndex(x=>x[0]===s.value)-1);store.set(key,list);toast('Статус обновлён')}});
 document.addEventListener('input',e=>{

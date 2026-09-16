@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Контур Дома</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Onest:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -668,10 +670,10 @@ const MODELS=[
  {id:'12x10',winSides:[3,1,.8,.5],ver:{w:7,d:2.5,pos:'front-left'},photo:'h12x10.jpg',w:12,d:10,name:'Байкал',floors:2,area:208,beds:5,baths:2,price:11110000,weeks:18,days:14,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Большой семейный дом с котельной и террасой',plan:[['Гостиная',0,0,7,6],['Кухня',7,0,5,4],['Котельная',7,4,5,2],['Спальня',0,6,4,4],['С/у',4,6,3,4],['Холл',7,6,5,4]]},
 ];
 const PKGS=[
- {id:'cold',name:'Холодный контур',k:.518,txt:'Каркас, наружная обшивка, ветро-влагозащитная мембрана, кровля, окна и дверь — без утепления'},
- {id:'warm',name:'Тёплый контур',k:.759,txt:'+ каменная вата, пароизоляция изнутри, ветро-влагозащита снаружи, внутренняя отделка'},
- {id:'draft',name:'Под чистовую',k:.899,txt:'+ электрика, водоснабжение, канализация, черновая отделка'},
- {id:'key',name:'Под ключ',k:1.034,txt:'+ чистовая отделка, сантехника, освещение, терраса'},
+ {id:'cold',name:'Холодный контур',k:.4144,txt:'Каркас, наружная обшивка, ветро-влагозащитная мембрана, кровля, окна и дверь — без утепления'},
+ {id:'warm',name:'Тёплый контур',k:.6554,txt:'+ каменная вата, пароизоляция изнутри, ветро-влагозащита снаружи, внутренняя отделка'},
+ {id:'draft',name:'Под чистовую',k:.7954,txt:'+ электрика, водоснабжение, канализация, черновая отделка'},
+ {id:'key',name:'Под ключ',k:.9304,txt:'+ чистовая отделка, сантехника, освещение, терраса'},
 ];
 const STAGES=['Заявка','Проект','Фундамент','Каркас','Сдача'];
 const SIZES=MODELS.map(m=>({id:m.id,w:m.w,d:m.d,days:m.days,wins:m.wins}));
@@ -1359,7 +1361,16 @@ function p3Wall(g,x1,z1,x2,z2,th,col,holes){
       [fr,gl].forEach(mm=>{if(mm){mm.userData.meta=h.meta;P3.picks.push(mm)}})}
     else if(h.type==='door'){
       put(a,b,h.h||2.05,P3H,col);                             /* над дверью */
-      const len=(b-a)*L,hinge=a*L,leaf=p3Box(len*.96,(h.h||2.05)-.02,.05,'#4FA3C4');
+      const len=(b-a)*L,hinge=a*L,dh=h.h||2.05,entry=h.meta&&h.meta.t==='door';
+      if(entry){/* входной проём: тёмная коробка, порог и дуга открывания */
+        const jw=.08,jd=th*1.5,mid=(a+b)/2*L;
+        [[a*L+jw/2],[b*L-jw/2]].forEach(([s])=>{const j=p3Box(jw,dh+.06,jd,'#262A2E');j.position.set(x1+ux*s,(dh+.06)/2,z1+uz*s);j.rotation.y=-ang;g.add(j)});
+        const lin=p3Box(len,.1,jd,'#262A2E');lin.position.set(x1+ux*mid,dh+.05,z1+uz*mid);lin.rotation.y=-ang;g.add(lin);
+        const thr=p3Box(len,.03,jd*1.4,'#4FA3C4');thr.position.set(x1+ux*mid,.015,z1+uz*mid);thr.rotation.y=-ang;g.add(thr);
+        const arc=new THREE.Mesh(new THREE.RingGeometry(len*.9,len*.96,24,1,0,Math.PI/2),
+          new THREE.MeshBasicMaterial({color:0x4FA3C4,transparent:true,opacity:.75,side:THREE.DoubleSide}));
+        arc.rotation.x=-Math.PI/2;arc.rotation.z=ang+Math.PI;arc.position.set(x1+ux*hinge,.03,z1+uz*hinge);g.add(arc)}
+      const leaf=p3Box(len*.96,dh-.02,.05,'#4FA3C4');
       const open=-.55;const cx=x1+ux*hinge,cz=z1+uz*hinge;
       const pivot=new THREE.Group();pivot.position.set(cx,0,cz);pivot.rotation.y=-ang+open;
       leaf.position.set(len*.46,leaf.geometry.parameters.height/2,0);pivot.add(leaf);g.add(pivot);
@@ -1415,7 +1426,7 @@ function p3Build(o){
       const meta={t:p.t,name:p.t==='door'?'Входная дверь':openName(p.t),size:`${Math.round(s*100)} × ${Math.round(openSz(p.t)[1]*100)} см`};
       return{a:along-s/2/L,b:along+s/2/L,h:openSz(p.t)[1],type:p.t==='door'?'door':'win',meta,c,off:Math.abs(((c.x-x1)*(z2-z1)-(c.z-z1)*(x2-x1))/L)>.05}}).filter(h=>!h.off&&h.b>0&&h.a<1);
     p3Wall(g,x1,z1,x2,z2,P3T,cWall,holes);
-    holes.forEach(h=>{const lab=p3Label(h.type==='door'?'дверь':h.meta.size.replace(' см','').replace(/ × /g,'×'),null,
+    holes.forEach(h=>{const lab=p3Label(h.type==='door'?'ВХОД':h.meta.size.replace(' см','').replace(/ × /g,'×'),null,
         h.type==='door'?{bg:'#1F5E78',fg:'#E8F7FD',scale:.0027,pri:2}:{bg:'#F7F6F2',fg:'#15181B',scale:.0027,pri:2});
       lab.position.set(h.c.x,P3H+.35,h.c.z);g.add(lab)})});
   /* перегородки и межкомнатные двери */
@@ -2049,9 +2060,10 @@ function bindPlanner(){
       const dist=[[0,Math.abs(p.y-y0w)],[3,Math.abs(p.y)],[1,Math.abs(p.x-b.w)],[2,Math.abs(p.x)]].sort((a,c)=>a[1]-c[1]);
       /* на другую стену переходим только если курсор рядом с ней, иначе скользим по своей */
       const curD=dist.find(d=>d[0]===o.wall)[1];
-      let wall=inNotch?0:(dist[0][0]!==o.wall&&dist[0][1]<Math.min(1.1,curD-.2)?dist[0][0]:o.wall);
+      let wall=inNotch?0:(dist[0][0]!==o.wall&&dist[0][1]<curD-.15?dist[0][0]:o.wall);
       let u=wall===0?u0:wall===3?b.w/2-p.x:b.d/2-p.y;
-      let fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,1.2);
+      /* на своей стене ищем место рядом с курсором, на новой — по всей стене */
+      let fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,wall===o.wall?1.2:undefined);
       if(fu==null&&wall!==o.wall){wall=o.wall;u=wall===0?u0:wall===3?b.w/2-p.x:b.d/2-p.y;fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,1.2)}
       if(fu!=null){o.wall=wall;o.u=fu}
       const g2=svg.querySelector(`[data-oid="${drag.i}"]`),lns=g2.querySelectorAll('line'),ci=g2.querySelector('circle'),tx=g2.querySelector('text');
@@ -2155,11 +2167,11 @@ function refreshCalc(m,groups){
    Премиум:    70 000 + 30 500 ₽·S  (8×10 80 м² = 2,51 млн, 9×12 108 м² = 3,365 млн) */
 const MARKUP=1.3;
 const CONTOURS=[
- {id:'cold',name:'Холодный контур',fix:180000,rate:7500,weeks:0,
+ {id:'cold',name:'Холодный контур',fix:144000,rate:6000,weeks:0,
   inc:['Каркас: брус 40×100 мм','Высота потолка 2,4 м, в коньке 3,0 м','Наружная отделка: имитация бруса класса АВ','Ветро-влагозащитная мембрана','Кровля: оцинкованный профлист, ветровые планки','Окна ПВХ однокамерные, металлическая дверь 50 мм','Пол: обрезная доска 23×150 мм','Фундамент: бетонные блоки 400×200×200 на рубероиде, лаги 100×150 с огнебиозащитой']},
- {id:'warm',name:'Тёплый контур',fix:179000,rate:10917,weeks:1,
+ {id:'warm',name:'Тёплый контур',fix:143000,rate:9417,weeks:1,
   inc:['Всё из холодного контура','Утепление по кругу (пол, стены, потолок): каменная вата 100 мм','Пароизоляция','Внутренняя отделка: вагонка класса АВ, наличники, плинтусы','Черновой пол: обрезная доска 23 мм, чистовой пол: OSB 15 мм','Перегородки 9 м и 2 филёнчатые двери','Сетка от грызунов и ступени в подарок']},
- {id:'prem',name:'Премиум',fix:125000,rate:19000,weeks:3,
+ {id:'prem',name:'Премиум',fix:89000,rate:17500,weeks:3,
   inc:['Каркас: строганый брус 40×150 мм','Каменная вата 150 мм по кругу, вентзазор','Окна ПВХ двухкамерные, профиль 70 мм, отливы и подоконники','Утеплённая дверь с терморазрывом 110 мм','Черновой пол: строганая доска 20 мм, чистовой: OSB 18 мм','Кровля: металлочерепица','Перегородки до 25 м, 4–5 филёнчатых дверей','Фундамент: винтовые сваи Ø89–108 × 2,5 м, лаги 150×150']},
 ];
 const FLOORS=[{id:'1',name:'1 этаж',k:1,txt:'Всё на одном уровне'},{id:'1.5',name:'С мансардой',k:1.6,txt:'Второй уровень под скатами'},{id:'2',name:'2 этажа',k:2,txt:'Полноценный второй этаж'}];

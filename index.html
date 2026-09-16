@@ -669,9 +669,9 @@ const MODELS=[
 ];
 const PKGS=[
  {id:'cold',name:'Холодный контур',k:.518,txt:'Каркас, наружная обшивка, ветро-влагозащитная мембрана, кровля, окна и дверь — без утепления'},
- {id:'warm',name:'Тёплый контур',k:1,txt:'+ каменная вата, пароизоляция изнутри, ветро-влагозащита снаружи, внутренняя отделка'},
- {id:'draft',name:'Под чистовую',k:1.28,txt:'+ электрика, водоснабжение, канализация, черновая отделка'},
- {id:'key',name:'Под ключ',k:1.55,txt:'+ чистовая отделка, сантехника, освещение, терраса'},
+ {id:'warm',name:'Тёплый контур',k:.759,txt:'+ каменная вата, пароизоляция изнутри, ветро-влагозащита снаружи, внутренняя отделка'},
+ {id:'draft',name:'Под чистовую',k:.899,txt:'+ электрика, водоснабжение, канализация, черновая отделка'},
+ {id:'key',name:'Под ключ',k:1.034,txt:'+ чистовая отделка, сантехника, освещение, терраса'},
 ];
 const STAGES=['Заявка','Проект','Фундамент','Каркас','Сдача'];
 const SIZES=MODELS.map(m=>({id:m.id,w:m.w,d:m.d,days:m.days,wins:m.wins}));
@@ -1574,7 +1574,7 @@ function home(){
       <thead><tr><th>Размер</th><th>Площадь</th><th>Холодный контур</th><th>Тёплый контур</th><th>Под ключ</th><th></th></tr></thead>
       <tbody>${SIZES.map((s,i)=>{const a=s.w*s.d,p=Math.round(rateFor(a)*a/10000)*10000;
         return `<tr><td><b class="num">${s.w}×${s.d}</b><span class="nm">1 этаж</span></td><td class="num">${a} м²</td>
-        <td class="num">${rub(p*PKGS[0].k)}</td><td class="num">${rub(p)}</td><td class="num">${rub(p*1.55)}</td>
+        <td class="num">${rub(p*PKGS[0].k)}</td><td class="num">${rub(p*PKGS[1].k)}</td><td class="num">${rub(p*PKGS[3].k)}</td>
         <td><a href="#/house/${MODELS[i].id}@${s.id}">Открыть</a></td></tr>`}).join('')}
         <tr><td colspan="5" style="color:var(--muted);font-size:14px">Нужен размер, которого нет в таблице? Посчитайте свой проект — от 3×3 до 18×24 м.</td><td><a href="#/custom">Калькулятор</a></td></tr></tbody>
     </table></div>
@@ -1757,7 +1757,7 @@ function openQuad(m,p,h,grow){const c=openCenter(m,p),s=openSz(p.t)[0]/2+(grow||
   const dx=c.horiz?s:0,dz=c.horiz?0:s,ox=c.horiz?0:n[0]*o,oz=c.horiz?n[2]*o:0;
   return{p:[[c.x-dx+ox,.06,c.z-dz+oz],[c.x+dx+ox,.06,c.z+dz+oz],[c.x+dx+ox,h,c.z+dz+oz],[c.x-dx+ox,h,c.z-dz+oz]],n}}
 /* свободная позиция на стене: не ближе 15 см к соседнему проёму и не за краем стены */
-function freeU(m,ops,skip,wall,u,sz){const len=wallLen(m,wall);
+function freeU(m,ops,skip,wall,u,sz,radius){const len=wallLen(m,wall);
   let lo=-len/2+sz/2+.2,hi=len/2-sz/2-.2;
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
   if(N&&!N.side&&((wall===1&&N.openRight)||(wall===2&&N.openLeft))){
@@ -1765,9 +1765,11 @@ function freeU(m,ops,skip,wall,u,sz){const len=wallLen(m,wall);
     const houseLen=N.z2+m.d/2;lo=Math.max(lo,len/2-houseLen+sz/2+.2)}
   if(hi<lo)return null;
   const others=ops.filter((o,i)=>i!==skip&&o.wall===wall).map(o=>[o.u,openSz(o.t)[0]/2]);
-  const clash=v=>others.some(([ou,oh])=>Math.abs(v-ou)<oh+sz/2+.15);
+  const gap=radius!=null?.05:.15;
+  const clash=v=>others.some(([ou,oh])=>Math.abs(v-ou)<oh+sz/2+gap);
   u=Math.max(lo,Math.min(hi,u));if(!clash(u))return +u.toFixed(2);
-  for(let dd=.1;dd<=len;dd+=.1)for(const s of[1,-1]){const v=u+s*dd;if(v>=lo&&v<=hi&&!clash(v))return +v.toFixed(2)}
+  const lim=radius!=null?radius:len;
+  for(let dd=.05;dd<=lim;dd+=.05)for(const s of[1,-1]){const v=u+s*dd;if(v>=lo&&v<=hi&&!clash(v))return +v.toFixed(2)}
   return null}
 /* автоматическая раскладка — стартовая точка для редактора */
 function autoOpenings(m,cfg){
@@ -2045,9 +2047,12 @@ function bindPlanner(){
       const Nd=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
       const inNotch=Nd&&!Nd.side&&u0>=Nd.nl-.05&&u0<=Nd.nr+.05&&p.y>=Nd.z2+m.d/2-.3;
       const dist=[[0,Math.abs(p.y-y0w)],[3,Math.abs(p.y)],[1,Math.abs(p.x-b.w)],[2,Math.abs(p.x)]].sort((a,c)=>a[1]-c[1]);
-      const wall=inNotch?0:dist[0][0];
+      /* на другую стену переходим только если курсор рядом с ней, иначе скользим по своей */
+      const curD=dist.find(d=>d[0]===o.wall)[1];
+      let wall=inNotch?0:(dist[0][0]!==o.wall&&dist[0][1]<Math.min(1.1,curD-.2)?dist[0][0]:o.wall);
       let u=wall===0?u0:wall===3?b.w/2-p.x:b.d/2-p.y;
-      const fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz);
+      let fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,1.2);
+      if(fu==null&&wall!==o.wall){wall=o.wall;u=wall===0?u0:wall===3?b.w/2-p.x:b.d/2-p.y;fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,1.2)}
       if(fu!=null){o.wall=wall;o.u=fu}
       const g2=svg.querySelector(`[data-oid="${drag.i}"]`),lns=g2.querySelectorAll('line'),ci=g2.querySelector('circle'),tx=g2.querySelector('text');
       const szk=sz*k,P0=+svg.dataset.pad,PW2=b.w*k,PD2=b.d*k;let x1,y1,x2,y2;
@@ -2152,9 +2157,9 @@ const MARKUP=1.3;
 const CONTOURS=[
  {id:'cold',name:'Холодный контур',fix:180000,rate:7500,weeks:0,
   inc:['Каркас: брус 40×100 мм','Высота потолка 2,4 м, в коньке 3,0 м','Наружная отделка: имитация бруса класса АВ','Ветро-влагозащитная мембрана','Кровля: оцинкованный профлист, ветровые планки','Окна ПВХ однокамерные, металлическая дверь 50 мм','Пол: обрезная доска 23×150 мм','Фундамент: бетонные блоки 400×200×200 на рубероиде, лаги 100×150 с огнебиозащитой']},
- {id:'warm',name:'Тёплый контур',fix:178000,rate:14333,weeks:1,
+ {id:'warm',name:'Тёплый контур',fix:179000,rate:10917,weeks:1,
   inc:['Всё из холодного контура','Утепление по кругу (пол, стены, потолок): каменная вата 100 мм','Пароизоляция','Внутренняя отделка: вагонка класса АВ, наличники, плинтусы','Черновой пол: обрезная доска 23 мм, чистовой пол: OSB 15 мм','Перегородки 9 м и 2 филёнчатые двери','Сетка от грызунов и ступени в подарок']},
- {id:'prem',name:'Премиум',fix:70000,rate:30500,weeks:3,
+ {id:'prem',name:'Премиум',fix:125000,rate:19000,weeks:3,
   inc:['Каркас: строганый брус 40×150 мм','Каменная вата 150 мм по кругу, вентзазор','Окна ПВХ двухкамерные, профиль 70 мм, отливы и подоконники','Утеплённая дверь с терморазрывом 110 мм','Черновой пол: строганая доска 20 мм, чистовой: OSB 18 мм','Кровля: металлочерепица','Перегородки до 25 м, 4–5 филёнчатых дверей','Фундамент: винтовые сваи Ø89–108 × 2,5 м, лаги 150×150']},
 ];
 const FLOORS=[{id:'1',name:'1 этаж',k:1,txt:'Всё на одном уровне'},{id:'1.5',name:'С мансардой',k:1.6,txt:'Второй уровень под скатами'},{id:'2',name:'2 этажа',k:2,txt:'Полноценный второй этаж'}];

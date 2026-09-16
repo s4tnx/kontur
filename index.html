@@ -74,7 +74,28 @@
   font-size:13px;line-height:1.6;color:var(--text);font-weight:400;font-family:var(--body);
   box-shadow:0 18px 40px rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .16s;text-align:left;pointer-events:none}
 .term .tip b{color:var(--lamp2);font-weight:500}
-.term:hover .tip,.term:focus-within .tip,.term.open .tip{opacity:1;visibility:visible;transform:none}
+.term .tip{display:none!important}
+.term.open{border-bottom-color:var(--lamp)}
+.term.open > i.q{background:var(--lamp);color:#1a120a}
+/* окно пояснения — отдельный слой поверх страницы, со своей прокруткой */
+.tipbox{position:fixed;left:0;top:0;z-index:300;width:min(380px,calc(100vw - 24px));max-height:420px;display:flex;flex-direction:column;
+  background:var(--panel2);border:1px solid var(--line2);border-radius:16px;box-shadow:0 18px 40px rgba(0,0,0,.45);
+  opacity:0;visibility:hidden;transition:opacity .16s,visibility .16s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.tipbox.show{opacity:1;visibility:visible}
+.tipbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+  padding:14px 44px 16px 16px;font-size:13.5px;line-height:1.6;color:var(--text);text-align:left;overflow-wrap:break-word;hyphens:auto}
+.tipbody b{color:var(--lamp2);font-weight:500}
+.tipbody::-webkit-scrollbar{width:6px}.tipbody::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+.tipbody{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.tipx{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);color:var(--muted);cursor:pointer;font-size:13px;display:grid;place-items:center;z-index:1}
+.tipx:hover{color:var(--text);border-color:var(--line2)}
+:root[data-theme="light"] .tipbox{box-shadow:0 18px 40px rgba(40,36,30,.18)}
+@media (max-width:760px){
+  .tipbox{left:10px!important;right:10px;top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom));width:auto;max-height:min(62vh,520px)!important;border-radius:22px;transform:translateY(24px)}
+  .tipbox.show{transform:none}
+  .tipbody{font-size:15px;padding:20px 50px 22px 18px}
+  .tipx{top:12px;right:12px;width:34px;height:34px}
+}
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -631,6 +652,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 /* ================= мобильная версия ================= */
 .badge[hidden]{display:none!important}
 @media (max-width:1320px) and (min-width:1181px){.head-tel{display:none!important}}
+@media (max-width:1280px){.contact-btn{display:none!important}}
 .cat-bar{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;margin-bottom:12px}
 .cat-bar .label{font-size:11px}
 #catGrid{margin-top:22px}
@@ -3063,15 +3085,37 @@ function setTheme(mode){
 }
 const isLight=()=>document.documentElement.getAttribute('data-theme')==='light';
 /* подсказка позиционируется по месту слова и всегда остаётся внутри экрана */
-function placeTip(el){const tip=el.querySelector('.tip');if(!tip)return;
-  tip.style.visibility='hidden';tip.style.opacity='0';tip.style.left='0px';tip.style.top='0px';
-  const r=el.getBoundingClientRect(),tr=tip.getBoundingClientRect();
-  let left=Math.min(Math.max(12,r.left),innerWidth-tr.width-12);
-  let top=r.top-tr.height-10; if(top<12)top=Math.min(r.bottom+10,innerHeight-tr.height-12);
-  tip.style.left=left+'px';tip.style.top=top+'px';tip.style.visibility='';tip.style.opacity=''}
-addEventListener('pointerover',e=>{const el=e.target.closest&&e.target.closest('.term');if(el)placeTip(el)},true);
-addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest('.term');if(el)placeTip(el)});
-addEventListener('scroll',()=>document.querySelectorAll('.term.open').forEach(placeTip),true);
+let tipEl=null,tipFor=null,tipPinned=false,tipT=0;
+function tipBox(){if(tipEl)return tipEl;
+  tipEl=document.createElement('div');tipEl.className='tipbox';tipEl.setAttribute('role','dialog');tipEl.setAttribute('aria-live','polite');
+  tipEl.innerHTML='<button type="button" class="tipx" aria-label="Закрыть пояснение">✕</button><div class="tipbody"></div>';
+  tipEl.querySelector('.tipx').addEventListener('click',e=>{e.stopPropagation();hideTip()});
+  tipEl.addEventListener('pointerenter',()=>clearTimeout(tipT));
+  tipEl.addEventListener('pointerleave',e=>{if(!tipPinned&&e.pointerType==='mouse')hideTipSoon()});
+  document.body.appendChild(tipEl);return tipEl}
+function showTip(term,pin){const src=term.querySelector('.tip');if(!src)return;const el=tipBox();clearTimeout(tipT);
+  if(tipFor!==term){if(tipFor)tipFor.classList.remove('open');el.querySelector('.tipbody').innerHTML=src.innerHTML;el.querySelector('.tipbody').scrollTop=0}
+  tipFor=term;tipPinned=!!pin;term.classList.toggle('open',tipPinned);el.classList.add('show');placeTip()}
+function placeTip(){if(!tipEl||!tipFor)return;if(!tipFor.isConnected)return hideTip();
+  if(innerWidth<=760){tipEl.style.maxHeight='';return}
+  const r=tipFor.getBoundingClientRect(),w=tipEl.offsetWidth;
+  const above=r.top-22,below=innerHeight-r.bottom-22,down=below>=Math.min(260,above)||below>=above;
+  tipEl.style.maxHeight=Math.max(140,Math.min(420,down?below:above))+'px';
+  const h=tipEl.offsetHeight;
+  tipEl.style.left=Math.min(Math.max(12,r.left),innerWidth-w-12)+'px';
+  tipEl.style.top=Math.max(12,down?r.bottom+10:r.top-h-10)+'px'}
+function hideTip(){clearTimeout(tipT);if(tipEl)tipEl.classList.remove('show');if(tipFor)tipFor.classList.remove('open');tipFor=null;tipPinned=false}
+function hideTipSoon(){clearTimeout(tipT);tipT=setTimeout(hideTip,260)}
+/* мышью — по наведению, касанием и кликом — закрепляется до «✕» или клика мимо */
+addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest&&e.target.closest('.term');
+  if(el&&!(tipPinned&&tipFor!==el))showTip(el,tipPinned&&tipFor===el)},true);
+addEventListener('pointerout',e=>{if(e.pointerType!=='mouse'||tipPinned)return;const el=e.target.closest&&e.target.closest('.term');
+  if(el&&!(e.relatedTarget&&(el.contains(e.relatedTarget)||tipEl&&tipEl.contains(e.relatedTarget))))hideTipSoon()},true);
+addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest('.term');if(el&&!tipPinned)showTip(el,false)});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&tipFor)hideTip();
+  if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('term')){e.preventDefault();tipPinned&&tipFor===e.target?hideTip():showTip(e.target,true)}});
+addEventListener('scroll',e=>{if(!tipFor||(tipEl&&tipEl.contains(e.target)))return;if(tipPinned)placeTip();else hideTip()},true);
+addEventListener('resize',()=>placeTip());
 try{if(localStorage.getItem('kontur-theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}
 
 /* ---------- панель менеджера: все заявки по клиентам ---------- */
@@ -3249,9 +3293,10 @@ document.addEventListener('click',e=>{
   const tg=e.target.closest('[data-theme-toggle]');
   if(tg){const light=document.documentElement.getAttribute('data-theme')==='light';
     setTheme(light?'dark':'light');return}
+  if(e.target.closest('.tipbox'))return;
   const tq=e.target.closest('.term');
-  if(tq){document.querySelectorAll('.term.open').forEach(n=>{if(n!==tq)n.classList.remove('open')});tq.classList.toggle('open');if(tq.classList.contains('open'))placeTip(tq);return}
-  document.querySelectorAll('.term.open').forEach(n=>n.classList.remove('open'));
+  if(tq){e.preventDefault();if(tipPinned&&tipFor===tq)hideTip();else showTip(tq,true);return}
+  if(tipFor)hideTip();
   const bq=e.target.closest('[data-bstage],[data-bsize],[data-bview],[data-part]');
   if(bq&&document.querySelector('.build')){const d=bq.dataset;
     if(d.bstage!=null&&d.bstage!==''){buildState.stage=+d.bstage;

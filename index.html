@@ -354,7 +354,12 @@ header.top{transition:background .4s,border-color .4s}
 .under-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:26px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .under-hero p{color:var(--muted);font-size:14px;max-width:46ch}
 @media (max-width:1000px){.hero-note,.socials{display:none}.hero-cta{left:clamp(16px,3vw,44px);top:auto;bottom:96px;width:min(300px,calc(100% - 32px))}}
-@media (max-width:640px){.stats{left:0;border-radius:0;justify-content:space-between}.stat span{font-size:9.5px;max-width:64px}.stat:nth-child(3){display:none}.scroll-cue{display:none}}
+@media (max-width:640px){
+  .stats{left:0;right:0;bottom:calc(86px + env(safe-area-inset-bottom));border-radius:0;height:auto;padding:12px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:center}
+  .stat{flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+  .stat b{font-size:20px}
+  .stat span{font-size:9px;max-width:none;letter-spacing:.02em;line-height:1.15}
+  .scroll-cue{display:none}}
 
 section{padding:clamp(70px,10vw,130px) 0;border-bottom:1px solid var(--line)}
 .two-tone{font-family:var(--display);font-weight:600;font-size:clamp(30px,4.6vw,64px);line-height:1.08;letter-spacing:-.02em}
@@ -2119,7 +2124,7 @@ const winsFromOpenings=ops=>{const o={};ops.forEach(p=>{if(p.t!=='door')o[p.t]=(
 const winsOf=(m,cfg)=>cfg&&cfg.openings?winsFromOpenings(cfg.openings):winsBase(m,cfg);
 /* прямоугольник жилой части в мировых координатах — общая система для плана и 3D */
 const boxRect=m=>{const b=roomBox(m);return{x0:-m.w/2+b.ox,z0:-m.d/2+b.oy,w:b.w,d:b.d}};
-const wallLen=(m,wall)=>{const r=boxRect(m);return wall%2?r.d:r.w};
+const wallLen=(m,wall)=>{const r=boxRect(m);return wall===0||wall===3?r.w:r.d};
 /* центр проёма на стене: wall 0 фасад, 1 правая, 2 левая, 3 тыл */
 function openCenter(m,p){const r=boxRect(m),cx=r.x0+r.w/2,cz=r.z0+r.d/2;
   if(p.wall===0)return{x:cx+p.u,z:r.z0+r.d,horiz:1};
@@ -2174,6 +2179,17 @@ function autoOpenings(m,cfg){
       if(u!=null){ops.push({t:'door',wall,u});placed=true;break}}
     if(!placed)ops.push({t:'door',wall:pref,u:0})}
   return ops}
+/* если на стене тесно — раздвигаем соседние проёмы, а не отказываем */
+function pushOpenings(m,cfg,i){const o=cfg.openings[i],sz=openSz(o.t)[0];
+  cfg.openings.forEach((p,j)=>{if(j===i||p.wall!==o.wall)return;
+    const half=openSz(p.t)[0]/2;
+    if(Math.abs(p.u-o.u)>=half+sz/2+.05)return;
+    const u2=freeU(m,cfg.openings,j,p.wall,p.u,openSz(p.t)[0],wallLen(m,p.wall));
+    if(u2!=null){p.u=u2;return}
+    /* на этой стене места не осталось — переносим на самую свободную соседнюю */
+    for(const w of [0,1,2,3].filter(w=>w!==p.wall).sort((a,b)=>wallLen(m,b)-wallLen(m,a))){
+      const u3=freeU(m,cfg.openings,j,w,0,openSz(p.t)[0],wallLen(m,w));
+      if(u3!=null){p.wall=w;p.u=u3;return}}})}
 function tidyOpenings(m,ops){const out=[];ops.forEach(o=>{const u=freeU(m,out,-1,o.wall,o.u,openSz(o.t)[0]);out.push(u==null?o:{...o,u})});return out}
 const openingsOf=(m,cfg)=>{if(cfg&&cfg.openings){const t2=tidyOpenings(m,cfg.openings);cfg.openings=t2;return t2}return autoOpenings(m,cfg)};
 /* свободное место на стене: ставим новый проём туда, где больше всего пустого */
@@ -2436,9 +2452,12 @@ function bindPlanner(){
       let wall=inNotch?0:(dist[0][0]!==o.wall&&dist[0][1]<curD-.15?dist[0][0]:o.wall);
       let u=wall===0?u0:wall===3?b.w/2-p.x:b.d/2-p.y;
       /* на своей стене ищем место рядом с курсором, на новой — по всей стене */
-      let fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,wall===o.wall?1.2:undefined);
-      if(fu==null&&wall!==o.wall){wall=o.wall;u=wall===0?u0:wall===3?b.w/2-p.x:b.d/2-p.y;fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,1.2)}
+      /* лёгкая подтяжка к свободному месту — до 35 см, дальше двигаем соседей */
+      let fu=freeU(m,cfg.openings,drag.i,wall,snap(u),sz,.35);
       if(fu!=null){o.wall=wall;o.u=fu}
+      else{/* тесно: ставим туда, куда ведут; соседние расступятся, когда отпустите */
+        const len=wallLen(m,wall),lim=len/2-sz/2-.2;
+        if(lim>0){o.wall=wall;o.u=Math.max(-lim,Math.min(lim,snap(u)))}}
       const g2=svg.querySelector(`[data-oid="${drag.i}"]`),lns=g2.querySelectorAll('line'),ci=g2.querySelector('circle'),tx=g2.querySelector('text');
       const szk=sz*k,P0=+svg.dataset.pad,PW2=b.w*k,PD2=b.d*k;let x1,y1,x2,y2;
       if(o.wall===0){const cx=P0+(o.u+b.w/2)*k;x1=cx-szk/2;x2=cx+szk/2;y1=y2=P0+wall0Y(m,b,o.u)*k}
@@ -2466,7 +2485,9 @@ function bindPlanner(){
     ts[1].setAttribute('x',x+rw/2);ts[1].setAttribute('y',y+rd/2+13);
     ts[1].textContent=`${(cur.w*cur.d).toFixed(1).replace('.',',')} м²${rw>120?` · ${cur.w.toFixed(1).replace('.',',')}×${cur.d.toFixed(1).replace('.',',')}`:''}`;
     hh.setAttribute('x',x+rw-11);hh.setAttribute('y',y+rd-11);live3D(m)});
-  const up=()=>{if(!drag)return;drag=null;refreshAny(m,true)};
+  const up=()=>{if(!drag)return;
+    if(drag.mode==='open'&&cfg.openings&&cfg.openings[drag.i])pushOpenings(m,cfg,drag.i);
+    drag=null;refreshAny(m,true)};
   svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
 }
 
@@ -2768,14 +2789,14 @@ const modPvcCount=c=>MOD_WINS.reduce((s,w)=>s+(w[2]==='pvc'?Math.max(0,(c.wins||
 MOD_WINS.forEach(w=>{const [a,b]=w[1].split(' × ').map(v=>+v/100);WIN_SZ[w[0]]=[a,b]});
 const MOD_EXTRAS=[
  ['glass2','Двухкамерные стеклопакеты на все окна ПВХ',c=>1500*modPvcCount(c)],
- ['elec','Электрика: щиток, розетки, свет, выключатели',c=>9000+600*modArea(c)],
+ ['elec','Электрика: щиток, розетки, свет, выключатели',()=>50000],
  ['heater','Электроконвектор 1,5 кВт',()=>7500],
  ['fire','Огнебиозащита каркаса и пола',c=>300*modArea(c)],
- ['visor','Козырёк над входом',()=>7000],
+ ['visor','Козырёк над входом',()=>30000],
  ['porch','Крыльцо со ступенями',()=>6000],
  ['terr','Терраса 2 × 1,5 м под навесом',()=>28000],
  ['shower','Душевая кабина и умывальник (без подключения)',()=>38000],
- ['wc','Биотуалет',()=>9000],
+ ['wc','Биотуалет',()=>40000],
  ['grille','Решётки или ставни на все окна',c=>3500*modWinCount(c)],
 ];
 const MOD_PILES=PILES.filter(p=>!/108/.test(p[0]));
@@ -2817,7 +2838,7 @@ function modWin(id,delta){const cur=(modState.wins||{})[id]||0,wt=modWinById(id)
     if(cfg0.openings){const i=cfg0.openings.map(p=>p.t).lastIndexOf(id);if(i>=0)cfg0.openings=cfg0.openings.filter((_,k)=>k!==i)}
     if(id==='d6090'&&cur===0)toast(`Базовое окно убрано — минус ${rub(MOD_WBASE()[4])}`)}}
 
-const modState={size:'6x3',ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'wood',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50};
+const modState={size:'6x3',winTab:'wood',ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'wood',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50};
 const modSize=c=>MOD_SIZES.find(s=>s.id===c.size)||MOD_SIZES[5];
 const modArea=c=>{const s=modSize(c);return s.w*s.d};
 const modH=c=>[1.9+(c.rise||0)/100,2.1+(c.rise||0)/100];
@@ -2893,11 +2914,13 @@ function modGroupsHTML(){const c=modState,s=modSize(c),h=modH(c);
     ${[0,1,2,3].map(n=>`<button type="button" class="opt ${+c.paint===n?'on':''}" data-mopt="paint:${n}"><b>${n?`${n} ${plural(n,['слой','слоя','слоя'])}`:'Без покраски'}</b><small>${n?['','Антисептик-лазурь, лёгкий тон','Ровный цвет, защита 4–5 лет','Плотный цвет, защита 6–8 лет'][n]:'Дерево без покрытия'}</small><em class="num ${n?'':'z'}">${n?'+ '+rub(Math.round(n*MOD_PAINT*modWallA(c))):'в базе'}</em></button>`).join('')}</div></div>`+
   MOD_GROUPS.slice(2,5).map(grp).join('')+
   `<div class="cg"><div class="cg-h"><h3>Окна</h3><span class="num">${nw?`${nw} ${plural(nw,['окно','окна','окон'])}`:'без окон'} · в базе 1 деревянное 60×90</span></div>
-    ${['wood','pvc'].map(mat=>`<span class="label" style="font-size:10.5px;margin-top:6px">${MOD_MAT[mat][0]} · ${MOD_MAT[mat][3]}</span>
+    <div class="tabs">${['wood','pvc'].map(mat=>{const n=MOD_WINS.filter(w=>w[2]===mat).reduce((s,w)=>s+(w[0]==='d6090'?1:0)+Math.max(0,(c.wins||{})[w[0]]||0),0);
+      return `<button type="button" class="pill ${(c.winTab||'wood')===mat?'on':''}" data-mopt="winTab:${mat}">${MOD_MAT[mat][0]}${n?` · ${n}`:''}</button>`}).join('')}</div>
+    ${[c.winTab||'wood'].map(mat=>`<small class="note" style="margin:0">${MOD_MAT[mat][3]}</small>
     <div class="wins">${MOD_WINS.filter(w=>w[2]===mat).map(w=>{const b=w[0]==='d6090'?1:0,n=b+((c.wins||{})[w[0]]||0);
       return `<div class="win-row ${n?'':'off'}"><div><b>${w[1]} см</b><small>${w[3]}${b?(n?' · в базе 1 шт':` · базовое убрано: − ${rub(w[4])}`):''}</small></div><em class="num">${rub(w[4])}</em>
       <div class="cnt"><button type="button" data-mwin="${w[0]}:-1" aria-label="Убрать окно ${MOD_MAT[mat][2]} ${w[1]}">−</button><b class="num">${n}</b><button type="button" data-mwin="${w[0]}:1" aria-label="Добавить окно ${MOD_MAT[mat][2]} ${w[1]}">+</button></div></div>`}).join('')}</div>`).join('')}
-    <small class="note">В цене модуля одно деревянное окно 60×90 — если не нужно, уберите его «−». Деревянные окна бывают только 50×50 и 60×90; ПВХ — любых размеров. Деревянные и ПВХ можно ставить вместе: на схеме деревянные — коричневые, ПВХ — белые.</small></div>`+
+    <small class="note">В цене модуля одно деревянное окно 60×90 — если не нужно, уберите его «−». Деревянные бывают только 50×50 и 60×90, ПВХ — любых размеров; ставить можно и те, и другие. На схеме деревянные окна коричневые, ПВХ — белые.</small></div>`+
   grp(MOD_GROUPS[5])+
   `<div class="cg"><div class="cg-h"><h3>Опоры</h3><span class="num">${modPiles(c)} опор под модуль ${s.w}×${s.d}</span></div><div class="opts">
     <button type="button" class="opt ${c.pile==='blocks'?'on':''}" data-mopt="pile:blocks"><b>Бетонные блоки</b><small>Под опорный брус на ровной площадке</small><em class="num z">в базе</em></button>
@@ -2966,7 +2989,7 @@ document.addEventListener('click',e=>{
   const w=e.target.closest('[data-mwin]');if(w){const [k,d]=w.dataset.mwin.split(':');modWin(k,+d);refreshModule(true);return}
   if(e.target.closest('[data-modadd]')){const cfg=JSON.parse(JSON.stringify(modState)),s=modSize(cfg),pc=getCfg(moduleModel());
     cfg.plan=JSON.parse(JSON.stringify({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}}));cart.push({id:'module',module:true,cfg,total:computeModule(cfg).total});saveCart();toast(`Модуль ${s.w}×${s.d} добавлен в корзину`);return}
-  if(e.target.closest('[data-modreset]')){Object.assign(modState,{ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'wood',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50});
+  if(e.target.closest('[data-modreset]')){Object.assign(modState,{winTab:modState.winTab||'wood',ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'wood',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50});
     Object.keys(calcState).filter(k=>k.indexOf('module@')===0).forEach(k=>delete calcState[k]);refreshModule(true);toast('Настройки модуля сброшены')}});
 document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-mrange]');if(!r)return;
   modState[r.dataset.mrange]=+r.value;r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%');

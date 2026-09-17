@@ -295,7 +295,6 @@ header.top{position:sticky}
 @media (max-width:1400px){nav.main{gap:clamp(8px,1.4vw,22px);font-size:13.5px}}
 @media (max-width:1180px){.contact-btn{display:none!important}.head-tel{display:none!important}}
 @media (max-width:1080px){nav.main a[href="#/process"],nav.main a[href="#/faq"]{display:none}}
-@media (max-width:1240px){nav.main a[href="#/sizes"]{display:none}}
 @media (max-width:900px){nav.main a[href="#/prices"],nav.main a[href="#/sizes"]{display:none}}
 @media (max-width:760px){nav.main{display:none}}
 .head-tel{font-family:var(--mono);font-size:13.5px;letter-spacing:.02em;padding:0 14px;height:42px;display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;white-space:nowrap;transition:.2s}
@@ -859,6 +858,11 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 .mod-teaser p{color:var(--muted);max-width:52ch;margin-top:10px}
 .mod-teaser .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px}
 .mod-teaser .chips span{font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
+.card .pic.mod{display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 0%,var(--panel2),var(--bg) 75%)}
+.card .pic.mod svg{width:100%;height:100%;display:block;transition:transform 1s cubic-bezier(.2,.8,.1,1)}
+.card:hover .pic.mod svg{transform:scale(1.04)}
+.kind-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.kind-tabs .pill{height:44px;padding:0 22px;font-size:15px}
 .line .mod-thumb{width:150px;height:110px;border-radius:12px;overflow:hidden;background:var(--panel2);display:grid;place-items:center}
 .line .mod-thumb svg{width:100%;height:100%}
 @media (max-width:860px){.line .mod-thumb{width:100px;height:80px}}
@@ -874,7 +878,6 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
     </a>
     <nav class="main">
       <a href="#/catalog">Каталог</a>
-      <a href="#/modules">Модули</a>
       <a href="#/sizes">Размеры</a>
       <a href="#/custom">Свой размер</a>
       <a href="#/prices">Цены</a>
@@ -993,8 +996,10 @@ function customModel(){const c=customState,base=c.planBase&&byId(c.planBase);
     area:cArea(c),ver:cVer(c),plan:cPlan(c),wins:cWinsBase(c),winSides:base?base.winSides:[2,1,1,.6],roofShape:base?base.roofShape:null}}
 function curModel(){const h=location.hash;
   if(h.indexOf('#/custom')===0)return customModel();
+  if(h.indexOf('#/modules')===0)return moduleModel(modState);
   return byId((h.split('/')[2]||'').split('?')[0])}
-function refreshAny(m,groups){if(m&&m.id==='custom')refreshCustom(true);else refreshCalc(m,groups)}
+function refreshAny(m,groups){if(m&&m.module)refreshModule(true);else if(m&&m.id==='custom')refreshCustom(true);else refreshCalc(m,groups)}
+const estAny=m=>m&&m.module?modEstimateHTML():m&&m.id==='custom'?customEstimate():estimateHTML(m);
 /* минимальная цена проекта: самый маленький размер в холодном контуре */
 const minPrice=m=>Math.min.apply(null,[...sizesOf(byId(nativeOf(m))).map(s=>variant(byId(nativeOf(m)),s.id).price),byId(nativeOf(m)).price])*PKGS[0].k;
 /* Г-образная терраса: полоса a вдоль правого торца (длиной b+l2) и полоса b вдоль тыла над гостиной (длиной l1) */
@@ -1906,14 +1911,9 @@ function home(){
     </div>
   </section>
 
-  <section class="wrap" id="catalog"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Каталог</span><h2>Восемь домов, одна философия</h2></div><p>Цена указана за холодный контур в базовом размере. Проекты строятся в нескольких размерах — Онега во всех восьми — и достраиваются до «под ключ» в калькуляторе.</p></div>
-    <div class="grid">${MODELS.map(card).join('')}</div>
+  <section class="wrap" id="catalog"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Каталог</span><h2 id="hcatH">Восемь домов, одна философия</h2><div class="kind-tabs" id="hcatTabs"><button type="button" class="pill on" data-hcat="houses">Дома</button><button type="button" class="pill" data-hcat="modules">Модули</button></div></div><p id="hcatP">Цена указана за холодный контур в базовом размере. Проекты строятся в нескольких размерах — Онега во всех восьми — и достраиваются до «под ключ» в калькуляторе.</p></div>
+    <div class="grid" id="hcatGrid">${MODELS.map(card).join('')}</div>
   </section>
-
-  <section class="wrap"><div class="mod-teaser reveal"><div><span class="label">Модули</span><h2>Модули для проживания</h2>
-      <p>Утеплённые бытовки, которые приезжают готовыми и ставятся за один день: на дачу, на время стройки или для жизни. Базовая комплектация — утепление 50 мм, окно 60×90, высота 1,90 / 2,10 м.</p>
-      <div class="chips">${MOD_SIZES.map(s=>`<span class="num">${s.w}×${s.d}</span>`).join('')}</div></div>
-    <div style="display:grid;gap:10px;justify-items:start"><b class="num" style="font-family:var(--display);font-size:clamp(26px,3vw,38px)">от ${rub(modBase(MOD_SIZES[0]))}</b><a class="btn lamp" href="#/modules">Собрать модуль</a></div></div></section>
 
   <section class="wrap" id="prices"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Цены</span><h2>Сколько стоит каждый размер</h2></div><p>В базовую цену входит холодный контур: каркас, имитация бруса снаружи, ветрозащита, профлист на кровле, окна ПВХ, дверь и фундамент на бетонных блоках. Сборка на участке — от 3 дней до 2 недель.</p></div>
     <div class="table-wrap reveal"><table class="price-table">
@@ -2101,7 +2101,8 @@ const winK={wood:.8,pvc:1,alu:1.45};
 const WIN_SZ=Object.fromEntries(WIN_TYPES.map(w=>[w[0],w[4]]));
 const DOOR_T=['door','Входная дверь','90 × 205',0,[.9,2.05]];
 const openSz=id=>id==='door'?DOOR_T[4]:(WIN_SZ[id]||[1.2,1.5]);
-const openName=id=>id==='door'?'Входная дверь':(WIN_TYPES.find(w=>w[0]===id)||[,'Окно'])[1];
+const openName=id=>{if(id==='door')return 'Входная дверь';const w=WIN_TYPES.find(x=>x[0]===id);if(w)return w[1];
+  const mw=typeof MOD_WINS!=='undefined'&&MOD_WINS.find(x=>x[0]===id);return mw?'Окно '+mw[1]:'Окно'};
 const winsBase=(m,cfg)=>({...m.wins,...((cfg&&cfg.wins)||{})});
 const winsFromOpenings=ops=>{const o={};ops.forEach(p=>{if(p.t!=='door')o[p.t]=(o[p.t]||0)+1});return o};
 const winsOf=(m,cfg)=>cfg&&cfg.openings?winsFromOpenings(cfg.openings):winsBase(m,cfg);
@@ -2137,7 +2138,7 @@ function freeU(m,ops,skip,wall,u,sz,radius){const len=wallLen(m,wall);
 /* автоматическая раскладка — стартовая точка для редактора */
 function autoOpenings(m,cfg){
   const wins=winsBase(m,cfg),list=[];
-  WIN_TYPES.forEach(w=>{for(let i=0;i<(wins[w[0]]||0);i++)list.push(w[0])});
+  [...WIN_TYPES,...(m.module&&typeof MOD_WINS!=='undefined'?MOD_WINS:[])].forEach(w=>{for(let i=0;i<(wins[w[0]]||0);i++)list.push(w[0])});
   list.sort((a,b)=>openSz(b)[0]*openSz(b)[1]-openSz(a)[0]*openSz(a)[1]);
   /* сторона, обращённая к террасе, — самая «стеклянная» */
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
@@ -2370,14 +2371,15 @@ function plannerSVG(m,cfg){
     else{const cyp=pad+(b.d/2-p.u)*k;y1=cyp-sz/2;y2=cyp+sz/2;x1=x2=pad}
     const nm=p.t==='door'?'Входная дверь 90 × 205 см':`${openName(p.t)} · ${Math.round(s0[0]*100)} × ${Math.round(s0[1]*100)} см`;
     const lab=p.t==='door'?'дверь 90':`${Math.round(s0[0]*100)}×${Math.round(s0[1]*100)}`;
-    const lx=(x1+x2)/2+(p.wall===1?16:p.wall===2?-16:0),ly=(y1+y2)/2+(p.wall===0?(wall0Y(m,b,p.u)<b.d-.01?-12:22):p.wall===3?-14:4);
-    const anchor=p.wall===1?'start':p.wall===2?'end':'middle';
+    /* на боковых стенах подпись идёт вертикально вдоль стены — не упирается в край схемы */
+    const side=p.wall===1||p.wall===2,lx=(x1+x2)/2+(p.wall===1?14:p.wall===2?-10:0),ly=(y1+y2)/2+(p.wall===0?(wall0Y(m,b,p.u)<b.d-.01?-12:22):p.wall===3?-14:0);
+    const anchor='middle',rot=side?` transform="rotate(-90 ${lx} ${ly})"`:'';
     o+=`<g class="pl-op ${p.t==='door'?'door':'win'}" data-oid="${i}"><title>${nm} — тяните вдоль стены</title>
       <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="13" stroke-linecap="butt"/>
       <line class="pl-oin" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="6" stroke-linecap="butt"/>
-      <text x="${lx}" y="${ly}" text-anchor="${anchor}" class="pl-lab">${lab}</text>
+      <text x="${lx}" y="${ly}" text-anchor="${anchor}" class="pl-lab"${rot}>${lab}</text>
       <circle cx="${(x1+x2)/2}" cy="${(y1+y2)/2}" r="13" class="pl-ohit"/></g>`});
-  o+=`<text x="${pad}" y="${pad-14}" class="pl-t">${fmtD(b.w)} м</text><text x="${pad-16}" y="${pad+PD/2}" text-anchor="middle" class="pl-t" transform="rotate(-90 ${pad-16} ${pad+PD/2})">${fmtD(b.d)} м</text>`;
+  o+=`<text x="${pad}" y="${pad-14}" class="pl-t">${fmtD(b.w)} м</text><text x="${pad-30}" y="${pad+PD/2}" text-anchor="middle" class="pl-t" transform="rotate(-90 ${pad-30} ${pad+PD/2})">${fmtD(b.d)} м</text>`;
   return o+'</g></svg>';
 }
 /* перетаскивание и изменение размера комнат мышью или пальцем */
@@ -2434,8 +2436,9 @@ function bindPlanner(){
       else{const cy=P0+(b.d/2-o.u)*k;y1=cy-szk/2;y2=cy+szk/2;x1=x2=P0}
       lns.forEach(ln=>{ln.setAttribute('x1',x1);ln.setAttribute('y1',y1);ln.setAttribute('x2',x2);ln.setAttribute('y2',y2)});
       ci.setAttribute('cx',(x1+x2)/2);ci.setAttribute('cy',(y1+y2)/2);
-      if(tx){tx.setAttribute('x',(x1+x2)/2+(o.wall===1?16:o.wall===2?-16:0));tx.setAttribute('y',(y1+y2)/2+(o.wall===0?(wall0Y(m,b,o.u)<b.d-.01?-12:22):o.wall===3?-14:4));
-        tx.setAttribute('text-anchor',o.wall===1?'start':o.wall===2?'end':'middle')}
+      if(tx){const lx=(x1+x2)/2+(o.wall===1?14:o.wall===2?-10:0),ly=(y1+y2)/2+(o.wall===0?(wall0Y(m,b,o.u)<b.d-.01?-12:22):o.wall===3?-14:0);
+        tx.setAttribute('x',lx);tx.setAttribute('y',ly);tx.setAttribute('text-anchor','middle');
+        if(o.wall===1||o.wall===2)tx.setAttribute('transform',`rotate(-90 ${lx} ${ly})`);else tx.removeAttribute('transform')}
       live3D(m);return}
     const p=pt(e),dx=p.x-drag.sx,dy=p.y-drag.sy,r=drag.r,cur=cfg.rooms[drag.i];
     if(drag.mode==='move'){
@@ -2713,11 +2716,13 @@ const MOD_GROUPS=[
  {key:'outer',title:'Наружная отделка',hint:'по площади стен',items:[
    {id:'vag',name:'Вагонка',txt:'Сосна, класс В — в базе',rate:0,per:'wall'},
    {id:'prof',name:'Профлист',txt:'Окрашенный С8, не требует покраски',rate:300,per:'wall'},
+   {id:'shtil',name:'Штиль',txt:'Вагонка «штиль» — гладкая, без фаски',rate:600,per:'wall'},
    {id:'imit',name:'Имитация бруса',txt:'Сосна 20 мм, выглядит как брус',rate:700,per:'wall'},
    {id:'block',name:'Блок-хаус',txt:'Под оцилиндрованное бревно',rate:1100,per:'wall'}]},
  {key:'inner',title:'Внутренняя отделка',hint:'стены и потолок',items:[
    {id:'dvp',name:'ДВП',txt:'Оргалит — в базе',rate:0,per:'inner'},
    {id:'vag',name:'Вагонка',txt:'Сосна, класс В',rate:650,per:'inner'},
+   {id:'shtil',name:'Штиль',txt:'Гладкая вагонка «штиль»',rate:850,per:'inner'},
    {id:'imit',name:'Имитация бруса',txt:'Сосна 16 мм',rate:1050,per:'inner'}]},
  {key:'floor',title:'Пол',hint:'по площади модуля',items:[
    {id:'board',name:'Доска 25 мм',txt:'Обрезная, в базе',rate:0,per:'floor'},
@@ -2731,9 +2736,10 @@ const MOD_GROUPS=[
    {id:'wood',name:'Деревянная',txt:'Филёнчатая — в базе',rate:0,per:'fix'},
    {id:'metal',name:'Металлическая',txt:'Утеплённая, с замком',rate:16000,per:'fix'}]},
 ];
-const MOD_WINS=[['m6090','60 × 90','одностворчатое ПВХ',8500],['m80100','80 × 100','поворотно-откидное ПВХ',12500],['m100120','100 × 120','поворотно-откидное ПВХ',16000]];
+const MOD_WINS=[['m6090','60 × 90','одностворчатое ПВХ',8500],['m80100','80 × 100','поворотно-откидное ПВХ',12500],['m100120','100 × 120','поворотно-откидное ПВХ',16000],['m180180','180 × 180','панорамное ПВХ',32000]];
+/* окна модулей понятны схеме и 3D */
+MOD_WINS.forEach(w=>{const [a,b]=w[1].split(' × ').map(v=>+v/100);WIN_SZ[w[0]]=[a,b]});
 const MOD_EXTRAS=[
- ['part','Перегородка с дверью (тамбур или вторая комната)',()=>14000],
  ['glass2','Двухкамерные стеклопакеты на все окна',c=>1500*modWinCount(c)],
  ['elec','Электрика: щиток, розетки, свет, выключатели',c=>9000+600*modArea(c)],
  ['heater','Электроконвектор 1,5 кВт',()=>7500],
@@ -2747,6 +2753,43 @@ const MOD_EXTRAS=[
  ['grille','Решётки или ставни на все окна',c=>3500*modWinCount(c)],
 ];
 const MOD_PILES=PILES.filter(p=>!/108/.test(p[0]));
+const MOD_PART=3500,MOD_IDOOR=5850;                    /* перегородка — за погонный метр, межкомнатная дверь — за штуку */
+/* виртуальная «модель» модуля для редактора планировки и 3D: внутри пусто, окна — из настроек */
+function moduleModel(c){c=c||modState;const s=modSize(c),w={m6090:1};MOD_WINS.forEach(x=>{const n=(c.wins||{})[x[0]]||0;if(n)w[x[0]]=(w[x[0]]||0)+n});
+  return{id:'module@'+s.id,module:1,name:'Модуль',w:s.w,d:s.d,floors:1,area:s.w*s.d,living:s.w*s.d,plan:[],wins:w,winSides:[2,1,.5,.5],ver:null,door:{wall:0,f:.14},days:3}}
+const modPlanCfg=c=>c&&c.plan?c.plan:getCfg(moduleModel(c));
+function modParts(c){const m=moduleModel(c),cfg=modPlanCfg(c);
+  if(!cfg||!cfg.rooms||!cfg.rooms.length)return{wall:0,idoor:0,rooms:0};
+  const L=innerEdgesBox(m,cfg).reduce((s,e)=>s+Math.hypot(e[2]-e[0],e[3]-e[1]),0);
+  return{wall:Math.round(L*10)/10,idoor:idoorsOf(m,cfg).length,rooms:cfg.rooms.length}}
+function modRoomsGroup(){const m=moduleModel(),cfg=getCfg(m);if(!cfg.openings)cfg.openings=autoOpenings(m,cfg);const rooms=cfg.rooms||[],p=modParts(modState);
+  return `<div class="cg"><div class="cg-h"><h3>Планировка модуля</h3><span class="num">${m.w} × ${m.d} м · ${rooms.length?`${rooms.length} ${plural(rooms.length,['помещение','помещения','помещений'])}`:'внутри пусто'}</span></div>
+    ${plannerSVG(m,cfg)}
+    <small class="note" style="margin-top:8px">В базе внутри ничего нет — одно помещение. Добавьте комнаты: перегородки и двери появятся между ними и уйдут в смету. Окна и дверь тащите вдоль стены или на другую стену.</small>
+    <div class="op-pal"><span class="label" style="margin-right:4px">Добавить</span>
+      ${MOD_WINS.map(w=>`<button type="button" class="chipx win" data-mwin="${w[0]}:1" title="Окно ${w[1]} · ${w[2]}">${w[1]} см · ${rub(w[3])}</button>`).join('')}
+      <button type="button" class="chipx door" data-idooradd>Межкомнатная дверь · ${rub(MOD_IDOOR)}</button>
+      <button type="button" class="chipx" data-idoordel>Убрать межкомнатную</button>
+      <button type="button" class="chipx" data-mwinlast>Убрать последнее окно</button></div>
+    <div class="rooms">${rooms.map((r,i)=>`<div class="room-row">
+      <input value="${(r.n||'').replace(/"/g,'&quot;')}" data-room="${i}:n" aria-label="Название комнаты">
+      <input type="number" min="1" max="6" step="0.1" value="${r.w}" data-room="${i}:w" aria-label="Ширина">
+      <span class="num">×</span>
+      <input type="number" min="1" max="6" step="0.1" value="${r.d}" data-room="${i}:d" aria-label="Длина">
+      <em class="num">${(r.w*r.d).toFixed(1).replace('.',',')} м²</em>
+      <button type="button" data-roomdel="${i}" aria-label="Удалить">✕</button></div>`).join('')}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px"><button type="button" class="btn" data-roomadd>Добавить комнату</button>${rooms.length?`<button type="button" class="btn" data-mroomsclear>Очистить</button>`:''}</div>
+    <small class="note">${rooms.length?`Перегородки ${String(p.wall).replace('.',',')} м × ${rub(MOD_PART)} и ${p.idoor} ${plural(p.idoor,['дверь','двери','дверей'])} × ${rub(MOD_IDOOR)} — в смете.`:'Перегородок нет — в цене только базовый модуль.'}</small></div>`}
+/* окна: счётчики, кнопки на схеме и проёмы на стенах — одно и то же */
+function modWin(id,delta){const cur=(modState.wins||{})[id]||0;
+  if(delta<0&&!cur&&!(id==='m6090')){toast('Таких окон нет');return}
+  const m0=moduleModel(),cfg0=getCfg(m0);
+  if(delta>0){if(cur>=6)return;modState.wins={...modState.wins,[id]:cur+1};
+    const m=moduleModel(),cfg=getCfg(m);if(cfg.openings){const p=placeOpening(m,cfg,id);if(p)cfg.openings=cfg.openings.concat([p]);else{modState.wins={...modState.wins,[id]:cur};toast('На стенах нет места — передвиньте проёмы')}}}
+  else{if(!cur){toast('Базовое окно 60×90 входит в комплектацию');return}
+    modState.wins={...modState.wins,[id]:cur-1};
+    if(cfg0.openings){const i=cfg0.openings.map(p=>p.t).lastIndexOf(id);if(i>=0)cfg0.openings=cfg0.openings.filter((_,k)=>k!==i)}}}
+
 const modState={size:'6x3',ins:'50',outer:'vag',inner:'dvp',floor:'board',roof:'zinc',door:'wood',wins:{},rise:0,pile:'blocks',extras:[],km:50};
 const modSize=c=>MOD_SIZES.find(s=>s.id===c.size)||MOD_SIZES[5];
 const modArea=c=>{const s=modSize(c);return s.w*s.d};
@@ -2763,13 +2806,15 @@ function computeModule(c){const s=modSize(c),lines=[[`Модуль ${s.w}×${s.d
   if(c.rise)lines.push([`Потолок выше на ${c.rise} см`,c.rise*MOD_RISE]);
   MOD_WINS.forEach(w=>{const n=(c.wins||{})[w[0]]||0;if(n)lines.push([`Окно ${w[1]} × ${n}`,n*w[3]])});
   if(c.pile!=='blocks'){const p=MOD_PILES.find(x=>x[0]===c.pile);if(p)lines.push([`${p[1]} · ${modPiles(c)} шт`,modPiles(c)*p[2]])}
+  const pp=modParts(c);if(pp.wall)lines.push([`Перегородки ${String(pp.wall).replace('.',',')} м`,Math.round(pp.wall*MOD_PART)]);
+  if(pp.idoor)lines.push([`Межкомнатные двери × ${pp.idoor}`,pp.idoor*MOD_IDOOR]);
   MOD_EXTRAS.forEach(e=>{if((c.extras||[]).includes(e[0]))lines.push([e[1],Math.round(e[2](c))])});
   if(c.km)lines.push([`Доставка ${c.km} км × ${DELIVERY_RATE} ₽`,c.km*DELIVERY_RATE]);
   const total=lines.reduce((a,l)=>a+l[1],0);
   const days=3+(modArea(c)>20?1:0)+(c.ins==='150'?1:0)+((c.extras||[]).length>3?2:(c.extras||[]).length?1:0);
   return{lines,total,days}}
 /* вид модуля сбоку: односкатная кровля, высоты по краям, окна, дверь и опоры */
-function moduleSVG(c,mini){const s=modSize(c),h=modH(c),W=mini?520:580,H=mini?220:300,sc=Math.min(380/s.w,(H-120)/2.6),bw=s.w*sc,x0=mini?(W-bw)/2:90,gy=H-50;
+function moduleSVG(c,mini){const s=modSize(c),h=modH(c),W=mini?520:580,H=mini?300:300,sc=mini?Math.min(430/s.w,(H-90)/Math.max(2.4,h[1]+.2)):Math.min(380/s.w,(H-120)/Math.max(2.6,h[1]+.3)),bw=s.w*sc,x0=mini?(W-bw)/2:90,gy=H-(mini?40:50);
   const yl=gy-h[0]*sc,yh=gy-h[1]*sc,roofT=10,ov=14;
   let o=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Модуль ${s.w}×${s.d} м сбоку">`;
   o+=`<line x1="20" y1="${gy+22}" x2="${W-20}" y2="${gy+22}" stroke="var(--line2)"/>`;
@@ -2805,8 +2850,8 @@ function modGroupsHTML(){const c=modState,s=modSize(c),h=modH(c);
   return grp(MOD_GROUPS[0])+
   `<div class="cg"><div class="cg-h"><h3>Высота потолка</h3><span class="num">+${rub(MOD_RISE)} за каждый сантиметр</span></div>
     <div class="range"><div class="range-top"><span>Низкая / высокая сторона ската</span><b class="num" id="mrise">${mh(h[0])} / ${mh(h[1])} м</b></div>
-    <input type="range" min="0" max="50" step="1" value="${c.rise}" data-mrange="rise" aria-label="Подъём потолка, см" style="--p:${c.rise/50*100}%"></div>
-    <small class="note">В базе 1,90 м у низкой стороны и 2,10 м у высокой. ${c.rise?`Подъём на ${c.rise} см — ${rub(c.rise*MOD_RISE)}.`:'Тяните, чтобы поднять потолок.'}</small></div>`+
+    <input type="range" min="0" max="90" step="1" value="${c.rise}" data-mrange="rise" aria-label="Подъём потолка, см" style="--p:${c.rise/90*100}%"></div>
+    <small class="note">В базе 1,90 м у низкой стороны и 2,10 м у высокой, поднять можно до 3,00 м. ${c.rise?`Подъём на ${c.rise} см — ${rub(c.rise*MOD_RISE)}.`:'Тяните, чтобы поднять потолок.'}</small></div>`+
   MOD_GROUPS.slice(1,5).map(grp).join('')+
   `<div class="cg"><div class="cg-h"><h3>Окна</h3><span class="num">${nw} ${plural(nw,['окно','окна','окон'])} · в базе 1 × 60×90</span></div>
     <div class="wins">${MOD_WINS.map(w=>{const n=(c.wins||{})[w[0]]||0;
@@ -2831,9 +2876,16 @@ function modEstimateHTML(){const e=computeModule(modState),s=modSize(modState);
   <button class="btn lamp" data-modadd style="justify-content:center">Добавить в корзину</button>
   <button class="link" data-modreset style="justify-self:center">Сбросить настройки</button>
   <p class="note">Предварительный расчёт. Точная цена фиксируется в договоре.</p>`}
-const MOD_INCLUDED=[['Размер','от 5×2 до 6×6 м, высота 1,90 / 2,10 м'],['Каркас','брус и доска камерной сушки'],['Утепление','минвата 50 мм, ветрозащита и пароизоляция'],
+const MOD_INCLUDED=[['Размер','от 5×2 до 6×6 м, высота 1,90 / 2,10 м (до 3,00 м за доплату)'],['Каркас','брус и доска камерной сушки'],['Утепление','минвата 50 мм, ветрозащита и пароизоляция'],
   ['Снаружи','вагонка сосна, класс В'],['Внутри','ДВП (оргалит)'],['Пол','доска 25 мм'],['Кровля','односкатная, оцинкованный профлист'],
-  ['Окно','ПВХ 60×90 — 1 шт'],['Дверь','деревянная филёнчатая'],['Опоры','на бетонных блоках']];
+  ['Окно','ПВХ 60×90 — 1 шт'],['Дверь','деревянная филёнчатая'],['Опоры','на бетонных блоках'],['Внутри','одно помещение без перегородок — планировку рисуете сами']];
+function modCard(s){const c={...modState,size:s.id,wins:{},rise:0,pile:'blocks',extras:[],outer:'vag',roof:'zinc',door:'wood'};
+  return `<article class="card reveal">
+    <a class="pic mod" href="#/modules/${s.id}" aria-label="Модуль ${s.w}×${s.d}">${moduleSVG(c,true)}<span class="size num">${s.w*s.d} м²</span></a>
+    <div class="body"><h3>Модуль ${s.w}×${s.d}</h3>
+      <div class="meta num"><span>50 мм</span><span>окно 60×90</span><span>1,90–2,10 м</span></div>
+      <div class="foot"><div><small>базовая комплектация</small><b class="num">${rub(modBase(s))}</b></div><a class="circ" href="#/modules/${s.id}" aria-label="Открыть">${ARROW}</a></div>
+    </div></article>`}
 function modulesView(size){if(size&&MOD_SIZES.some(s=>s.id===size))modState.size=size;const c=modState,s=modSize(c);
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Модули</span><h1>Модули для проживания</h1></div>
     <p style="color:var(--muted);max-width:46ch">Готовые утеплённые бытовки на дачу, стройку или для постоянной жизни. Приезжают собранными — ставим за день. Размеры от 5×2 до 6×6 м, всё остальное настраивается ниже.</p></div>
@@ -2843,20 +2895,38 @@ function modulesView(size){if(size&&MOD_SIZES.some(s=>s.id===size))modState.size
       <p class="note" style="margin:0">Модуль ${s.w}×${s.d} м в базе — <b class="num" style="color:var(--text)" id="modBaseP">${rub(modBase(s))}</b></p></div></div>
   <section id="calc" style="border-top:1px solid var(--line);padding-top:10px">
     <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Конструктор</span><h2 style="max-width:18ch">Соберите свой модуль</h2></div><p>Утепление, отделка, высота потолка, окна, опоры и оснащение — смета справа пересчитывается сразу.</p></div>
-    <div class="calc" style="padding-bottom:60px"><div class="calc-groups" id="calcGroups">${modGroupsHTML()}</div><aside class="estimate" id="estimate">${modEstimateHTML()}</aside></div>
+    <div class="calc" style="padding-bottom:40px"><div class="calc-groups" id="calcGroups">${modGroupsHTML()}</div><aside class="estimate" id="estimate">${modEstimateHTML()}</aside></div>
+  </section>
+  <section id="planning" style="border-top:1px solid var(--line);padding:10px 0 70px">
+    <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Планировка</span><h2 style="max-width:18ch">Нарисуйте модуль внутри</h2></div>
+      <p>Слева схема: комнаты, окна, двери. Справа тот же модуль в объёме — меняется вместе со схемой.</p></div>
+    <div class="plan-split"><div id="planEditor">${modRoomsGroup()}</div><div class="plan-3d">${vizBlock()}</div></div>
   </section></div>`}
+document.addEventListener('click',e=>{const k=e.target.closest&&e.target.closest('[data-hcat]');if(!k)return;
+  const mods=k.dataset.hcat==='modules',g=document.getElementById('hcatGrid');if(!g)return;
+  document.querySelectorAll('[data-hcat]').forEach(b=>b.classList.toggle('on',b===k));
+  document.getElementById('hcatH').textContent=mods?'Модули для проживания':'Восемь домов, одна философия';
+  document.getElementById('hcatP').textContent=mods?'Утеплённые модули от 5×2 до 6×6 м: приезжают готовыми, ставятся за день. Цена — за базовую комплектацию: утепление 50 мм, окно 60×90, высота 1,90 / 2,10 м.':'Цена указана за холодный контур в базовом размере. Проекты строятся в нескольких размерах — Онега во всех восьми — и достраиваются до «под ключ» в калькуляторе.';
+  g.innerHTML=mods?MOD_SIZES.map(modCard).join(''):MODELS.map(card).join('');g.querySelectorAll('.reveal').forEach(x=>x.classList.add('in'))});
 function refreshModule(groups){const g=document.getElementById('calcGroups');if(!g||!document.getElementById('modDraw'))return;
-  if(groups)g.innerHTML=modGroupsHTML();
+  if(groups){g.innerHTML=modGroupsHTML();const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=modRoomsGroup();setTimeout(bindPlanner,0)}}
+  live3D(moduleModel());
   document.getElementById('modDraw').innerHTML=moduleSVG(modState);
   document.getElementById('estimate').innerHTML=modEstimateHTML();
   const bp=document.getElementById('modBaseP');if(bp)bp.textContent=rub(modBase(modSize(modState)));
   document.querySelectorAll('.mod-sizes button').forEach(b=>b.classList.toggle('on',b.dataset.msize===modState.size))}
 document.addEventListener('click',e=>{
   const sz=e.target.closest('[data-msize]');if(sz){modState.size=sz.dataset.msize;history.replaceState(null,'','#/modules/'+modState.size);refreshModule(true);return}
+  if(e.target.closest('[data-mwinlast]')){const cfg=getCfg(moduleModel()),ops=(cfg.openings||autoOpenings(moduleModel(),cfg)).filter(p=>p.t!=='door');
+    const extra=MOD_WINS.map(w=>w[0]).filter(id=>(modState.wins||{})[id]);const last=ops.map(p=>p.t).reverse().find(id=>extra.includes(id));
+    if(!last){toast('Осталось только базовое окно 60×90');return}modWin(last,-1);refreshModule(true);return}
+  if(e.target.closest('[data-mroomsclear]')){const cfg=getCfg(moduleModel());cfg.rooms=null;cfg.idoors=null;cfg.parts={};refreshModule(true);return}
   const o=e.target.closest('[data-mopt]');if(o){const [k,v]=o.dataset.mopt.split(':');modState[k]=v;refreshModule(true);return}
-  const w=e.target.closest('[data-mwin]');if(w){const [k,d]=w.dataset.mwin.split(':');modState.wins={...modState.wins,[k]:Math.max(0,Math.min(6,((modState.wins||{})[k]||0)+ +d))};refreshModule(true);return}
-  if(e.target.closest('[data-modadd]')){const cfg=JSON.parse(JSON.stringify(modState)),s=modSize(cfg);cart.push({id:'module',module:true,cfg,total:computeModule(cfg).total});saveCart();toast(`Модуль ${s.w}×${s.d} добавлен в корзину`);return}
-  if(e.target.closest('[data-modreset]')){Object.assign(modState,{ins:'50',outer:'vag',inner:'dvp',floor:'board',roof:'zinc',door:'wood',wins:{},rise:0,pile:'blocks',extras:[],km:50});refreshModule(true);toast('Настройки модуля сброшены')}});
+  const w=e.target.closest('[data-mwin]');if(w){const [k,d]=w.dataset.mwin.split(':');modWin(k,+d);refreshModule(true);return}
+  if(e.target.closest('[data-modadd]')){const cfg=JSON.parse(JSON.stringify(modState)),s=modSize(cfg),pc=getCfg(moduleModel());
+    cfg.plan=JSON.parse(JSON.stringify({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}}));cart.push({id:'module',module:true,cfg,total:computeModule(cfg).total});saveCart();toast(`Модуль ${s.w}×${s.d} добавлен в корзину`);return}
+  if(e.target.closest('[data-modreset]')){Object.assign(modState,{ins:'50',outer:'vag',inner:'dvp',floor:'board',roof:'zinc',door:'wood',wins:{},rise:0,pile:'blocks',extras:[],km:50});
+    Object.keys(calcState).filter(k=>k.indexOf('module@')===0).forEach(k=>delete calcState[k]);refreshModule(true);toast('Настройки модуля сброшены')}});
 document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-mrange]');if(!r)return;
   modState[r.dataset.mrange]=+r.value;r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%');
   const h=modH(modState),mr=document.getElementById('mrise'),mk=document.getElementById('mkm');
@@ -2865,12 +2935,13 @@ document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest
 document.addEventListener('change',e=>{const r=e.target.closest&&e.target.closest('[data-mrange]');if(r){refreshModule(true);return}
   const x=e.target.closest&&e.target.closest('[data-mextra]');if(!x)return;const k=x.dataset.mextra;
   modState.extras=x.checked?[...new Set([...(modState.extras||[]),k])]:(modState.extras||[]).filter(v=>v!==k);refreshModule(true)});
-function moduleSpec(c){const s=modSize(c),h=modH(c),nm=k=>{const g=MOD_GROUPS.find(x=>x.key===k);return (g.items.find(i=>i.id===c[k])||g.items[0]).name},e=computeModule(c);
+function moduleSpec(c){const pp=modParts(c),s=modSize(c),h=modH(c),nm=k=>{const g=MOD_GROUPS.find(x=>x.key===k);return (g.items.find(i=>i.id===c[k])||g.items[0]).name},e=computeModule(c);
   const p=MOD_PILES.find(x=>x[0]===c.pile);
   return [['Модуль',`${s.w} × ${s.d} м · ${s.w*s.d} м²`],['Высота потолка',`${mh(h[0])} / ${mh(h[1])} м${c.rise?` (+${c.rise} см)`:''}`],
     ['Утепление',nm('ins')],['Снаружи',nm('outer')],['Внутри',nm('inner')],['Пол',nm('floor')],['Кровля',nm('roof')],['Дверь',nm('door')],
     ['Окна',`${modWinCount(c)} шт: 60×90 в базе${MOD_WINS.map(w=>(c.wins||{})[w[0]]?` + ${w[1]} × ${(c.wins||{})[w[0]]}`:'').join('')}`],
     ['Опоры',c.pile==='blocks'?'бетонные блоки':`${p?p[1]:''} · ${modPiles(c)} шт`],
+    ['Планировка',pp.rooms?`${pp.rooms} ${plural(pp.rooms,['помещение','помещения','помещений'])} · перегородки ${String(pp.wall).replace('.',',')} м · ${pp.idoor} ${plural(pp.idoor,['дверь','двери','дверей'])}`:'одно помещение, без перегородок'],
     ['Дополнительно',(c.extras||[]).length?(c.extras||[]).map(k=>(MOD_EXTRAS.find(x=>x[0]===k)||[,''])[1]).join(', '):'нет'],
     ['Доставка',`${c.km} км × ${DELIVERY_RATE} ₽`],['Изготовление',`${e.days} ${plural(e.days,['день','дня','дней'])}`]]}
 function cartView(){
@@ -2998,8 +3069,13 @@ function accountView(tab){
   </div><div>${body}</div></div></div>`;
 }
 let catSize=null;
-function catalogView(size){catSize=SIZES.find(s=>s.id===size)?size:null;const S=catSize&&SIZES.find(s=>s.id===catSize);
+const kindTabs=k=>`<div class="kind-tabs" role="tablist" aria-label="Что показать"><a class="pill ${k==='houses'?'on':''}" role="tab" aria-selected="${k==='houses'}" href="#/catalog">Дома</a><a class="pill ${k==='modules'?'on':''}" role="tab" aria-selected="${k==='modules'}" href="#/catalog/modules">Модули</a></div>`;
+function catalogView(size){
+  if(size==='modules')return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Каталог</span><h1>Модули для проживания</h1></div><p style="color:var(--muted);max-width:44ch">Утеплённые модули-бытовки от 5×2 до 6×6 м. Приезжают готовыми, ставятся за день. Цена — за базовую комплектацию, всё остальное — в конструкторе.</p></div>
+  <div class="cat-bar"><span class="label">Каталог</span>${kindTabs('modules')}</div>
+  <div class="grid" style="margin:22px 0 90px">${MOD_SIZES.map(modCard).join('')}</div></div>`;catSize=SIZES.find(s=>s.id===size)?size:null;const S=catSize&&SIZES.find(s=>s.id===catSize);
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Каталог</span><h1>${S?`Дома ${S.w}×${S.d} м`:'Каркасные дома'}</h1></div><p style="color:var(--muted);max-width:44ch">${S?`${modelsIn(S.id).length===MODELS.length?'Все восемь проектов':`${modelsIn(S.id).length} ${plural(modelsIn(S.id).length,['проект','проекта','проектов'])}`} в габарите ${S.w}×${S.d} м. Внешний вид и планировка у каждого свои — меняется только размер. Цена — за холодный контур.`:'Дом и размер выбираются отдельно: Онега строится во всех восьми размерах, Байкал и Карелия — от 6×8, остальные — от 6×5. Цена в карточке — «от», за холодный контур.'}</p></div>
+  <div class="cat-bar"><span class="label">Каталог</span>${kindTabs('houses')}</div>
   <div class="cat-bar"><span class="label">Размер</span><div class="size-switch"><a class="pill ${S?'':'on'}" href="#/catalog">Любой</a>${SIZES.map(s=>`<a class="pill num ${s.id===catSize?'on':''}" href="#/catalog/${s.id}">${s.w}×${s.d}</a>`).join('')}<a class="pill" href="#/custom">Свой</a></div></div>
   <div class="cat-bar" id="filters"><span class="label">Дом</span><div class="size-switch"><button class="pill on" data-f="all">Все</button><button class="pill" data-f="1">1 этаж</button><button class="pill" data-f="2">2 этажа</button></div></div>
   <div class="grid" id="catGrid" style="margin-bottom:90px">${(catSize?modelsIn(catSize):MODELS).map(m=>card(m,catSize)).join('')}</div></div>`}
@@ -3544,7 +3620,7 @@ function setMenu(open){document.body.classList.toggle('menu-open',open);
   document.getElementById('mnav')?.setAttribute('aria-hidden',String(!open));
   document.getElementById('mBurger')?.setAttribute('aria-expanded',String(open))}
 function syncNav(a){
-  const tab=!a||['sizes','prices','tech','process','faq'].includes(a)?'home':a==='house'?'catalog':a;
+  const tab=!a||['sizes','prices','tech','process','faq'].includes(a)?'home':a==='house'||a==='modules'?'catalog':a;
   document.querySelectorAll('#tabbar [data-tab]').forEach(x=>x.classList.toggle('on',x.dataset.tab===tab));
   const cur='#/'+(a||'');document.querySelectorAll('.mnav-links a').forEach(x=>x.classList.toggle('on',x.getAttribute('href')===cur||(a==='house'&&x.getAttribute('href')==='#/catalog')))}
 function render(){
@@ -3577,7 +3653,8 @@ function paint(){
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px 12% 0px'});
   document.querySelectorAll('.reveal').forEach(el=>{const r=el.getBoundingClientRect();if(r.top>innerHeight*1.12)io.observe(el)});
   document.querySelectorAll('input[type=range]').forEach(r=>r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%'));
-  if(document.getElementById('viz3d')||document.getElementById('plan3d')){const mm=byId((location.hash.split('/')[2]||''));
+  if((document.getElementById('viz3d')||document.getElementById('plan3d'))&&location.hash.indexOf('#/modules')===0)live3D(moduleModel(modState));
+  else if(document.getElementById('viz3d')||document.getElementById('plan3d')){const mm=byId((location.hash.split('/')[2]||''));
     if(mm){const c0=getCfg(mm);mount3D({w:mm.w,d:mm.d,floors:mm.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(mm,c0),terrace:c0.terrace,plan:planOf(mm,c0),mdl:mm,ver:mm.ver,idoors:idoorsOf(mm,c0),parts:partsOf(mm,c0),winSides:mm.winSides,roofShape:mm.roofShape,openings:openingsOf(mm,c0)})}
     else mount3D(customViz())}
   bindPlanner();
@@ -3773,7 +3850,7 @@ document.addEventListener('input',e=>{
     if(m){const cfg=getCfg(m);cfg.rooms=cfg.rooms||defaultRooms(m);
       const v=k==='n'?rr.value:Math.max(.5,Math.min(24,parseFloat(String(rr.value).replace(',','.'))||1));
       cfg.rooms[+i]={...cfg.rooms[+i],[k]:v};
-      const es=document.getElementById('estimate');if(es)es.innerHTML=estimateHTML(m);
+      const es=document.getElementById('estimate');if(es)es.innerHTML=estAny(m);
       const c0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(m,c0),terrace:c0.terrace,plan:planOf(m,c0),mdl:m,ver:m.ver,idoors:idoorsOf(m,c0),parts:partsOf(m,c0),winSides:m.winSides,roofShape:m.roofShape,openings:openingsOf(mm,c0)})}
     return}
   if(customNum(e,false))return;

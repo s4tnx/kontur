@@ -409,7 +409,7 @@ section{padding:clamp(70px,10vw,130px) 0;border-bottom:1px solid var(--line)}
 .stage img{width:100%;height:100%;object-fit:cover;display:block}
 .line img{width:150px;height:110px;object-fit:cover;border-radius:12px;display:block}
 @media (max-width:860px){.line img{width:100px;height:80px}}
-.card .size{position:absolute;left:14px;top:14px;font-family:var(--display);font-weight:600;font-size:13px;padding:7px 12px;border-radius:999px;background:rgba(12,13,14,.6);backdrop-filter:blur(8px);border:1px solid var(--line)}
+.card .size{z-index:2;position:absolute;left:14px;top:14px;font-family:var(--display);font-weight:600;font-size:13px;padding:7px 12px;border-radius:999px;background:rgba(12,13,14,.6);backdrop-filter:blur(8px);border:1px solid var(--line)}
 .fav{position:absolute;right:12px;top:12px;width:38px;height:38px;border-radius:50%;background:rgba(12,13,14,.6);backdrop-filter:blur(8px);border:1px solid var(--line);display:grid;place-items:center;z-index:2;transition:.25s}
 .fav svg{width:16px;height:16px}
 .fav.on{color:var(--lamp)}
@@ -851,6 +851,8 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 
 /* ---------- модули ---------- */
 .mod-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:stretch;margin-bottom:30px}
+.mod-visual{display:grid;gap:14px;align-content:start}
+.mod-photo{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:22px;border:1px solid var(--line);display:block}
 .mod-draw{border:1px solid var(--line);border-radius:22px;background:radial-gradient(120% 90% at 50% 0%,var(--panel2),var(--bg) 70%);padding:18px;display:grid;gap:10px;align-content:center}
 .mod-draw svg{width:100%;height:auto;display:block}
 .mod-draw .t{font-family:var(--mono);font-size:11px;fill:var(--muted)}
@@ -878,10 +880,14 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 .card .pic.mod{display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 0%,var(--panel2),var(--bg) 75%)}
 .card .pic.mod svg{width:100%;height:100%;display:block;transition:transform 1s cubic-bezier(.2,.8,.1,1)}
 .card:hover .pic.mod svg{transform:scale(1.04)}
+.card .pic.mod img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;transition:transform 1s cubic-bezier(.2,.8,.1,1)}
+.card:hover .pic.mod img{transform:scale(1.05)}
 .kind-tabs{display:flex;gap:6px;flex-wrap:wrap}
 .kind-tabs .pill{height:44px;padding:0 22px;font-size:15px}
 .line .mod-thumb{width:150px;height:110px;border-radius:12px;overflow:hidden;background:var(--panel2);display:grid;place-items:center}
+.line .mod-thumb{position:relative}
 .line .mod-thumb svg{width:100%;height:100%}
+.line .mod-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 @media (max-width:860px){.line .mod-thumb{width:100px;height:80px}}
 @media (max-width:900px){.mod-hero{grid-template-columns:1fr}.mod-teaser{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
@@ -2785,6 +2791,9 @@ const isWoodWin=id=>{const w=modWinById(id);return !!w&&w[2]==='wood'};
 const MOD_WBASE=()=>MOD_WINS.find(w=>w[0]==='d6090');
 const modHasBase=c=>((c.wins||{}).d6090||0)>-1;
 
+/* фото модулей: одна фотография на два соседних размера */
+const MOD_PHOTOS={'5x2':'mod1.jpg','6x2':'mod1.jpg','5x3':'mod2.jpg','6x3':'mod2.jpg','5x4':'mod3.jpg','5x5':'mod3.jpg','6x4':'mod4.jpg','6x5':'mod4.jpg','6x6':'mod5.jpg'};
+const modPhoto=c=>MOD_PHOTOS[modSize(c).id];
 const MOD_PAINT=500;
 const MOD_GABLE=2200;    /* двускатная кровля — доплата за м² пятна */                                   /* покраска снаружи — за один слой, ₽/м² стен */
 const modWinPrice=(c,w)=>w[4];
@@ -2963,7 +2972,7 @@ const MOD_INCLUDED=[['Размер','от 5×2 до 6×6 м, высота 1,90 /
   ['Окно','деревянное 60×90 — 1 шт'],['Дверь','деревянная филёнчатая'],['Опоры','на бетонных блоках'],['Планировка','одно помещение без перегородок — рисуете сами'],['Установка','на участке входит в стоимость'],['Гарантия','3 года']];
 function modCard(s){const c={...modState,size:s.id,wins:{},paint:0,roofShape:'shed',rise:0,pile:'blocks',extras:[],outer:'vag',outerGrade:'C',roof:'zinc',door:'wood'};
   return `<article class="card reveal">
-    <a class="pic mod" href="#/modules/${s.id}" aria-label="Модуль ${s.w}×${s.d}">${moduleSVG(c,true)}<span class="size num">${s.w*s.d} м²</span></a>
+    <a class="pic mod" href="#/modules/${s.id}" aria-label="Модуль ${s.w}×${s.d}">${moduleSVG(c,true)}<img src="${MOD_PHOTOS[s.id]}" alt="Модуль ${s.w}×${s.d} м" loading="lazy" onerror="this.remove()"><span class="size num">${s.w*s.d} м²</span></a>
     <div class="body"><h3>Модуль ${s.w}×${s.d}</h3>
       <div class="meta num"><span>50 мм</span><span>окно 60×90</span><span>1,90–2,10 м</span></div>
       <div class="foot"><div><small>базовая комплектация</small><b class="num">${rub(modBase(s))}</b></div><a class="circ" href="#/modules/${s.id}" aria-label="Открыть">${ARROW}</a></div>
@@ -2972,7 +2981,7 @@ function modulesView(size){if(size&&MOD_SIZES.some(s=>s.id===size))modState.size
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Модули</span><h1>Модули для проживания</h1></div>
     <p style="color:var(--muted);max-width:46ch">Готовые утеплённые бытовки на дачу, стройку или для постоянной жизни. Приезжают собранными — ставим за день, установка входит в стоимость, гарантия 3 года. Размеры от 5×2 до 6×6 м, всё остальное настраивается ниже.</p></div>
   <div class="mod-sizes" role="group" aria-label="Размер модуля">${MOD_SIZES.map(x=>`<button type="button" class="${x.id===c.size?'on':''}" data-msize="${x.id}"><b class="num">${x.w}×${x.d}</b><span>${x.w*x.d} м²</span><em class="num">от ${rub(modBase(x))}</em></button>`).join('')}</div>
-  <div class="mod-hero"><div class="mod-draw" id="modDraw">${moduleSVG(c)}</div>
+  <div class="mod-hero"><div class="mod-visual"><img class="mod-photo" id="modPhoto" src="${modPhoto(c)}" alt="Модуль ${s.w}×${s.d} м" onerror="this.style.display='none'"><div class="mod-draw" id="modDraw">${moduleSVG(c)}</div></div>
     <div class="mod-base"><h3>Базовая комплектация</h3><ul>${MOD_INCLUDED.map(i=>`<li><div>${i[0]}: <span>${i[1]}</span></div></li>`).join('')}</ul>
       <p class="note" style="margin:0">Модуль ${s.w}×${s.d} м в базе — <b class="num" style="color:var(--text)" id="modBaseP">${rub(modBase(s))}</b></p></div></div>
   <section id="calc" style="border-top:1px solid var(--line);padding-top:10px">
@@ -2996,6 +3005,7 @@ function refreshModule(groups){const g=document.getElementById('calcGroups');if(
   document.getElementById('modDraw').innerHTML=moduleSVG(modState);
   document.getElementById('estimate').innerHTML=modEstimateHTML();
   const bp=document.getElementById('modBaseP');if(bp)bp.textContent=rub(modBase(modSize(modState)));
+  const ph=document.getElementById('modPhoto');if(ph&&!ph.src.endsWith(modPhoto(modState))){ph.style.display='';ph.src=modPhoto(modState)}
   document.querySelectorAll('.mod-sizes button').forEach(b=>b.classList.toggle('on',b.dataset.msize===modState.size))}
 document.addEventListener('click',e=>{
   const sz=e.target.closest('[data-msize]');if(sz){modState.size=sz.dataset.msize;history.replaceState(null,'','#/modules/'+modState.size);refreshModule(true);return}
@@ -3033,7 +3043,7 @@ function cartView(){
   const total=lines.reduce((s,l)=>s+itemTotal(l),0);
   if(!lines.length)return `<div class="wrap"><div class="page-h"><h1>Корзина</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">В корзине пока нет домов</p><p>Выберите дом — от 6×4 до 12×10 м — или модуль от 5×2 до 6×6 м.</p><a class="btn solid" href="#/catalog">Перейти в каталог</a></div></div>`;
   return `<div class="wrap"><div class="page-h"><h1>Корзина</h1><span class="label num">${lines.length} ${plural(lines.length,['дом','дома','домов'])}</span></div>
-  <div class="cart"><div>${lines.map((l,i)=>`<div class="line">${l.module?`<div class="mod-thumb">${moduleSVG(l.cfg,true)}</div>`:byId(l.m.pic||l.m.id)&&byId(l.m.pic||l.m.id).photo?`<img src="${byId(l.m.pic||l.m.id).photo}" alt="">`:`<canvas data-scene="${l.m.pic||l.m.id}" data-fw=".7" data-fh=".62" data-stars="0"></canvas>`}
+  <div class="cart"><div>${lines.map((l,i)=>`<div class="line">${l.module?`<div class="mod-thumb">${moduleSVG(l.cfg,true)}<img src="${modPhoto(l.cfg)}" alt="" onerror="this.remove()"></div>`:byId(l.m.pic||l.m.id)&&byId(l.m.pic||l.m.id).photo?`<img src="${byId(l.m.pic||l.m.id).photo}" alt="">`:`<canvas data-scene="${l.m.pic||l.m.id}" data-fw=".7" data-fh=".62" data-stars="0"></canvas>`}
     <div style="display:grid;gap:4px"><h3>${l.m.name} <span class="num" style="color:var(--muted);font-weight:400">${l.m.w}×${l.m.d}</span></h3><p>${itemDesc(l)}</p>
       <details class="spec-det"><summary>Полное описание и планировка</summary>
         <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>

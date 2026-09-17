@@ -1,3 +1,9 @@
 .DS_Store
 Thumbs.db
 *.tmp
+
+# данные сервера (создаются на хостинге, в репозитории им не место)
+kontur.sqlite
+kontur.sqlite-wal
+kontur.sqlite-shm
+uploads/

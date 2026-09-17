@@ -901,14 +901,14 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 <script>
 /* ---------- data ---------- */
 const MODELS=[
- {id:'ladoga',size:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома',plan:[['Душевая',0,0,1.7,1.5],['Гардероб',1.7,0,1.6,1.5],['Гостиная',0,1.5,3.3,2.5],['Спальня',3.3,0,2.7,2.4]]},
- {id:'onega',size:'6x5',winSides:[1,2,1,.2],ver:{w:2.4,d:1.5,pos:'front-right',inset:1},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,2.1],['С/у',3.6,2.1,2.4,1.4]]},
- {id:'seliger',size:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
- {id:'valdai',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
- {id:'vuoksa',size:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right',inset:1},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,3.4],['Спальня',0,3.4,2.4,4.6],['Спальня',2.4,3.4,2.2,2.6],['С/у',4.6,3.4,1.4,2.6]]},
- {id:'karelia',size:'karelia-src',door:{wall:0,f:.498},winSides:[3,1,1.2,1.4],ver:{pos:'L',inset:1,a:3,b:1.5,l1:4.84,l2:6},photo:'h8x8.jpg',w:16.24,d:10.55,name:'Карелия',floors:1,area:0,beds:3,baths:2,price:0,weeks:12,days:10,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Одноэтажный дом с тремя спальнями, гостиной и Г-образной террасой вдоль гостиной и торца',plan:[['С/у',0,1.5,2.64,2.3],['Гардероб',0,3.8,2.64,2.27],['Спальня',2.64,1.5,2.89,4.57],['Спальня',5.53,1.5,2.93,4.57],['Гостиная',8.46,1.5,4.78,6.04],['Спальня',0,6.07,3.47,4.48],['Холл',3.47,6.07,4.99,1.47],['С/у',3.47,7.54,1.98,3.01],['Прихожая',5.45,7.54,2.28,3.01],['Тех. пом.',7.73,7.54,1.97,3.01],['Кухня',9.7,7.54,3.54,3.01]]},
- {id:'altai',size:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:2,area:172,beds:4,baths:2,price:9110000,weeks:16,days:12,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.2,5.2],['Спальня',0,5.2,4.2,4.8],['Кухня-гостиная',4.2,0,3.2,10]]},
- {id:'baikal',size:'12x10',winSides:[3,1,.8,.5],ver:{w:7,d:2.5,pos:'front-left',inset:1},photo:'h12x10.jpg',w:12,d:10,name:'Байкал',floors:2,area:208,beds:5,baths:2,price:11110000,weeks:18,days:14,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Большой семейный дом с котельной и террасой',plan:[['Гостиная',0,0,7,4.5],['Спальня',0,4.5,4,3],['С/у',4,4.5,3,3],['Кухня',7,0,5,4],['Котельная',7,4,5,2],['Холл',7,6,5,4]]},
+ {id:'ladoga',from:'6x5',size:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома',plan:[['Душевая',0,0,1.7,1.5],['Гардероб',1.7,0,1.6,1.5],['Гостиная',0,1.5,3.3,2.5],['Спальня',3.3,0,2.7,2.4]]},
+ {id:'onega',from:'6x4',size:'6x5',winSides:[1,2,1,.2],ver:{w:2.4,d:1.5,pos:'front-right',inset:1},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,2.1],['С/у',3.6,2.1,2.4,1.4]]},
+ {id:'seliger',from:'6x5',size:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
+ {id:'valdai',from:'6x5',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
+ {id:'vuoksa',from:'6x5',size:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right',inset:1},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,3.4],['Спальня',0,3.4,2.4,4.6],['Спальня',2.4,3.4,2.2,2.6],['С/у',4.6,3.4,1.4,2.6]]},
+ {id:'karelia',from:'6x8',size:'karelia-src',door:{wall:0,f:.498},winSides:[3,1,1.2,1.4],ver:{pos:'L',inset:1,a:3,b:1.5,l1:4.84,l2:6},photo:'h8x8.jpg',w:16.24,d:10.55,name:'Карелия',floors:1,area:0,beds:3,baths:2,price:0,weeks:12,days:10,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Одноэтажный дом с тремя спальнями, гостиной и Г-образной террасой вдоль гостиной и торца',plan:[['С/у',0,1.5,2.64,2.3],['Гардероб',0,3.8,2.64,2.27],['Спальня',2.64,1.5,2.89,4.57],['Спальня',5.53,1.5,2.93,4.57],['Гостиная',8.46,1.5,4.78,6.04],['Спальня',0,6.07,3.47,4.48],['Холл',3.47,6.07,4.99,1.47],['С/у',3.47,7.54,1.98,3.01],['Прихожая',5.45,7.54,2.28,3.01],['Тех. пом.',7.73,7.54,1.97,3.01],['Кухня',9.7,7.54,3.54,3.01]]},
+ {id:'altai',from:'6x5',size:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:1,area:172,beds:2,baths:1,price:9110000,weeks:16,days:12,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.2,5.2],['Спальня',0,5.2,4.2,4.8],['Кухня-гостиная',4.2,0,3.2,10]]},
+ {id:'baikal',from:'6x8',size:'12x10',winSides:[3,1,.8,.5],ver:{w:7,d:2.5,pos:'front-left',inset:1},photo:'h12x10.jpg',w:12,d:10,name:'Байкал',floors:2,area:208,beds:5,baths:2,price:11110000,weeks:18,days:14,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Большой семейный дом с котельной и террасой',plan:[['Гостиная',0,0,7,4.5],['Спальня',0,4.5,4,3],['С/у',4,4.5,3,3],['Кухня',7,0,5,4],['Котельная',7,4,5,2],['Холл',7,6,5,4]]},
 ];
 const PKGS=[
  {id:'cold',name:'Холодный контур',k:.4144,txt:'Каркас, наружная обшивка, ветро-влагозащитная мембрана, кровля, окна и дверь — без утепления'},
@@ -921,6 +921,11 @@ const STAGES=['Заявка','Проект','Фундамент','Каркас',
 const SIZES=[{id:'6x4',w:6,d:4,days:3},{id:'6x5',w:6,d:5,days:3},{id:'6x6',w:6,d:6,days:4},{id:'6x7',w:6,d:7,days:5},
   {id:'6x8',w:6,d:8,days:5},{id:'8x8',w:8,d:8,days:8},{id:'10x10',w:10,d:10,days:12},{id:'12x10',w:12,d:10,days:14}];
 /* проектный размер, если его нет в размерном ряду (Карелия по чертежу) */
+/* с какого размера строится проект: Онега — все размеры, Байкал и Карелия — от 6×8, остальные — от 6×5 */
+const sizeIdx=id=>SIZES.findIndex(s=>s.id===id);
+const sizeOK=(m,id)=>sizeIdx(id)>=0&&sizeIdx(id)>=sizeIdx(m.from||'6x4');
+const sizesOf=m=>SIZES.filter(s=>sizeOK(m,s.id));
+const modelsIn=id=>MODELS.filter(m=>sizeOK(m,id));
 const fmtD=v=>typeof v==='number'?String(+v.toFixed(2)).replace('.',','):String(v);
 const ownSize=m=>!SIZES.some(s=>s.id===(m.native?byId(m.native).size:m.size));
 /* старые ссылки и сохранённые данные, где домом называли размер */
@@ -944,7 +949,10 @@ function variant(m,sizeId){
     plan:m.plan.map(r=>[r[0],+(r[1]*sx).toFixed(2),+(r[2]*sy).toFixed(2),+(r[3]*sx).toFixed(2),+(r[4]*sy).toFixed(2)])};
   sizeUp(v);v.beds=Math.max(1,Math.min(6,Math.round(v.living/30)));v.baths=v.living>90?2:1;return v;
 }
-const byId=id=>{if(!id)return null;const p=String(id).split('@'),k=LEGACY[p[0]]||p[0],m=MODELS.find(x=>x.id===k);return m?(p[1]?variant(m,p[1]):m):null};
+const byId=id=>{if(!id)return null;const p=String(id).split('@'),k=LEGACY[p[0]]||p[0],m=MODELS.find(x=>x.id===k);if(!m)return null;
+  /* недоступный для проекта размер — открываем ближайший доступный */
+  if(p[1]&&SIZES.some(s=>s.id===p[1])&&!sizeOK(m,p[1]))return m;
+  return p[1]?variant(m,p[1]):m};
 const nativeOf=m=>m.native||m.id;
 /* на странице «Свой размер» редактор работает с виртуальной моделью */
 function customModel(){const c=customState,base=c.planBase&&byId(c.planBase);
@@ -955,7 +963,7 @@ function curModel(){const h=location.hash;
   return byId((h.split('/')[2]||'').split('?')[0])}
 function refreshAny(m,groups){if(m&&m.id==='custom')refreshCustom(true);else refreshCalc(m,groups)}
 /* минимальная цена проекта: самый маленький размер в холодном контуре */
-const minPrice=m=>Math.min.apply(null,[...SIZES.map(s=>variant(m,s.id).price),byId(nativeOf(m)).price])*PKGS[0].k;
+const minPrice=m=>Math.min.apply(null,[...sizesOf(byId(nativeOf(m))).map(s=>variant(byId(nativeOf(m)),s.id).price),byId(nativeOf(m)).price])*PKGS[0].k;
 /* Г-образная терраса: полоса a вдоль правого торца (длиной b+l2) и полоса b вдоль тыла над гостиной (длиной l1) */
 const isL=m=>!!(m&&m.ver&&m.ver.pos==='L');
 const verA=m=>!m.ver?0:isL(m)?Math.round((m.ver.a*(m.ver.b+m.ver.l2)+m.ver.l1*m.ver.b)*10)/10:Math.round(m.ver.w*m.ver.d*10)/10;
@@ -969,6 +977,7 @@ function sizeUp(m){m.living=heatA(m);m.area=Math.round((m.living+verA(m))*10)/10
   m.price=Math.round((rateFor(m.living)*m.living+verA(m)*TERR_BASE)/10000)*10000;return m}
 /* Карелия нарисована по чертежу в метрах; на сайте — обычный проект размерного ряда, базовый размер 12×10 */
 (()=>{const i=MODELS.findIndex(x=>x.id==='karelia');if(i<0)return;const v=variant(MODELS[i],'12x10');delete v.native;v.id='karelia';v.size='12x10';MODELS[i]=v})();
+MODELS.forEach((m,i)=>{if(!sizeOK(m,m.size)){const v=variant(m,m.from);delete v.native;v.id=m.id;v.size=m.from;MODELS[i]=v}});
 MODELS.forEach(sizeUp);
 const nicheOf=(o,w,d)=>{if(!(o.ver&&o.ver.inset)||o.ver.pos==='L')return null;
   const x=w/2,z=d/2,side=o.ver.pos==='side-right'||o.ver.pos==='side-left';
@@ -1798,14 +1807,14 @@ function vizBlock(){V3.mode='plan';
 
 /* ---------- view pieces ---------- */
 function card(m,size){
-  m=byId(nativeOf(m));const v=typeof size==='string'&&SIZES.some(s=>s.id===size)?variant(m,size):null,on=favs.includes(m.id);
+  m=byId(nativeOf(m));const v=typeof size==='string'&&sizeOK(m,size)?variant(m,size):null,on=favs.includes(m.id),ss=sizesOf(m);
   const href=v?`#/house/${m.id}@${v.size}`:`#/house/${m.id}`;
   return `<article class="card reveal">
-    <a class="pic" href="${href}" aria-label="Проект ${m.name}">${m.photo?`<img src="${m.photo}" alt="Каркасный дом «${m.name}»" loading="lazy">`:`<canvas data-scene="${m.id}" data-fixed="1"></canvas>`}<span class="size num">${v?`${v.w}×${v.d} м`:'8 размеров'}</span></a>
+    <a class="pic" href="${href}" aria-label="Проект ${m.name}">${m.photo?`<img src="${m.photo}" alt="Каркасный дом «${m.name}»" loading="lazy">`:`<canvas data-scene="${m.id}" data-fixed="1"></canvas>`}<span class="size num">${v?`${v.w}×${v.d} м`:`${ss.length} ${plural(ss.length,['размер','размера','размеров'])}`}</span></a>
     <button class="fav ${on?'on':''}" data-fav="${m.id}" aria-label="В избранное">${HEART}</button>
     <div class="body">
       <h3>${m.name}</h3>
-      <div class="meta num"><span>${floorsTxt(m.floors)}</span><span>${m.ver&&m.ver.inset?'терраса':'веранда'} ${verA(v||m)} м²</span><span>${v?`${v.area} м²`:'от 6×4 до 12×10'}</span></div>
+      <div class="meta num"><span>${floorsTxt(m.floors)}</span><span>${m.ver&&m.ver.inset?'терраса':'веранда'} ${String(verA(v||m)).replace('.',',')} м²</span><span>${v?`${String(v.area).replace('.',',')} м²`:`от ${ss[0].w}×${ss[0].d} до 12×10`}</span></div>
       <div class="foot"><div><small>${v?`${v.w}×${v.d} м, холодный контур`:'от, холодный контур'}</small><b class="num">${rub(v?v.price*PKGS[0].k:minPrice(m))}</b></div><a class="circ" href="${href}" aria-label="Открыть">${ARROW}</a></div>
     </div></article>`;
 }
@@ -1843,7 +1852,7 @@ function home(){
     </div>
     <div class="scroll-cue" aria-hidden="true"></div>
   </div>
-  <div class="wrap under-hero"><span class="label">Каркасные дома в скандинавском стиле</span><p>Высокий фронтон, панорамное остекление, фальцевая кровля и тёплый контур до 250 мм — восемь проектов, каждый в любом из восьми размеров.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#/catalog">Смотреть дома</a><a class="btn" href="#/custom">Свой размер</a></div></div>
+  <div class="wrap under-hero"><span class="label">Каркасные дома в скандинавском стиле</span><p>Высокий фронтон, панорамное остекление, фальцевая кровля и тёплый контур до 250 мм — восемь проектов в размерах от 6×4 до 12×10 м.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#/catalog">Смотреть дома</a><a class="btn" href="#/custom">Свой размер</a></div></div>
 
   <section class="wrap"><div class="manifesto">
     <p class="two-tone reveal">Дом — это не <em>стены.</em> Это <em>тепло,</em> которое чувствуешь, когда за окном <em>минус тридцать.</em></p>
@@ -1856,28 +1865,28 @@ function home(){
     </aside>
   </div></section>
 
-  <section class="wrap" id="sizes"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Размерный ряд</span><h2>Выберите размер дома</h2></div><p>Размер не привязан к проекту: любой из восьми домов строится в любом габарите. Выберите размер — покажем все дома в нём. Пятна застройки в одном масштабе.</p></div>
+  <section class="wrap" id="sizes"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Размерный ряд</span><h2>Выберите размер дома</h2></div><p>Размер выбирается отдельно от проекта. Онега строится во всех размерах, Байкал и Карелия — от 6×8, остальные — от 6×5. Выберите размер — покажем все дома в нём. Пятна застройки в одном масштабе.</p></div>
     <div class="sizes">
       <div class="scale-box reveal">${scaleSVG()}</div>
-      <div class="size-list reveal">${SIZES.map((s,i)=>{const a=s.w*s.d,p=Math.min(...MODELS.map(x=>variant(x,s.id).price))*PKGS[0].k;
-        return `<a href="#/catalog/${s.id}" data-sz="${s.id}"><b class="num">${s.w}×${s.d}</b><span>${a} м² · 8 проектов<br><span class="num">от ${(p/1e6).toFixed(2).replace('.',',')} млн</span></span></a>`}).join('')}<a href="#/custom" style="grid-column:1/-1;background:var(--panel2)"><b>Свой размер</b><span>Впишите ширину и длину<br>и получите смету</span></a></div>
+      <div class="size-list reveal">${SIZES.map((s,i)=>{const a=s.w*s.d,n=modelsIn(s.id).length,p=Math.min(...modelsIn(s.id).map(x=>variant(x,s.id).price))*PKGS[0].k;
+        return `<a href="#/catalog/${s.id}" data-sz="${s.id}"><b class="num">${s.w}×${s.d}</b><span>${a} м² · ${n} ${plural(n,['проект','проекта','проектов'])}<br><span class="num">от ${(p/1e6).toFixed(2).replace('.',',')} млн</span></span></a>`}).join('')}<a href="#/custom" style="grid-column:1/-1;background:var(--panel2)"><b>Свой размер</b><span>Впишите ширину и длину<br>и получите смету</span></a></div>
     </div>
   </section>
 
-  <section class="wrap" id="catalog"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Каталог</span><h2>Восемь домов, одна философия</h2></div><p>Цена указана за холодный контур в базовом размере. Любой проект можно построить в любом из восьми размеров и достроить до «под ключ» в калькуляторе.</p></div>
+  <section class="wrap" id="catalog"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Каталог</span><h2>Восемь домов, одна философия</h2></div><p>Цена указана за холодный контур в базовом размере. Проекты строятся в нескольких размерах — Онега во всех восьми — и достраиваются до «под ключ» в калькуляторе.</p></div>
     <div class="grid">${MODELS.map(card).join('')}</div>
   </section>
 
   <section class="wrap" id="prices"><div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Цены</span><h2>Сколько стоит каждый размер</h2></div><p>В базовую цену входит холодный контур: каркас, имитация бруса снаружи, ветрозащита, профлист на кровле, окна ПВХ, дверь и фундамент на бетонных блоках. Сборка на участке — от 3 дней до 2 недель.</p></div>
     <div class="table-wrap reveal"><table class="price-table">
       <thead><tr><th>Размер</th><th>Габарит</th><th>Холодный, от</th><th>Тёплый, от</th><th>Под ключ, от</th><th></th></tr></thead>
-      <tbody>${SIZES.map((s,i)=>{const a=s.w*s.d,p=Math.min(...MODELS.map(x=>variant(x,s.id).price));
-        return `<tr><td><b class="num">${s.w}×${s.d}</b><span class="nm">8 проектов</span></td><td class="num">${a} м²</td>
+      <tbody>${SIZES.map((s,i)=>{const a=s.w*s.d,n=modelsIn(s.id).length,p=Math.min(...modelsIn(s.id).map(x=>variant(x,s.id).price));
+        return `<tr><td><b class="num">${s.w}×${s.d}</b><span class="nm">${n} ${plural(n,['проект','проекта','проектов'])}</span></td><td class="num">${a} м²</td>
         <td class="num">${rub(p*PKGS[0].k)}</td><td class="num">${rub(p*PKGS[1].k)}</td><td class="num">${rub(p*PKGS[3].k)}</td>
         <td><a href="#/catalog/${s.id}">Дома</a></td></tr>`}).join('')}
         <tr><td colspan="5" style="color:var(--muted);font-size:14px">Нужен размер, которого нет в таблице? Посчитайте свой проект — от 3×3 до 18×24 м.</td><td><a href="#/custom">Калькулятор</a></td></tr></tbody>
     </table></div>
-    <p class="note" style="margin-top:14px">Размер — это габарит дома вместе с террасой. Площадь дома = габарит минус терраса; мансарда добавляет половину этажа, второй этаж — полный. Общая площадь = дом + терраса; терраса стоит дешевле жилой части. В таблице — цена самого доступного из восьми домов в этом размере. Тёплый контур добавляет каменную вату, пароизоляцию и внутреннюю отделку. Доставка — ${DELIVERY_RATE} ₽ за километр. Фундамент, терраса, баня и инженерия считаются отдельно в калькуляторе на странице дома.</p>
+    <p class="note" style="margin-top:14px">Размер — это габарит дома вместе с террасой. Площадь дома = габарит минус терраса; мансарда добавляет половину этажа, второй этаж — полный. Общая площадь = дом + терраса; терраса стоит дешевле жилой части. В таблице — цена самого доступного из домов, которые строятся в этом размере: Онега — во всех, Байкал и Карелия — от 6×8, остальные — от 6×5. Тёплый контур добавляет каменную вату, пароизоляцию и внутреннюю отделку. Доставка — ${DELIVERY_RATE} ₽ за километр. Фундамент, терраса, баня и инженерия считаются отдельно в калькуляторе на странице дома.</p>
   </section>
 
   <section class="wrap" id="tech"><div class="tech">
@@ -2615,7 +2624,7 @@ function customView(){
 function modelView(id){
   const m=byId(id);if(!m)return notFound();
   const i=MODELS.findIndex(x=>x.id===nativeOf(m)),prev=MODELS[i-1],next=MODELS[i+1];
-  const on=favs.includes(nativeOf(m));const cfg=getCfg(m);const est=computeCalc(m,cfg);const sz=ownSize(m)&&!m.native?'':'@'+m.size;
+  const on=favs.includes(nativeOf(m));const cfg=getCfg(m);const est=computeCalc(m,cfg);const sz='@'+m.size,szOf=x=>sizeOK(x,m.size)?sz:'';
   return `<div class="wrap">
   <div class="crumbs"><a href="#/">Главная</a>/<a href="#/catalog">Каталог</a>/<span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)}</span></div>
   <div class="model">
@@ -2623,8 +2632,8 @@ function modelView(id){
     <div class="info">
       <h1><small class="num">Проект ${String(i+1).padStart(2,'0')} из ${MODELS.length} · ${fmtD(m.w)}×${fmtD(m.d)} м · ${String(m.area).replace('.',',')} м²</small>${m.name}</h1>
       <p style="color:var(--muted);font-size:18px;max-width:40ch">${m.lead}.</p>
-      <div style="display:grid;gap:10px"><span class="label">Размер дома · планировка и вид «${m.name}» сохраняются</span><div class="size-switch">${SIZES.map(s=>`<a class="pill num ${s.id===m.size?'on':''}" href="#/house/${nativeOf(m)}@${s.id}">${s.w}×${s.d}</a>`).join('')}</div>
-        <small class="note">Проект «${m.name}» строится в любом из восьми размеров: площадь, комплект окон, планировка, срок и цена пересчитываются, сам дом остаётся тот же.</small></div>
+      <div style="display:grid;gap:10px"><span class="label">Размер дома · планировка и вид «${m.name}» сохраняются</span><div class="size-switch">${sizesOf(m).map(s=>`<a class="pill num ${s.id===m.size?'on':''}" href="#/house/${nativeOf(m)}@${s.id}">${s.w}×${s.d}</a>`).join('')}</div>
+        <small class="note">Проект «${m.name}» строится ${sizesOf(m).length===SIZES.length?'в любом из восьми размеров':`в размерах от ${sizesOf(m)[0].w}×${sizesOf(m)[0].d} до 12×10`}: площадь, комплект окон, планировка, срок и цена пересчитываются, сам дом остаётся тот же.</small></div>
       <div class="price-row"><div><small id="topPkg">${PKGS.find(p=>p.id===cfg.pkg).name} · ${rub(est.total/m.area)} за м² · сборка ${est.days} ${plural(est.days,['день','дня','дней'])}</small><b class="num" id="topPrice">${rub(est.total)}</b></div>
         <div class="buy"><a class="btn lamp" href="#calc" data-jump="calc">Рассчитать стоимость</a><button class="btn" data-add="${m.id}">В корзину</button><button class="circ fav-inline ${on?'':''}" data-fav="${nativeOf(m)}" aria-label="В избранное" style="${on?'color:var(--lamp);border-color:var(--lamp)':''}">${HEART.replace('fill="none"',on?'fill="currentColor"':'fill="none"')}</button></div></div>
       <div class="specs">${[
@@ -2646,11 +2655,11 @@ function modelView(id){
   <section class="wrap" style="border-top:1px solid var(--line)"><div class="plan-sec">
     <div style="display:grid;gap:22px"><span class="label">Планировка</span><h2 style="font-size:clamp(28px,3.4vw,46px)">${m.floors===1?'План дома':'План первого этажа'}</h2>
       <p style="color:var(--muted);max-width:44ch">Размеры по осям в миллиметрах. Внутренние перегородки можно переставить — цена каркаса не меняется.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">${prev?`<a class="btn" href="#/house/${prev.id}${sz}">← «${prev.name}»${sz?` ${fmtD(m.w)}×${fmtD(m.d)}`:''}</a>`:''}${next?`<a class="btn" href="#/house/${next.id}${sz}">«${next.name}»${sz?` ${fmtD(m.w)}×${fmtD(m.d)}`:''} →</a>`:''}</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${prev?`<a class="btn" href="#/house/${prev.id}${szOf(prev)}">← «${prev.name}»${szOf(prev)?` ${fmtD(m.w)}×${fmtD(m.d)}`:''}</a>`:''}${next?`<a class="btn" href="#/house/${next.id}${szOf(next)}">«${next.name}»${szOf(next)?` ${fmtD(m.w)}×${fmtD(m.d)}`:''} →</a>`:''}</div></div>
     <div class="plan">${planSVG({...m,plan:planOf(m,getCfg(m))})}</div>
   </div></section>
-  <section class="wrap" style="border:0"><div class="sec-head"><h2>${ownSize(m)&&!m.native?'Другие проекты':`Другие дома ${fmtD(m.w)}×${fmtD(m.d)}`}</h2><a class="btn" href="#/catalog${ownSize(m)&&!m.native?'':'/'+m.size}">${ownSize(m)&&!m.native?'Весь каталог':`Все дома ${fmtD(m.w)}×${fmtD(m.d)}`}</a></div>
-    <div class="grid">${MODELS.filter(x=>x.id!==nativeOf(m)).slice(Math.max(0,Math.min(i-2,MODELS.length-5)),Math.max(0,Math.min(i-2,MODELS.length-5))+4).map(x=>card(x,m.size)).join('')}</div></section>`;
+  <section class="wrap" style="border:0"><div class="sec-head"><h2>${modelsIn(m.size).length>=MODELS.length?`Другие дома ${fmtD(m.w)}×${fmtD(m.d)}`:'Другие проекты'}</h2><a class="btn" href="#/catalog${modelsIn(m.size).length>1?'/'+m.size:''}">${modelsIn(m.size).length>1?`Все дома ${fmtD(m.w)}×${fmtD(m.d)}`:'Весь каталог'}</a></div>
+    <div class="grid">${MODELS.filter(x=>x.id!==nativeOf(m)).slice(Math.max(0,Math.min(i-2,MODELS.length-5)),Math.max(0,Math.min(i-2,MODELS.length-5))+4).map(x=>card(x,sizeOK(x,m.size)?m.size:null)).join('')}</div></section>`;
 }
 function cartView(){
   const lines=cart.map(c=>({...c,m:lineModel(c)})).filter(c=>c.m);
@@ -2774,10 +2783,10 @@ function accountView(tab){
 }
 let catSize=null;
 function catalogView(size){catSize=SIZES.find(s=>s.id===size)?size:null;const S=catSize&&SIZES.find(s=>s.id===catSize);
-  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Каталог</span><h1>${S?`Дома ${S.w}×${S.d} м`:'Каркасные дома'}</h1></div><p style="color:var(--muted);max-width:44ch">${S?`Все восемь проектов в габарите ${S.w}×${S.d} м. Внешний вид и планировка у каждого свои — меняется только размер. Цена — за холодный контур.`:'Дом и размер выбираются отдельно: восемь проектов, и каждый строится в любом из восьми размеров — от 24 до 208 м². Цена в карточке — «от», за холодный контур.'}</p></div>
+  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Каталог</span><h1>${S?`Дома ${S.w}×${S.d} м`:'Каркасные дома'}</h1></div><p style="color:var(--muted);max-width:44ch">${S?`${modelsIn(S.id).length===MODELS.length?'Все восемь проектов':`${modelsIn(S.id).length} ${plural(modelsIn(S.id).length,['проект','проекта','проектов'])}`} в габарите ${S.w}×${S.d} м. Внешний вид и планировка у каждого свои — меняется только размер. Цена — за холодный контур.`:'Дом и размер выбираются отдельно: Онега строится во всех восьми размерах, Байкал и Карелия — от 6×8, остальные — от 6×5. Цена в карточке — «от», за холодный контур.'}</p></div>
   <div class="cat-bar"><span class="label">Размер</span><div class="size-switch"><a class="pill ${S?'':'on'}" href="#/catalog">Любой</a>${SIZES.map(s=>`<a class="pill num ${s.id===catSize?'on':''}" href="#/catalog/${s.id}">${s.w}×${s.d}</a>`).join('')}<a class="pill" href="#/custom">Свой</a></div></div>
-  <div class="cat-bar" id="filters"><span class="label">Дом</span><div class="size-switch"><button class="pill on" data-f="all">Все</button><button class="pill" data-f="1">1 этаж</button><button class="pill" data-f="1.5">С мансардой</button><button class="pill" data-f="2">2 этажа</button></div></div>
-  <div class="grid" id="catGrid" style="margin-bottom:90px">${MODELS.map(m=>card(m,catSize)).join('')}</div></div>`}
+  <div class="cat-bar" id="filters"><span class="label">Дом</span><div class="size-switch"><button class="pill on" data-f="all">Все</button><button class="pill" data-f="1">1 этаж</button><button class="pill" data-f="2">2 этажа</button></div></div>
+  <div class="grid" id="catGrid" style="margin-bottom:90px">${(catSize?modelsIn(catSize):MODELS).map(m=>card(m,catSize)).join('')}</div></div>`}
 function notFound(){return `<div class="wrap"><div class="empty" style="margin:60px 0"><p style="font-size:18px;color:var(--text)">Такой страницы нет</p><a class="btn" href="#/">На главную</a></div></div>`}
 function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>
@@ -3366,7 +3375,7 @@ function bind(){
   if(document.querySelector('[data-fp]'))hi('8x8',true),setTimeout(()=>{if(!document.querySelector('.size-list a:hover'))hi('8x8',false)},2600);
   document.getElementById('filters')?.addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;
     document.querySelectorAll('#filters .pill').forEach(p=>p.classList.toggle('on',p===b));
-    const list=b.dataset.f==='all'?MODELS:MODELS.filter(m=>String(m.floors)===b.dataset.f);
+    const base=catSize?modelsIn(catSize):MODELS,list=b.dataset.f==='all'?base:base.filter(m=>String(m.floors)===b.dataset.f);
     document.getElementById('catGrid').innerHTML=list.map(m=>card(m,catSize)).join('');paint()});
   document.getElementById('mgrForm')?.addEventListener('submit',async e=>{e.preventDefault();
     const f=new FormData(e.target),mode=e.target.dataset.mode,login=String(f.get('login')||'').trim().toLowerCase(),pass=String(f.get('pass')||'');

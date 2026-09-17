@@ -355,6 +355,8 @@ header.top{transition:background .4s,border-color .4s}
 .under-hero p{color:var(--muted);font-size:14px;max-width:46ch}
 @media (max-width:1000px){.hero-note,.socials{display:none}.hero-cta{left:clamp(16px,3vw,44px);top:auto;bottom:96px;width:min(300px,calc(100% - 32px))}}
 @media (max-width:640px){
+  .hero-cta{bottom:calc(178px + env(safe-area-inset-bottom));padding:16px;gap:10px}
+  .hero-cta b{font-size:26px}
   .stats{left:0;right:0;bottom:calc(86px + env(safe-area-inset-bottom));border-radius:0;height:auto;padding:12px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:center}
   .stat{flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
   .stat b{font-size:20px}

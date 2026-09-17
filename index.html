@@ -985,7 +985,7 @@ const PKGS=[
  {id:'draft',name:'Под чистовую',k:.7954,txt:'+ электрика, водоснабжение, канализация, черновая отделка'},
  {id:'key',name:'Под ключ',k:.9304,txt:'+ чистовая отделка, сантехника, освещение, терраса'},
 ];
-const STAGES=['Заявка','Проект','Фундамент','Каркас','Сдача'];
+const STAGES=['Заявка','Проект','Договор','Стройка','Сдача'];
 /* размеры — отдельный справочник: любой дом строится в любом из них */
 const SIZES=[{id:'6x4',w:6,d:4,days:3},{id:'6x5',w:6,d:5,days:3},{id:'6x6',w:6,d:6,days:4},{id:'6x7',w:6,d:7,days:5},
   {id:'6x8',w:6,d:8,days:5},{id:'8x8',w:8,d:8,days:8},{id:'10x10',w:10,d:10,days:12},{id:'12x10',w:12,d:10,days:14}];
@@ -3130,6 +3130,95 @@ document.addEventListener('click',async e=>{
   else if(scope==='custom'){set(customState);refreshCustom(true)}
   else{const m=curModel();if(m){set(getCfg(m));refreshCalc(m,true)}}
   toast(`${res.km} км по дорогам · доставка ${rub(res.km*DELIVERY_RATE)}`)});
+
+
+/* ---- свой сервер (api.php рядом с сайтом): регистрация, вход, заявки, документы ---- */
+const API_URL='';
+let apiToken=null;
+try{apiToken=localStorage.getItem('kontur.token')||null}catch(e){}
+function apiSetToken(tk){apiToken=tk;try{tk?localStorage.setItem('kontur.token',tk):localStorage.removeItem('kontur.token')}catch(e){}}
+async function apiReq(a,opt){opt=opt||{};
+  const url=API_URL+(API_URL.indexOf('?')<0?'?':'&')+'a='+a+(opt.q||'');
+  const h={};if(apiToken)h['Authorization']='Bearer '+apiToken;
+  let body=null;
+  if(opt.form)body=opt.form; else if(opt.json){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
+  const r=await fetch(url,{method:opt.form||opt.json?'POST':'GET',headers:h,body});
+  let d=null;try{d=await r.json()}catch(e){}
+  if(!r.ok||(d&&d.error))throw new Error((d&&d.error)||'Сервер недоступен');
+  return d}
+const apiFileUrl=id=>API_URL+(API_URL.indexOf('?')<0?'?':'&')+'a=file&id='+id+'&token='+encodeURIComponent(apiToken||'');
+/* ================= общий кабинет: Supabase =================
+   Пока SB_URL и SB_ANON пустые, сайт работает по-старому: аккаунты и заявки
+   лежат только в этом браузере. Впишите сюда адрес проекта и публичный ключ —
+   включатся настоящая регистрация, общие заявки и документы. */
+const SB_URL='';
+const SB_ANON='';
+const SB={c:null,on:false,kind:'',orders:[],docs:{},role:'client',loading:false};
+/* пользователь пришёл с сервера — раскладываем по местам */
+function srvUser(u){if(!u){user=null;SB.role='client';SB.orders=[];store.set('user',null);loadUserData();updateHeader();return}
+  SB.role=u.role||'client';user={name:u.name||u.email,email:u.email,id:u.id,role:SB.role};store.set('user',user);loadUserData();updateHeader()}
+async function sbInit(){
+  if(API_URL){SB.on=true;SB.kind='api';
+    try{if(apiToken){const d=await apiReq('me');srvUser(d.user)}}catch(e){apiSetToken(null)}
+    await sbLoadOrders();render();return}
+  if(!SB_URL||!SB_ANON)return;
+  SB.kind='sb';
+  try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    SB.c=m.createClient(SB_URL,SB_ANON,{auth:{persistSession:true,autoRefreshToken:true}});SB.on=true;
+    const {data}=await SB.c.auth.getSession();
+    await sbUser(data&&data.session?data.session.user:null);
+    SB.c.auth.onAuthStateChange(async(_e,s)=>{await sbUser(s?s.user:null);render()});
+    await sbLoadOrders();render()}
+  catch(err){console.warn('Supabase недоступен',err);SB.on=false}}
+async function sbUser(u){
+  if(!u){user=null;store.set('user',null);SB.role='client';SB.orders=[];loadUserData();updateHeader();return}
+  let name=(u.user_metadata&&u.user_metadata.name)||u.email.split('@')[0],role='client';
+  try{const {data}=await SB.c.from('profiles').select('name,role,phone').eq('id',u.id).maybeSingle();
+    if(data){name=data.name||name;role=data.role||'client'}
+    else await SB.c.from('profiles').insert({id:u.id,name,role:'client'})}catch(e){}
+  SB.role=role;user={name,email:u.email,id:u.id,role};store.set('user',user);loadUserData();updateHeader()}
+async function sbLoadOrders(){
+  if(!SB.on)return;
+  if(SB.kind==='api'){try{const d=await apiReq('orders');
+      SB.orders=(d.orders||[]).map(o=>({no:o.no,at:o.created,items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,region:o.region,
+        comment:o.comment,stage:o.stage,status:o.status,_id:o.id,_owner:o.email||'гость'}))}catch(e){SB.orders=[]}return}
+  try{let q=SB.c.from('orders').select('*').order('created_at',{ascending:false});
+    const {data,error}=await q;if(error)throw error;
+    SB.orders=(data||[]).map(o=>({no:o.no,at:new Date(o.created_at).getTime(),items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,
+      region:o.region,comment:o.comment,stage:o.stage||0,status:o.status||'new',_id:o.id,_owner:o.email||o.user_id||'гость'}))}
+  catch(e){SB.orders=[]}}
+async function sbSaveOrder(o){
+  if(SB.kind==='api')return apiReq('order',{json:{...o,total:o.items.reduce((s,it)=>s+itemTotal(it),0)}});
+  const {data,error}=await SB.c.from('orders').insert({no:o.no,fio:o.fio,phone:o.phone,email:o.email||null,region:o.region,
+    comment:o.comment,items:o.items,total:o.items.reduce((s,it)=>s+itemTotal(it),0),stage:0,status:'new'}).select().single();
+  if(error)throw error;return data}
+async function sbSetStatus(id,patch){
+  if(SB.kind==='api'){await apiReq('status',{json:{id,...patch}});await sbLoadOrders();return}const {error}=await SB.c.from('orders').update(patch).eq('id',id);if(error)throw error;await sbLoadOrders()}
+/* документы: файлы в хранилище, записи в таблице */
+async function sbLoadDocs(no){
+  if(!SB.on)return[];
+  if(SB.kind==='api'){const ord=SB.orders.find(o=>o.no===String(no));if(!ord)return[];
+    try{const d=await apiReq('docs',{q:'&order='+ord._id});SB.docs[no]=(d.docs||[]).map(x=>({...x,id:String(x.id)}));return SB.docs[no]}
+    catch(e){return SB.docs[no]||[]}}
+  try{const ord=SB.orders.find(o=>o.no===String(no));if(!ord)return[];
+    const {data,error}=await SB.c.from('docs').select('*').eq('order_id',ord._id).order('created_at',{ascending:true});
+    if(error)throw error;
+    SB.docs[no]=(data||[]).map(d=>({id:String(d.id),name:d.name,cat:d.cat,size:d.size,by:d.by,who:d.who,at:new Date(d.created_at).getTime(),path:d.path}));
+    return SB.docs[no]}catch(e){return SB.docs[no]||[]}}
+async function sbUploadDoc(no,file,cat,role,who){
+  if(SB.kind==='api'){const ord=SB.orders.find(o=>o.no===String(no));if(!ord)throw new Error('Заявка не найдена');
+    const fd=new FormData();fd.append('file',file);fd.append('order',ord._id);fd.append('cat',cat);
+    await apiReq('doc',{form:fd});await sbLoadDocs(no);return}
+  const ord=SB.orders.find(o=>o.no===String(no));if(!ord)throw new Error('Заявка не найдена');
+  const path=`${ord._id}/${Date.now()}-${file.name.replace(/[^\w.\-]+/g,'_')}`;
+  const up=await SB.c.storage.from('docs').upload(path,file,{upsert:false});if(up.error)throw up.error;
+  const {error}=await SB.c.from('docs').insert({order_id:ord._id,name:file.name,cat,size:file.size,by:role,who,path});
+  if(error)throw error;await sbLoadDocs(no)}
+async function sbDocUrl(path){if(SB.kind==='api')return apiFileUrl(path);const {data,error}=await SB.c.storage.from('docs').createSignedUrl(path,120);if(error)throw error;return data.signedUrl}
+async function sbDeleteDoc(no,d){
+  if(SB.kind==='api'){await apiReq('docdel',{json:{id:+d.id}});await sbLoadDocs(no);return}
+  await SB.c.storage.from('docs').remove([d.path]);
+  const {error}=await SB.c.from('docs').delete().eq('id',d.id);if(error)throw error;await sbLoadDocs(no)}
 function cartView(){
   const lines=cart.map(c=>({...c,m:lineModel(c)})).filter(c=>c.m);
   const total=lines.reduce((s,l)=>s+itemTotal(l),0);
@@ -3194,7 +3283,7 @@ function plural(n,f){const a=n%10,b=n%100;return a===1&&b!==11?f[0]:a>=2&&a<=4&&
 /* ---------- документы по заявке: договор, смета, чертежи, акты, фото — видят и клиент, и менеджер ---------- */
 const DOC_CATS=['Договор','Смета','Проект и чертежи','Акт','Фото стройки','План участка','Другое'];
 const DOC_MAX=3*1024*1024;
-const docsOf=no=>store.get('docs.'+no,[]);
+const docsOf=no=>SB.on?(SB.docs[no]||[]):store.get('docs.'+no,[]);
 const docExt=n=>{const e=(String(n).split('.').pop()||'').toUpperCase();return e.length<=4?e:'ФАЙЛ'};
 const docSize=b=>b>1048576?(b/1048576).toFixed(1).replace('.',',')+' МБ':Math.max(1,Math.round(b/1024))+' КБ';
 function docsBlock(no,role){const list=docsOf(no);
@@ -3206,12 +3295,22 @@ function docsBlock(no,role){const list=docsOf(no);
       :`<p class="docs-empty">${role==='manager'?'Загрузите договор, смету, чертежи или акты — они появятся у клиента в личном кабинете.':'Здесь появятся договор, смета, чертежи и акты от менеджера. Вы тоже можете прикрепить файлы — например, план участка.'}</p>`}
     <div class="docs-up"><select data-doccat aria-label="Тип документа">${DOC_CATS.map(c=>`<option ${role==='client'&&c==='План участка'?'selected':''}>${c}</option>`).join('')}</select>
       <label class="btn"><input type="file" multiple data-docup="${no}" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.doc,.docx,.xls,.xlsx,.dwg,.txt">Загрузить файлы</label>
-      <small class="note" style="margin:0">до 3 МБ на файл · в прототипе файлы хранятся в этом браузере</small></div></div>`}
+      <small class="note" style="margin:0">${SB.on?'до 20 МБ на файл · файлы хранятся у нас и видны обеим сторонам':'до 3 МБ на файл · пока файлы хранятся только в этом браузере'}</small></div></div>`}
 function refreshDocs(no){document.querySelectorAll(`[data-docs="${no}"]`).forEach(el=>{el.outerHTML=docsBlock(no,el.dataset.role)})}
+/* подгружаем список файлов из базы, когда блок появился на странице */
+function docsSync(){if(!SB.on)return;
+  document.querySelectorAll('[data-docs]').forEach(async el=>{const no=el.dataset.docs;
+    if(el.dataset.sync)return;el.dataset.sync='1';await sbLoadDocs(no);refreshDocs(no)})}
 document.addEventListener('change',async e=>{const inp=e.target.closest&&e.target.closest('[data-docup]');if(!inp)return;
   const box=inp.closest('[data-docs]'),no=inp.dataset.docup,role=box.dataset.role,cat=box.querySelector('[data-doccat]').value;
   const files=[...inp.files];let added=0,skipped=[];
   const s=role==='manager'&&typeof mgrSession==='function'?mgrSession():null,who=s&&mgrAccounts()[s.login]?mgrAccounts()[s.login].name:'';
+  if(SB.on){for(const f of files){if(f.size>20*1024*1024){skipped.push(f.name);continue}
+      try{await sbUploadDoc(no,f,cat,role,who);added++}catch(ex){skipped.push(f.name+' ('+(ex.message||'ошибка')+')')}}
+    refreshDocs(no);
+    if(added)toast(added===1?'Файл загружен':`Загружено файлов: ${added}`);
+    if(skipped.length)setTimeout(()=>toast('Не загружено: '+skipped.join(', ')),added?2300:0);
+    inp.value='';return}
   for(const f of files){if(f.size>DOC_MAX){skipped.push(f.name);continue}
     const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});
     const list=docsOf(no);list.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:f.name,type:f.type,size:f.size,cat,by:role,who,at:Date.now(),data});
@@ -3222,14 +3321,17 @@ document.addEventListener('change',async e=>{const inp=e.target.closest&&e.targe
 document.addEventListener('click',e=>{
   const g=e.target.closest&&e.target.closest('[data-docget]');
   if(g){const [no,id]=g.dataset.docget.split('|'),d=docsOf(no).find(x=>x.id===id);if(!d)return;
+    if(SB.on){sbDocUrl(SB.kind==='api'?d.id:d.path).then(u=>{const a=document.createElement('a');a.href=u;a.download=d.name;a.target='_blank';document.body.appendChild(a);a.click();a.remove()})
+      .catch(()=>toast('Не удалось скачать файл'));return}
     fetch(d.data).then(r=>r.blob()).then(b=>{const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=d.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)});return}
   const x=e.target.closest&&e.target.closest('[data-docdel]');
   if(x){const [no,id]=x.dataset.docdel.split('|'),d=docsOf(no).find(y=>y.id===id);if(!d||!confirm(`Удалить «${d.name}»?`))return;
+    if(SB.on){sbDeleteDoc(no,d).then(()=>{refreshDocs(no);toast('Файл удалён')}).catch(()=>toast('Не удалось удалить файл'));return}
     store.set('docs.'+no,docsOf(no).filter(y=>y.id!==id));refreshDocs(no);toast('Файл удалён')}});
 function accountView(tab){
   if(!user)return `<div class="wrap"><div class="page-h"><h1>Личный кабинет</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">Войдите, чтобы увидеть заявки и избранное</p><p>Здесь хранятся ваши дома, этапы стройки и контакты.</p><button class="btn solid" data-login>Войти или зарегистрироваться</button></div>
     ${favs.length?`<div class="sec-head"><h2>Избранное на этом устройстве</h2></div><div class="grid" style="margin-bottom:80px">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:''}</div>`;
-  const orders=store.get('orders.'+user.email,[]);
+  const orders=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
   tab=tab||'orders';
   const body=tab==='fav'?(favs.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:`<div class="empty"><p>Нажмите ♡ на карточке дома, чтобы сохранить его здесь.</p><a class="btn" href="#/catalog">В каталог</a></div>`)
    :tab==='profile'?`<form class="summary" id="profile" style="position:static;max-width:520px"><h3 style="font-size:20px">Профиль</h3>
@@ -3724,7 +3826,7 @@ try{if(localStorage.getItem('kontur-theme')==='light')document.documentElement.s
 
 /* ---------- панель менеджера: все заявки по клиентам ---------- */
 const ORDER_ST=[['new','Новая'],['call','Связались'],['visit','Выезд инженера'],['contract','Договор'],['build','Стройка'],['done','Сдан']];
-function allOrders(){const out=[];
+function allOrders(){if(SB.on)return SB.orders.slice();const out=[];
   try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
     if(k&&k.indexOf('kontur.orders.')===0){const owner=k.slice(14);
       (JSON.parse(localStorage.getItem(k))||[]).forEach((o,idx)=>out.push({...o,_key:k.slice(7),_idx:idx,_owner:owner}))}}}catch(e){}
@@ -3732,13 +3834,24 @@ function allOrders(){const out=[];
 const adminState={q:'',st:'all',err:'',tab:'orders'};
 const MGR_TTL=8*3600*1000;
 const mgrAccounts=()=>store.get('mgr.accounts',{});
-function mgrSession(){try{const s=JSON.parse(sessionStorage.getItem('kontur.mgr.session')||'null');
+function mgrSession(){if(SB.on)return (user&&(SB.role==='manager'||SB.role==='admin'))?{login:user.email,at:Date.now(),sb:1}:null;
+  try{const s=JSON.parse(sessionStorage.getItem('kontur.mgr.session')||'null');
     if(!s||Date.now()-s.at>MGR_TTL||!mgrAccounts()[s.login])return null;return s}catch(e){return null}}
 function mgrSetSession(login){try{sessionStorage.setItem('kontur.mgr.session',JSON.stringify({login,at:Date.now()}))}catch(e){}}
+async function signOut(){
+  if(SB.kind==='api'){try{await apiReq('logout')}catch(e){}apiSetToken(null);SB.orders=[];SB.docs={};SB.role='client'}
+  else if(SB.on){try{await SB.c.auth.signOut()}catch(e){}SB.orders=[];SB.docs={};SB.role='client'}
+  user=null;store.set('user',null);loadUserData();updateHeader();toast('Вы вышли из аккаунта');location.hash='#/'}
 function mgrLogout(){try{sessionStorage.removeItem('kontur.mgr.session')}catch(e){}}
 const mgrLock=()=>store.get('mgr.lock',{n:0,until:0});
 /* экран входа: при первом запуске — создание администратора */
 function mgrLoginView(){
+  if(SB.on)return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера</span><h1>Вход для сотрудников</h1></div></div>
+    <div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">${user?'У этого аккаунта нет доступа к панели':'Войдите в свой аккаунт'}</p>
+    <p>${user?`Вы вошли как ${esc(user.email)}. Доступ выдаёт администратор — он ставит роль «менеджер» вашему аккаунту.`:'Панель открывается тем же входом, что и личный кабинет: у аккаунта должна быть роль «менеджер» или «администратор».'}</p>
+    <button class="btn solid" data-login>${user?'Войти другим аккаунтом':'Войти'}</button></div></div>`;
+  return mgrLoginLocal()}
+function mgrLoginLocal(){
   const first=!Object.keys(mgrAccounts()).length,lock=mgrLock(),locked=lock.until>Date.now();
   return `<div class="wrap"><div class="mgr-auth">
     <span class="label">Панель менеджера</span>
@@ -3754,7 +3867,24 @@ function mgrLoginView(){
       <button class="btn lamp" type="submit" style="justify-content:center" ${locked?'disabled':''}>${first?'Создать и войти':'Войти'}</button>
     </form></div></div>`}
 /* сотрудники: администратор добавляет и удаляет менеджеров */
-function mgrStaffView(s){const acc=mgrAccounts(),me=acc[s.login];
+let staffList=[];
+function mgrStaffApi(){
+  return `<div class="adm-client" style="margin-bottom:90px"><header><div><b>Сотрудники и клиенты</b><span>роль открывает панель</span></div></header>
+    ${SB.role==='admin'?`<form class="summary" id="roleForm" style="position:static;max-width:520px;margin:14px 0">
+      <div class="field"><label for="rEmail">Почта аккаунта</label><input id="rEmail" name="email" placeholder="manager@example.com" required></div>
+      <div class="field"><label for="rRole">Роль</label><select id="rRole" name="role"><option value="manager">Менеджер</option><option value="admin">Администратор</option><option value="client">Клиент</option></select></div>
+      <button class="btn solid" type="submit">Назначить роль</button>
+      <p class="note">Сотрудник сначала регистрируется на сайте как обычный клиент, потом вы выдаёте ему роль по почте.</p></form>`
+      :'<p class="note">Список сотрудников и выдачу ролей видит только администратор.</p>'}
+    ${SB.role!=='admin'?'':`<div class="spec-list">${staffList.length?staffList.map(u=>`<div><span>${esc(u.name||'—')} · ${esc(u.email)}</span><b>${u.role==='admin'?'администратор':u.role==='manager'?'менеджер':'клиент'}</b></div>`).join(''):'<div><span>Список загружается…</span><b></b></div>'}</div>`}</div>`}
+async function staffSync(){if(SB.kind!=='api'||SB.role!=='admin')return;
+  try{const d=await apiReq('staff');staffList=d.users||[];const box=document.querySelector('.adm-client .spec-list');
+    if(box)box.innerHTML=staffList.map(u=>`<div><span>${esc(u.name||'—')} · ${esc(u.email)}</span><b>${u.role==='admin'?'администратор':u.role==='manager'?'менеджер':'клиент'}</b></div>`).join('')}catch(e){}}
+document.addEventListener('submit',async e=>{const f=e.target;if(f.id!=='roleForm')return;e.preventDefault();
+  const fd=new FormData(f);
+  try{await apiReq('role',{json:{email:String(fd.get('email')||'').trim().toLowerCase(),role:fd.get('role')}});
+    toast('Роль назначена');await staffSync()}catch(ex){toast(ex.message||'Не удалось назначить роль')}});
+function mgrStaffView(s){if(SB.kind==='api'){setTimeout(staffSync,50);return mgrStaffApi()}const acc=mgrAccounts(),me=acc[s.login];
   return `<div class="adm-client" style="margin-bottom:90px"><header><div><b>Сотрудники</b><span>доступ к панели</span></div></header>
     ${Object.keys(acc).map(l=>`<div class="adm-order"><div class="adm-row" style="grid-template-columns:1fr 1fr 140px 120px">
       <b>${esc(acc[l].name)}</b><span class="num">${esc(l)}</span><span>${acc[l].role==='admin'?'Администратор':'Менеджер'}</span>
@@ -3766,20 +3896,20 @@ function mgrStaffView(s){const acc=mgrAccounts(),me=acc[s.login];
       <button class="btn" type="submit" style="justify-content:center">Добавить менеджера</button></form>`:''}
   </div>`}
 function adminView(){
-  const users=store.get('users',{}),list=allOrders();
+  const users=SB.on?{}:store.get('users',{}),list=allOrders();
   const q=adminState.q.trim().toLowerCase();
   const rows=list.filter(o=>(adminState.st==='all'||(o.status||'new')===adminState.st)&&
     (!q||[o.no,o.fio,o.phone,o.email,o.region,o._owner].join(' ').toLowerCase().includes(q)));
   const sum=list.reduce((s,o)=>s+o.items.reduce((a,it)=>a+itemTotal(it),0),0);
   const byClient={};rows.forEach(o=>{const key=o.email||o.phone||o._owner;(byClient[key]=byClient[key]||[]).push(o)});
-  const s=mgrSession(),me=mgrAccounts()[s.login];
+  const s=mgrSession(),me=SB.on?{name:user?user.name:'',role:SB.role}:mgrAccounts()[s.login];
   const bar=`<div class="mgr-bar"><span>Вы вошли как <b>${esc(me.name)}</b> · ${me.role==='admin'?'администратор':'менеджер'}</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки</button>
     <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
     <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
   if(adminState.tab==='staff')return `<div class="wrap">${bar}<div class="page-h"><h1>Сотрудники</h1></div>${mgrStaffView(s)}</div>`;
-  return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера · прототип</span><h1>Заявки клиентов</h1></div>
-    <p style="color:var(--muted);max-width:48ch">Все заявки собраны по клиентам: контакты, состав заказа, спецификация и нарисованная планировка для бригады и договора. Сейчас данные берутся из этого браузера — в рабочей версии сюда же придут заявки с сервера.</p></div>
+  return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера${SB.on?'':' · прототип'}</span><h1>Заявки клиентов</h1></div>
+    <p style="color:var(--muted);max-width:48ch">Все заявки собраны по клиентам: контакты, состав заказа, спецификация и нарисованная планировка для бригады и договора. ${SB.on?'Заявки приходят с сервера — их видят все менеджеры, на любом устройстве.':'Сейчас данные берутся из этого браузера — в рабочей версии сюда же придут заявки с сервера.'}</p></div>
     <div class="adm-stats">${[['Заявок',list.length],['Клиентов',new Set(list.map(o=>o.email||o.phone||o._owner)).size],['В работе',list.filter(o=>!['new','done'].includes(o.status||'new')).length],['Сумма',rub(sum)]].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
     <div class="adm-bar"><input id="admQ" placeholder="Поиск: номер, ФИО, телефон, почта, регион" value="${esc(adminState.q)}">
       <div class="tabs" style="margin:0"><button type="button" class="pill ${adminState.st==='all'?'on':''}" data-adst="all">Все</button>${ORDER_ST.map(s=>`<button type="button" class="pill ${adminState.st===s[0]?'on':''}" data-adst="${s[0]}">${s[1]}</button>`).join('')}</div></div>
@@ -3791,7 +3921,7 @@ function adminView(){
             <b class="num">№ ${o.no}</b><span class="num">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
             <span>${esc(o.region||'участок не указан')}</span>
             <b class="num">${rub(o.items.reduce((a,it)=>a+itemTotal(it),0))}</b>
-            <select data-adstatus="${o._key}|${o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></div>
+            <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></div>
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
             return `<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
@@ -3829,7 +3959,7 @@ function render(){
   if(scrollTo&&document.getElementById('heroFront')){document.getElementById(scrollTo)?.scrollIntoView({behavior:'smooth'});return}
   document.body.classList.toggle('at-home',!a||!!scrollTo);
   app.innerHTML=html+footer();
-  paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);
+  paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);setTimeout(()=>typeof docsSync==='function'&&docsSync(),80);
   if(scrollTo)requestAnimationFrame(()=>document.getElementById(scrollTo)?.scrollIntoView());else window.scrollTo(0,0);
 }
 function paint(){
@@ -3877,13 +4007,19 @@ function bind(){
     if(pass.length<8)return toast('Пароль не короче 8 символов');
     acc[login]={name:String(f.get('name')).trim(),ph:await hash('mgr:'+login+':'+pass),role:'manager',at:Date.now()};
     store.set('mgr.accounts',acc);toast('Менеджер добавлен');render()});
-  document.getElementById('checkout')?.addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);
-    const key='orders.'+(user?user.email:'guest'),orders=store.get(key,[]);
-    orders.push({no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:cart.slice(),fio:f.get('fio'),email:user?user.email:'',
-      phone:f.get('phone'),region:f.get('region'),comment:f.get('comment'),stage:0,status:'new'});
-    store.set(key,orders);cart=[];saveCart();toast('Заявка отправлена');location.hash=user?'#/account/orders':'#/'});
-  document.getElementById('profile')?.addEventListener('submit',e=>{e.preventDefault();user.name=new FormData(e.target).get('name').trim()||user.name;store.set('user',user);updateHeader();toast('Профиль сохранён');render()});
-  document.getElementById('logout')?.addEventListener('click',()=>{user=null;store.set('user',null);loadUserData();updateHeader();toast('Вы вышли из аккаунта');location.hash='#/'});
+  document.getElementById('checkout')?.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);
+    const order={no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:cart.slice(),fio:f.get('fio'),email:user?user.email:'',
+      phone:f.get('phone'),region:f.get('region'),comment:f.get('comment'),stage:0,status:'new'};
+    if(SB.on){const btn=e.target.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
+      try{await sbSaveOrder(order);await sbLoadOrders()}
+      catch(ex){if(btn){btn.disabled=false;btn.textContent='Отправить заявку'}toast('Не удалось отправить заявку: '+(ex.message||'ошибка связи'));return}}
+    else{const key='orders.'+(user?user.email:'guest'),orders=store.get(key,[]);orders.push(order);store.set(key,orders)}
+    cart=[];saveCart();toast('Заявка отправлена');location.hash=user?'#/account/orders':'#/'});
+  document.getElementById('profile')?.addEventListener('submit',async e=>{e.preventDefault();user.name=new FormData(e.target).get('name').trim()||user.name;store.set('user',user);
+    if(SB.kind==='api'){try{await apiReq('profile',{json:{name:user.name}})}catch(ex){}}
+    else if(SB.on&&user.id){try{await SB.c.from('profiles').update({name:user.name}).eq('id',user.id)}catch(ex){}}
+    updateHeader();toast('Профиль сохранён');render()});
+  document.getElementById('logout')?.addEventListener('click',()=>signOut());
 }
 document.addEventListener('click',e=>{
   const f=e.target.closest('[data-fav]');
@@ -3891,7 +4027,7 @@ document.addEventListener('click',e=>{
     const on=favs.includes(id);toast(on?'Добавлено в избранное':'Убрано из избранного');
     if(f.classList.contains('fav-inline')){f.style.color=on?'var(--lamp)':'';f.style.borderColor=on?'var(--lamp)':'';f.querySelector('svg').setAttribute('fill',on?'currentColor':'none')}
     if(/account/.test(location.hash))render();else document.querySelectorAll(`.fav[data-fav="${id}"]`).forEach(b=>b.classList.toggle('on',on));return}
-  if(e.target.closest('[data-mgrout]')){mgrLogout();adminState.tab='orders';toast('Вы вышли из панели');render();return}
+  if(e.target.closest('[data-mgrout]')){if(SB.on){signOut();return}mgrLogout();adminState.tab='orders';toast('Вы вышли из панели');render();return}
   const mt=e.target.closest('[data-mgrtab]');if(mt){adminState.tab=mt.dataset.mgrtab;render();return}
   const md=e.target.closest('[data-mgrdel]');
   if(md){const acc=mgrAccounts();delete acc[md.dataset.mgrdel];store.set('mgr.accounts',acc);toast('Сотрудник удалён');render();return}
@@ -4025,7 +4161,10 @@ const customNum=(e,commit)=>{const n=e.target.closest('[data-cnum]');if(!n)retur
   if(commit&&calcState.custom){calcState.custom.rooms=null;calcState.custom.openings=null}
   refreshCustom(commit);return true};
 document.addEventListener('change',e=>{if(!customNum(e,true)&&e.target.closest('[data-crange]'))refreshCustom(true)});
-document.addEventListener('change',e=>{const s=e.target.closest('[data-adstatus]');if(!s||!mgrSession())return;
+document.addEventListener('change',async e=>{const s=e.target.closest('[data-adstatus]');if(!s||!mgrSession())return;
+  if(SB.on){const o=SB.orders.find(x=>String(x._id)===String(s.dataset.adstatus).split('|')[0]||x.no===String(s.dataset.adstatus).split('|')[0]);
+    const id=o?o._id:s.dataset.adstatus.split('|')[0];
+    try{await sbSetStatus(id,{status:s.value,stage:Math.max(0,ORDER_ST.findIndex(x=>x[0]===s.value)-1)});toast('Статус обновлён');render()}catch(ex){toast('Не удалось изменить статус')}return}
   const [key,idx]=s.dataset.adstatus.split('|'),list=store.get(key,[]);
   if(list[+idx]){list[+idx].status=s.value;list[+idx].stage=Math.max(0,ORDER_ST.findIndex(x=>x[0]===s.value)-1);store.set(key,list);toast('Статус обновлён')}});
 document.addEventListener('input',e=>{
@@ -4062,7 +4201,7 @@ function openContact(){
     <div class="field"><label for="cp">Телефон</label><input id="cp" name="phone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00" required></div>
     <div class="field"><label for="ct">Удобное время</label><select id="ct" name="time"><option>Как можно скорее</option><option>10:00–13:00</option><option>13:00–17:00</option><option>17:00–20:00</option></select></div>
     <button class="btn lamp" type="submit" style="justify-content:center">Жду звонка</button>
-    <p class="note">Демо-форма: номер сохраняется только в этом браузере.</p></form>`;
+    <p class="note">${SB.on?'Перезвоним в рабочее время.':'Демо-форма: номер сохраняется только в этом браузере.'}</p></form>`;
   el.querySelector('.x').onclick=()=>el.remove();el.addEventListener('click',e=>{if(e.target===el)el.remove()});
   el.querySelector('form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const l=store.get('callbacks',[]);l.push({name:f.get('name'),phone:f.get('phone'),time:f.get('time'),at:Date.now()});store.set('callbacks',l);el.remove();toast('Заявка на звонок принята')};
   document.body.appendChild(el);setTimeout(()=>el.querySelector('input')?.focus(),50);
@@ -4118,13 +4257,30 @@ function openAuth(mode='in'){
     <div class="field"><label for="ap">Пароль</label><input id="ap" name="pass" type="password" autocomplete="${mode==='in'?'current-password':'new-password'}" minlength="6" required></div>
     <p class="err" id="aerr"></p>
     <button class="btn lamp" type="submit" style="justify-content:center">${mode==='in'?'Войти':'Создать аккаунт'}</button>
-    <p class="note">Демо-кабинет: аккаунт, корзина и заявки сохраняются только в этом браузере.</p></form>`;
+    <p class="note">${SB.on?'Аккаунт общий для всех ваших устройств: заявки и документы хранятся у нас, а не в браузере.':'Пока аккаунт и заявки сохраняются только в этом браузере — для общего кабинета нужно подключить базу.'}</p></form>`;
     el.querySelector('.x').onclick=()=>el.remove();
     el.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;draw()});
     el.querySelector('form').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target),err=el.querySelector('#aerr');
       const email=String(fd.get('email')||'').trim().toLowerCase(),pass=String(fd.get('pass')||''),name=String(fd.get('name')||'').trim();
       if(!/^\S+@\S+\.\S+$/.test(email))return err.textContent='Проверьте адрес почты — в нём должен быть символ @ и домен.';
       if(pass.length<6)return err.textContent='Пароль должен быть не короче 6 символов.';
+      if(SB.on&&SB.kind==='api'){
+        try{const d=mode==='up'?await apiReq('register',{json:{email,pass,name}}):await apiReq('login',{json:{email,pass}});
+          apiSetToken(d.token);srvUser(d.user);await sbLoadOrders();
+          el.remove();toast(mode==='up'?(d.user.role==='admin'?'Аккаунт создан — вы администратор':'Аккаунт создан'):'Вы вошли');render();return}
+        catch(ex){return err.textContent=ex.message||'Не удалось войти'}}
+      if(SB.on){
+        try{
+          if(mode==='up'){
+            if(!name)return err.textContent='Укажите имя.';
+            const {data,error}=await SB.c.auth.signUp({email,password:pass,options:{data:{name}}});
+            if(error)throw error;
+            if(!data.session){err.textContent='';el.remove();toast('Проверьте почту — мы отправили письмо для подтверждения');return}
+            await sbUser(data.user)}
+          else{const {data,error}=await SB.c.auth.signInWithPassword({email,password:pass});
+            if(error)throw error;await sbUser(data.user)}
+          await sbLoadOrders();el.remove();toast(mode==='up'?'Аккаунт создан':'Вы вошли');render();return}
+        catch(ex){return err.textContent=/Invalid login/i.test(ex.message||'')?'Неверная почта или пароль':/already regist/i.test(ex.message||'')?'Аккаунт с этой почтой уже есть — перейдите на вкладку «Вход»':(ex.message||'Не удалось войти, попробуйте ещё раз')}}
       const users=store.get('users',{}),ph=await hash(email+':'+pass);
       if(mode==='up'){if(!name)return err.textContent='Укажите имя.';if(users[email])return err.textContent='Аккаунт с этой почтой уже есть — перейдите на вкладку «Вход».';users[email]={name,ph};store.set('users',users)}
       else{if(!users[email])return err.textContent='Аккаунт не найден. Зарегистрируйтесь на соседней вкладке.';if(users[email].ph!==ph)return err.textContent='Неверный пароль.'}
@@ -4149,6 +4305,7 @@ let toastT;function toast(msg){document.querySelector('.toast')?.remove();const 
 let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{window.__heroResize?.();document.querySelectorAll('canvas[data-scene]').forEach(c=>{const m=byId(c.dataset.scene);scene(c,m,{fixed:!!c.dataset.fixed,hz:+c.dataset.hz||.64,gy:+c.dataset.gy||.84,fw:+c.dataset.fw||.6,fh:+c.dataset.fh||.6,stars:c.dataset.stars!=='0',seed:m.w*13+m.d*7})})},150)});
 addEventListener('hashchange',render);
 updateHeader();
+sbInit();
 (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{});
 render();
 </script>

@@ -890,6 +890,16 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 .line .mod-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 @media (max-width:860px){.line .mod-thumb{width:100px;height:80px}}
 @media (max-width:900px){.mod-hero{grid-template-columns:1fr}.mod-teaser{grid-template-columns:1fr}}
+
+/* адрес доставки */
+.addr{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:4px}
+.addr input{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:12px;color:var(--text);font:inherit;font-size:15px;padding:12px 14px;outline:none;transition:border-color .2s}
+.addr input:focus{border-color:var(--lamp)}
+.addr .btn{height:46px}
+.addr-note{display:block;font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:8px}
+.addr-note b{color:var(--text);font-weight:500}
+.addr-note.err{color:#E58F7B}
+@media (max-width:560px){.addr{grid-template-columns:1fr}.addr .btn{justify-content:center}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 
@@ -2319,7 +2329,7 @@ function computeCalc(m,cfg){
   if(cfg.rooms&&cfg.rooms.length)lines.push([`Своя планировка: ${cfg.rooms.length} ${plural(cfg.rooms.length,['комната','комнаты','комнат'])} · ${roomsArea(cfg.rooms)} м²`,0]);
   if(cfg.terrace)lines.push([`Терраса ${cfg.terrace} м²`,cfg.terrace*14500]);
   EXTRAS.forEach(e=>{if(cfg.extras.includes(e[0]))lines.push([e[1],e[0]==='floor'&&cfg.found==='ushp'?livingA(m)*1400:e[2](m)])});
-  lines.push([`Доставка ${cfg.km} км × ${DELIVERY_RATE} ₽`,cfg.km*DELIVERY_RATE]);
+  lines.push([`Доставка ${cfg.km} км × ${DELIVERY_RATE} ₽${cfg.addr?` · ${String(cfg.addr).split(',')[0]}`:''}`,cfg.km*DELIVERY_RATE]);
   const total=lines.reduce((s,l)=>s+l[1],0);
   const days=Math.min(14,m.days+(cfg.pkg==='draft'?3:cfg.pkg==='key'?6:cfg.pkg==='cold'?-1:0)+(cfg.found==='ushp'?3:cfg.found!=='blocks'?1:0)+(cfg.terrace?1:0));
   return{lines,total,days};
@@ -2542,7 +2552,8 @@ function calcGroups(m){const cfg=getCfg(m);const cold=cfg.pkg==='cold';
   partsGroup(cfg.rooms&&cfg.rooms.length?basePartsOf({plan:planOf(m,cfg)}):basePartsOf(m),partsOf(m,cfg),'part')+
   `<div class="cg"><div class="cg-h"><h3>Терраса и доставка</h3><span>веранда проекта уже в цене</span></div>
     <div class="range"><div class="range-top"><span>Терраса сверх веранды проекта</span><b class="num" id="tv">${cfg.terrace} м²</b></div><input type="range" min="0" max="60" step="2" value="${cfg.terrace}" data-range="terrace" aria-label="Площадь террасы"></div>
-    <div class="range"><div class="range-top"><span>Расстояние от производства</span><b class="num" id="kv">${cfg.km} км</b></div><input type="range" min="0" max="900" step="10" value="${cfg.km}" data-range="km" aria-label="Расстояние доставки"><small class="note">${DELIVERY_RATE} ₽ за километр от производства.</small></div></div>
+    <div class="range"><div class="range-top"><span>Расстояние от производства</span><b class="num" id="kv">${cfg.km} км</b></div><input type="range" min="0" max="2000" step="10" value="${cfg.km}" data-range="km" aria-label="Расстояние доставки"><small class="note">${DELIVERY_RATE} ₽ за километр от производства.</small></div>
+    ${addrBlock('house',cfg.km,cfg.addr)}</div>
   <div class="cg"><div class="cg-h"><h3>Дополнительно</h3><span>можно несколько</span></div><div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${EXTRAS.map(e=>`<label class="chk"><input type="checkbox" data-extra="${e[0]}" ${cfg.extras.includes(e[0])?'checked':''}><span>${e[1]}</span><em class="num">${rub(e[0]==='floor'&&cfg.found==='ushp'?livingA(m)*1400:e[2](m))}</em></label>`).join('')}</div></div>`;
 }
 function estimateHTML(m){const cfg=getCfg(m),e=computeCalc(m,cfg);
@@ -2617,7 +2628,7 @@ function computeCustom(c){
   if(c.walls)lines.push([`Доп. перегородки ${c.walls} м`,c.walls*4600*MARKUP]);
   if(c.doors)lines.push([`Филёнчатые двери ${c.doors} шт.`,c.doors*4500*MARKUP]);
   const b=BATHS.find(x=>x.id===c.bath);if(b.abs())lines.push([b.name,b.abs()]);
-  lines.push([`Доставка ${c.km} км × ${DELIVERY_RATE} ₽`,c.km*DELIVERY_RATE]);
+  lines.push([`Доставка ${c.km} км × ${DELIVERY_RATE} ₽${c.addr?` · ${String(c.addr).split(',')[0]}`:''}`,c.km*DELIVERY_RATE]);
   const total=lines.reduce((s,l)=>s+l[1],0);
   const days=Math.min(14,Math.max(3,Math.round(S/14))+ct.weeks+(c.floors==='2'?3:c.floors==='1.5'?2:0)+(c.pile!=='blocks'?1:0));
   return{lines,total,days,S};
@@ -2649,7 +2660,8 @@ function customGroups(){const c=customState;
     return `<label class="chk"><input type="checkbox" data-cchk="${o[0]}" ${c.opts.includes(o[0])?'checked':''} ${v===0?'disabled':''}><span>${o[1]}<br><small class="note">${v===0?'уже входит в контур':o[3](c)}</small></span><em class="num">${v===0?'—':rub(v*MARKUP)}</em></label>`}).join('')}</div>
     </div>
   <div class="cg"><div class="cg-h"><h3>Баня на участке</h3><span>каркасная, под ключ</span></div><div class="opts">${BATHS.map(b=>opt('bath',b,b.abs())).join('')}</div></div>
-  <div class="cg"><div class="cg-h"><h3>Доставка</h3><span>${DELIVERY_RATE} ₽/км</span></div>${rng('km','Расстояние от производства',0,900,10,'км')}</div>`;
+  <div class="cg"><div class="cg-h"><h3>Доставка</h3><span>${DELIVERY_RATE} ₽/км</span></div>${rng('km','Расстояние от производства',0,2000,10,'км')}
+    ${addrBlock('custom',c.km,c.addr)}</div>`;
 }
 function customEstimate(){const c=customState,e=computeCustom(c);
   return `<span class="label">Смета</span>
@@ -2886,7 +2898,7 @@ function computeModule(c){const s=modSize(c),lines=[[`Модуль ${s.w}×${s.d
   const pp=modParts(c);if(pp.wall)lines.push([`Перегородки ${String(pp.wall).replace('.',',')} м`,Math.round(pp.wall*MOD_PART)]);
   if(pp.idoor)lines.push([`Межкомнатные двери × ${pp.idoor}`,pp.idoor*MOD_IDOOR]);
   MOD_EXTRAS.forEach(e=>{if((c.extras||[]).includes(e[0])){const v=Math.round(e[2](c));if(v)lines.push([e[1],v])}});
-  if(c.km)lines.push([`Доставка ${c.km} км × ${DELIVERY_RATE} ₽`,c.km*DELIVERY_RATE]);
+  if(c.km)lines.push([`Доставка ${c.km} км × ${DELIVERY_RATE} ₽${c.addr?` · ${String(c.addr).split(',')[0]}`:''}`,c.km*DELIVERY_RATE]);
   const total=lines.reduce((a,l)=>a+l[1],0);
   const days=3+(modArea(c)>20?1:0)+(c.ins==='150'?1:0)+((c.extras||[]).length>3?2:(c.extras||[]).length?1:0);
   return{lines,total,days}}
@@ -2964,7 +2976,8 @@ function modGroupsHTML(){const c=modState,s=modSize(c),h=modH(c);
     ${MOD_EXTRAS.filter(e=>e[0]!=='glass2'||modPvcCount(c)).map(e=>`<label class="chk"><input type="checkbox" data-mextra="${e[0]}" ${(c.extras||[]).includes(e[0])?'checked':''}><span>${e[1]}</span><em class="num">${rub(e[2](c))}</em></label>`).join('')}</div></div>`+
   `<div class="cg"><div class="cg-h"><h3>Доставка</h3><span class="num">${DELIVERY_RATE} ₽/км</span></div>
     <div class="range"><div class="range-top"><span>Расстояние от производства</span><b class="num" id="mkm">${c.km} км</b></div>
-    <input type="range" min="0" max="900" step="10" value="${c.km}" data-mrange="km" aria-label="Расстояние доставки" style="--p:${c.km/900*100}%"></div>
+    <input type="range" min="0" max="2000" step="10" value="${c.km}" data-mrange="km" aria-label="Расстояние доставки" style="--p:${Math.min(100,c.km/2000*100)}%"></div>
+    ${addrBlock('module',c.km,c.addr)}
     <small class="note">Модуль приезжает готовым, ставится манипулятором за один день.</small></div>`}
 function modEstimateHTML(){const e=computeModule(modState),s=modSize(modState);
   return `<span class="label">Смета модуля</span>
@@ -3044,7 +3057,40 @@ function moduleSpec(c){const pp=modParts(c),s=modSize(c),h=modH(c),nm=k=>{const 
     ['Опоры',c.pile==='blocks'?'бетонные блоки':`${p?p[1]:''} · ${modPiles(c)} шт`],
     ['Планировка',pp.rooms?`${pp.rooms} ${plural(pp.rooms,['помещение','помещения','помещений'])} · перегородки ${String(pp.wall).replace('.',',')} м · ${pp.idoor} ${plural(pp.idoor,['дверь','двери','дверей'])}`:'одно помещение, без перегородок'],
     ['Дополнительно',(c.extras||[]).length?(c.extras||[]).map(k=>(MOD_EXTRAS.find(x=>x[0]===k)||[,''])[1]).join(', '):'нет'],
-    ['Доставка',`${c.km} км × ${DELIVERY_RATE} ₽`],['Изготовление',`${e.days} ${plural(e.days,['день','дня','дней'])}`]]}
+    ['Доставка',`${c.km} км × ${DELIVERY_RATE} ₽${c.addr?` · ${c.addr}`:''}`],['Изготовление',`${e.days} ${plural(e.days,['день','дня','дней'])}`]]}
+
+/* ---------- доставка по адресу: расстояние по дорогам от производства ---------- */
+const GEO_FROM=[37.4227,55.6206];        /* точка отгрузки — не показываем на сайте */
+const addrState={house:null,custom:null,module:null};
+function addrBlock(scope,km,addr){
+  return `<div class="addr" data-addrbox="${scope}">
+    <input type="text" placeholder="Город, улица, дом" value="${addr?esc(addr):''}" data-addrin aria-label="Адрес доставки">
+    <button type="button" class="btn" data-addrgo="${scope}">Рассчитать</button></div>
+  <small class="addr-note" data-addrnote>${addr?`<b>${esc(addr)}</b> — ${km} км по дорогам, доставка ${rub(km*DELIVERY_RATE)}`:`Введите адрес участка — посчитаем расстояние по дорогам от производства и стоимость доставки. Можно и просто подвинуть ползунок.`}</small>`}
+async function addrLookup(q){
+  const g=await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&accept-language=ru&countrycodes=ru&q=${encodeURIComponent(q)}`).then(r=>r.json());
+  if(!g||!g.length)return{err:'Не нашли такой адрес. Напишите город и улицу, например: Тверь, Советская 12'};
+  const p=g[0];
+  const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${GEO_FROM[0]},${GEO_FROM[1]};${p.lon},${p.lat}?overview=false`).then(r=>r.json());
+  if(!r||r.code!=='Ok'||!r.routes||!r.routes.length)return{err:'Не удалось построить маршрут. Попробуйте позже или задайте расстояние ползунком'};
+  /* короткий адрес: сначала населённый пункт, потом улица и дом */
+  const a=p.address||{},city=a.city||a.town||a.village||a.hamlet||a.municipality||a.county||a.state||'';
+  const name=[city,a.road,a.house_number].filter(Boolean).join(', ')||(p.display_name||'').split(',').slice(0,3).join(',');
+  return{km:Math.max(1,Math.round(r.routes[0].distance/1000)),name}}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest&&e.target.closest('[data-addrgo]');if(!b)return;
+  const box=b.closest('[data-addrbox]'),scope=b.dataset.addrgo,inp=box.querySelector('[data-addrin]');
+  const note=box.parentElement.querySelector('[data-addrnote]'),q=(inp.value||'').trim();
+  if(q.length<4){note.className='addr-note err';note.textContent='Напишите адрес подробнее: город, улица, дом';return}
+  b.disabled=true;const txt=b.textContent;b.textContent='Считаю…';note.className='addr-note';note.textContent='Ищем адрес и строим маршрут…';
+  let res;try{res=await addrLookup(q)}catch(err){res={err:'Сервис расчёта недоступен. Задайте расстояние ползунком'}}
+  b.disabled=false;b.textContent=txt;
+  if(res.err){note.className='addr-note err';note.textContent=res.err;return}
+  const set=(o)=>{o.km=res.km;o.addr=res.name};
+  if(scope==='module'){set(modState);refreshModule(true)}
+  else if(scope==='custom'){set(customState);refreshCustom(true)}
+  else{const m=curModel();if(m){set(getCfg(m));refreshCalc(m,true)}}
+  toast(`${res.km} км по дорогам · доставка ${rub(res.km*DELIVERY_RATE)}`)});
 function cartView(){
   const lines=cart.map(c=>({...c,m:lineModel(c)})).filter(c=>c.m);
   const total=lines.reduce((s,l)=>s+itemTotal(l),0);
@@ -3091,7 +3137,7 @@ function itemSpec(it){
       ['Этажность',FLOORS.find(f=>f.id===c.floors).name],['Утепление',c.contour==='cold'?'без утепления':`каменная вата ${INS.find(i=>i.id===c.ins).mm} мм`],
       ['Веранда',c.veranda?`${c.veranda} м²`:'нет'],['Фундамент',c.pile==='blocks'?'бетонные блоки':`${cPile(c)[1]} · ${pilesCount(c)} шт`],
       ['Окна',`${WIN_TYPES.reduce((s,w)=>s+(cWins(c)[w[0]]||0),0)} шт`],['Баня',b&&b.id!=='none'?b.name:'нет'],
-      ['Доставка',`${c.km} км`]]}
+      ['Доставка',`${c.km} км${c.addr?` · ${c.addr}`:''}`]]}
   const m=byId(it.id),c=itemCfg(it),nm=k=>CALC.find(g=>g.key===k).items.find(i=>i.id===c[k]).name;
   const wins=winsOf(m,c),nw=WIN_TYPES.reduce((s,w)=>s+(wins[w[0]]||0),0),pr=partsOf(m,c);
   const rooms=(c.rooms&&c.rooms.length)?c.rooms:defaultRooms(m);
@@ -3104,7 +3150,7 @@ function itemSpec(it){
     ['Терраса сверх проекта',c.terrace?`${c.terrace} м²`:'нет'],
     ['Баня',(BATHS.find(b=>b.id===c.bath)||{}).id!=='none'?(BATHS.find(b=>b.id===c.bath)||{}).name:'нет'],
     ['Дополнительно',c.extras.length?c.extras.map(k=>(EXTRAS.find(x=>x[0]===k)||[,''])[1]).join(', '):'нет'],
-    ['Доставка',`${c.km} км × ${DELIVERY_RATE} ₽`],['Сборка',`${e.days} ${plural(e.days,['день','дня','дней'])}`]]}
+    ['Доставка',`${c.km} км × ${DELIVERY_RATE} ₽${c.addr?` · ${c.addr}`:''}`],['Сборка',`${e.days} ${plural(e.days,['день','дня','дней'])}`]]}
 function plural(n,f){const a=n%10,b=n%100;return a===1&&b!==11?f[0]:a>=2&&a<=4&&(b<10||b>=20)?f[1]:f[2]}
 /* ---------- документы по заявке: договор, смета, чертежи, акты, фото — видят и клиент, и менеджер ---------- */
 const DOC_CATS=['Договор','Смета','Проект и чертежи','Акт','Фото стройки','План участка','Другое'];

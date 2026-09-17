@@ -2750,7 +2750,8 @@ const MOD_GROUPS=[
  {key:'outer',grade:'outerGrade',title:'Наружная отделка',hint:'по площади стен',items:[
    {id:'vag',name:'Вагонка',txt:'Сосна, профиль «софтлайн» — в базе',rate:0,per:'wall'},
    {id:'shtil',name:'Штиль',txt:'Гладкая, без фаски — сплошная ровная стена',rate:350,per:'wall'},
-   {id:'imit',name:'Имитация бруса',txt:'Сосна 20 мм, выглядит как брус',rate:500,per:'wall'}]},
+   {id:'imit',name:'Имитация бруса',txt:'Сосна 20 мм, выглядит как брус',rate:500,per:'wall'},
+   {id:'reika',name:'Декоративные рейки',txt:'Вертикальные рейки 20×40 с зазором, на чёрной подложке',rate:900,per:'wall'}]},
  {key:'inner',grade:'innerGrade',title:'Внутренняя отделка',hint:'стены и потолок',items:[
    {id:'vag',name:'Вагонка',txt:'Сосна, профиль «софтлайн» — в базе',rate:0,per:'inner'},
    {id:'shtil',name:'Штиль',txt:'Гладкая, без фаски',rate:350,per:'inner'},
@@ -2881,9 +2882,10 @@ function moduleSVG(c,mini){const s=modSize(c),h=modH(c),W=mini?520:580,H=mini?30
   const sup=c.pile==='blocks'?Math.max(3,Math.ceil(s.w/2)+1):Math.ceil(s.w/2)+1;
   for(let i=0;i<sup;i++){const x=x0+8+(bw-16)*i/(sup-1);o+=c.pile==='blocks'?`<rect x="${x-10}" y="${gy+6}" width="20" height="16" fill="#8D857A"/>`:`<rect x="${x-3}" y="${gy+6}" width="6" height="30" fill="#6F7478"/><rect x="${x-8}" y="${gy+4}" width="16" height="4" fill="#6F7478"/>`}
   o+=`<rect x="${x0-6}" y="${gy}" width="${bw+12}" height="7" fill="#7A5A3C"/>`;
-  const wood=c.outer==='prof'?'#5B6770':+c.paint?['#C79A62','#B07A45','#8E5B30','#6E4424'][+c.paint]:c.outer==='block'?'#B7874F':'#C79A62';
+  const wood=c.outer==='reika'?(+c.paint?['#B08A5E','#9A6F44','#7E552C','#5F3F20'][+c.paint]:'#B08A5E'):c.outer==='prof'?'#5B6770':+c.paint?['#C79A62','#B07A45','#8E5B30','#6E4424'][+c.paint]:c.outer==='block'?'#B7874F':'#C79A62';
   o+=`<path d="M${x0},${gy} L${x0},${yl} L${x0+bw},${yh} L${x0+bw},${gy} Z" fill="${wood}" stroke="rgba(0,0,0,.25)"/>`;
-  for(let y=gy-9;y>yh+4;y-=c.outer==='block'?13:c.outer==='prof'?6:9){const xs=y<yl?x0+bw*(y-yl)/(yh-yl)+2:x0;o+=`<line x1="${xs}" y1="${y}" x2="${x0+bw}" y2="${y}" stroke="rgba(0,0,0,${c.outer==='prof'?.2:.12})"/>`}
+  if(c.outer==='reika'){for(let x=x0+5;x<x0+bw-2;x+=7){const yt=yl+(yh-yl)*(x-x0)/bw;o+=`<line x1="${x}" y1="${yt+3}" x2="${x}" y2="${gy-2}" stroke="rgba(0,0,0,.34)" stroke-width="2.4"/>`}}
+  else for(let y=gy-9;y>yh+4;y-=c.outer==='block'?13:c.outer==='prof'?6:9){const xs=y<yl?x0+bw*(y-yl)/(yh-yl)+2:x0;o+=`<line x1="${xs}" y1="${y}" x2="${x0+bw}" y2="${y}" stroke="rgba(0,0,0,${c.outer==='prof'?.2:.12})"/>`}
   const rc=c.roof==='tile'?'#6B2E2A':c.roof==='color'?'#2F4A57':'#9AA2A8';
   if(isGable(c)){const rg=gy-modRidge(c)*sc,mid=x0+bw/2;
     o+=`<path d="M${x0-ov},${yl+2} L${mid},${rg} L${x0+bw+ov},${yh+2} L${x0+bw+ov},${yh+2+roofT} L${mid},${rg+roofT} L${x0-ov},${yl+2+roofT} Z" fill="${rc}"/>`;

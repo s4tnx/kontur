@@ -3251,7 +3251,7 @@ const MOD_PHOTOS={'5x2':'mod1.jpg','6x2':'mod1.jpg','5x3':'mod2.jpg','6x3':'mod2
 const modPhoto=c=>{const s=modSize(c);if(MOD_PHOTOS[s.id])return MOD_PHOTOS[s.id];
   const near=MOD_SIZES.reduce((a,x)=>Math.abs(x.w*x.d-s.w*s.d)<Math.abs(a.w*a.d-s.w*s.d)?x:a,MOD_SIZES[0]);return MOD_PHOTOS[near.id]};
 const MOD_PAINT=500;
-const MOD_GABLE=2200;    /* двускатная кровля — доплата за м² пятна */                                   /* покраска снаружи — за один слой, ₽/м² стен */
+const MOD_GABLE=6600;    /* двускатная кровля — доплата за м² пятна */                                   /* покраска снаружи — за один слой, ₽/м² стен */
 const modWinPrice=(c,w)=>w[4];
 const modPvcCount=c=>MOD_WINS.reduce((s,w)=>s+(w[2]==='pvc'?Math.max(0,(c.wins||{})[w[0]]||0):0),0);
 

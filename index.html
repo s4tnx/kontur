@@ -529,6 +529,36 @@ footer{padding:50px 0 34px}
 .info h1{font-size:clamp(40px,5vw,70px);line-height:.95;font-weight:800;letter-spacing:-.03em}
 .info h1 small{display:block;font-family:var(--mono);font-weight:400;font-size:14px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
 .size-switch{display:flex;gap:6px;flex-wrap:wrap}
+.own-size{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.own-size span{font-size:13px;color:var(--muted);margin-right:2px}
+.own-size input{width:86px;height:38px;border:1px solid var(--line2);border-radius:999px;background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;text-align:center;padding:0 10px}
+.own-size input:focus{outline:none;border-color:var(--lamp)}
+.own-size i,.own-size em{font-style:normal;color:var(--muted);font-size:13px}
+.own-size .btn{height:38px;padding:0 16px}
+.refs{display:grid;gap:8px;margin-top:6px}
+.ref-list{display:flex;flex-wrap:wrap;gap:8px}
+.ref-list figure{position:relative;margin:0}
+.ref-list button[data-refview]{padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:block;cursor:zoom-in}
+.ref-list img{width:84px;height:64px;object-fit:cover;display:block}
+.ref-list.ro{margin:2px 0}
+.ref-list.ro img{width:96px;height:72px}
+.ref-x{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--panel2);border:1px solid var(--line2);color:var(--muted);font-size:11px;display:grid;place-items:center}
+.ref-x:hover{color:var(--text);border-color:var(--lamp)}
+.ref-add{width:84px;height:64px;border:1px dashed var(--line2);border-radius:10px;display:grid;place-items:center;align-content:center;gap:0;cursor:pointer;color:var(--muted);font-size:11px;text-align:center;transition:.2s}
+.ref-add b{font-size:20px;font-weight:400;line-height:1;color:var(--lamp)}
+.ref-add:hover{border-color:var(--lamp);color:var(--text)}
+.ref-box{position:fixed;inset:0;z-index:400;background:rgba(8,9,10,.86);display:grid;place-items:center;padding:24px;cursor:zoom-out;animation:fade .2s both}
+.ref-box img{max-width:100%;max-height:100%;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ref-box button{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.3);color:#fff;font-size:15px}
+.promo-rows{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:14px}
+.promo-rows div{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.promo-rows span{color:var(--muted)}
+.promo-on{display:flex;gap:14px;align-items:center;border:1px solid rgba(231,163,92,.45);background:rgba(231,163,92,.08);border-radius:14px;padding:12px 14px}
+.promo-on>b{font-family:var(--display);font-size:24px;color:var(--lamp2);font-weight:600}
+.promo-on span{font-size:14px;color:var(--muted)}
+.promo-on span b{color:var(--text);font-weight:500}
+.promo-note{margin:0}
+.promo-note b{color:var(--text);font-weight:500}
 .pkgs{display:grid;gap:10px}
 .pkg{display:grid;grid-template-columns:22px 1fr auto;gap:14px;align-items:start;padding:16px 18px;border-radius:16px;border:1px solid var(--line);text-align:left;transition:.25s}
 .pkg:hover{border-color:var(--line2)}
@@ -975,7 +1005,7 @@ const MODELS=[
  {id:'seliger',from:'6x5',size:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
  {id:'valdai',from:'6x5',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
  {id:'vuoksa',from:'6x5',size:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right',inset:1},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,3.4],['Спальня',0,3.4,2.4,4.6],['Спальня',2.4,3.4,2.2,2.6],['С/у',4.6,3.4,1.4,2.6]]},
- {id:'karelia',from:'6x8',size:'karelia-src',door:{wall:0,f:.498},winSides:[3,1,1.2,1.4],ver:{pos:'L',inset:1,a:3,b:1.5,l1:4.84,l2:6},photo:'h8x8.jpg',w:16.24,d:10.55,name:'Карелия',floors:1,area:0,beds:3,baths:2,price:0,weeks:12,days:10,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Одноэтажный дом с тремя спальнями, гостиной и Г-образной террасой вдоль гостиной и торца',plan:[['С/у',0,1.5,2.64,2.3],['Гардероб',0,3.8,2.64,2.27],['Спальня',2.64,1.5,2.89,4.57],['Спальня',5.53,1.5,2.93,4.57],['Гостиная',8.46,1.5,4.78,6.04],['Спальня',0,6.07,3.47,4.48],['Холл',3.47,6.07,4.99,1.47],['С/у',3.47,7.54,1.98,3.01],['Прихожая',5.45,7.54,2.28,3.01],['Тех. пом.',7.73,7.54,1.97,3.01],['Кухня',9.7,7.54,3.54,3.01]]},
+ {id:'karelia',from:'6x8',size:'karelia-src',door:{wall:0,f:.498},winSides:[3,1,1.2,1.4],ver:{pos:'L',inset:1,a:3,b:1.5,l1:4.84,l2:6},photo:'h8x8.jpg',w:16.24,d:10.55,name:'Карелия',floors:1,area:0,beds:3,baths:2,price:0,weeks:12,days:10,wins:{w120150:2},base:'Бетонные блоки 400×200×200',lead:'Одноэтажный дом: спальня, просторная кухня-гостиная, душ и Г-образная терраса вдоль гостиной и торца',plan:[['Спальня',0,1.5,4.4,6.25],['Душ',0,7.75,4.4,2.8],['Кухня-гостиная',4.4,1.5,8.84,9.05]]},
  {id:'altai',from:'6x5',size:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:1,area:172,beds:2,baths:1,price:9110000,weeks:16,days:12,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.2,5.2],['Спальня',0,5.2,4.2,4.8],['Кухня-гостиная',4.2,0,3.2,10]]},
  {id:'baikal',from:'6x8',size:'12x10',winSides:[3,1,.8,.5],ver:{w:7,d:2.5,pos:'front-left',inset:1},photo:'h12x10.jpg',w:12,d:10,name:'Байкал',floors:2,area:208,beds:5,baths:2,price:11110000,weeks:18,days:14,wins:{w180180:2},base:'Бетонные блоки 400×200×200',lead:'Большой семейный дом с котельной и террасой',plan:[['Гостиная',0,0,7,4.5],['Спальня',0,4.5,4,3],['С/у',4,4.5,3,3],['Кухня',7,0,5,4],['Котельная',7,4,5,2],['Холл',7,6,5,4]]},
 ];
@@ -997,6 +1027,17 @@ const sizesOf=m=>SIZES.filter(s=>sizeOK(m,s.id));
 const modelsIn=id=>MODELS.filter(m=>sizeOK(m,id));
 const fmtD=v=>typeof v==='number'?String(+v.toFixed(2)).replace('.',','):String(v);
 const ownSize=m=>!SIZES.some(s=>s.id===(m.native?byId(m.native).size:m.size));
+/* свой размер у любого проекта: «7.5x9» — ширина × длина, шаг 0,5 м */
+const OWN_MIN=4,OWN_MAXW=18,OWN_MAXD=24;
+const sizeKey=(w,d)=>`${+(+w).toFixed(1)}x${+(+d).toFixed(1)}`;
+function parseSize(id){const s=SIZES.find(x=>x.id===id);if(s)return s;
+  const r=/^(\d{1,2}(?:\.\d)?)x(\d{1,2}(?:\.\d)?)$/.exec(id||'');if(!r)return null;
+  const w=+r[1],d=+r[2];if(w<OWN_MIN||d<OWN_MIN||w>OWN_MAXW||d>OWN_MAXD)return null;
+  const a=w*d,near=SIZES.reduce((b,x)=>Math.abs(x.w*x.d-a)<Math.abs(b.w*b.d-a)?x:b);
+  return{id:sizeKey(w,d),w,d,own:1,days:Math.max(3,Math.min(21,Math.round(near.days*a/(near.w*near.d))))}}
+/* свой размер не меньше самого маленького размера проекта по площади */
+const ownMinA=m=>{const f=SIZES.find(s=>s.id===(m.from||'6x4'))||SIZES[0];return f.w*f.d};
+const ownOK=(m,s)=>!!s&&s.w*s.d>=ownMinA(m);
 /* старые ссылки и сохранённые данные, где домом называли размер */
 const LEGACY={'6x4':'ladoga','6x5':'onega','6x6':'seliger','6x7':'valdai','6x8':'vuoksa','8x8':'karelia','10x10':'altai','12x10':'baikal'};
 /* ставка за м2 тёплого контура по площади — из базовых восьми проектов */
@@ -1009,18 +1050,20 @@ const TERR_BASE=35000; /* м² террасы в базе: в холодном �
 /* в базе всегда два окна проекта, остальные добавляются отдельно */
 const sizeWins=(m)=>({...m.wins});
 function variant(m,sizeId){
-  const s=SIZES.find(x=>x.id===sizeId);if(!s||s.id===m.size)return m;
+  const s=parseSize(sizeId);if(!s||s.id===m.size)return m;
   const sx=s.w/m.w,sy=s.d/m.d;
   const v={...m,id:m.id+'@'+s.id,native:m.id,size:s.id,w:s.w,d:s.d,
     days:Math.min(14,s.days+(m.floors>1?3:0)),wins:sizeWins(m),
     ver:!m.ver?null:m.ver.pos==='L'?{pos:'L',inset:1,a:+(m.ver.a*sx).toFixed(2),b:+(m.ver.b*sy).toFixed(2),l1:+(m.ver.l1*sx).toFixed(2),l2:+(m.ver.l2*sy).toFixed(2)}
       :{w:+Math.min(s.w,m.ver.w*sx).toFixed(1),d:+(m.ver.d*sy).toFixed(1),pos:m.ver.pos,inset:m.ver.inset},
     plan:m.plan.map(r=>[r[0],+(r[1]*sx).toFixed(2),+(r[2]*sy).toFixed(2),+(r[3]*sx).toFixed(2),+(r[4]*sy).toFixed(2)])};
-  sizeUp(v);v.beds=Math.max(1,Math.min(6,Math.round(v.living/30)));v.baths=v.living>90?2:1;return v;
+  sizeUp(v);const bc=v.plan.filter(r=>/спальн|детск/i.test(r[0])).length,wc=v.plan.filter(r=>/с\/у|душ|ванн|сануз/i.test(r[0])).length;
+  v.beds=bc||Math.max(1,Math.min(6,Math.round(v.living/30)));v.baths=wc||(v.living>90?2:1);return v;
 }
 const byId=id=>{if(!id)return null;const p=String(id).split('@'),k=LEGACY[p[0]]||p[0],m=MODELS.find(x=>x.id===k);if(!m)return null;
   /* недоступный для проекта размер — открываем ближайший доступный */
   if(p[1]&&SIZES.some(s=>s.id===p[1])&&!sizeOK(m,p[1]))return m;
+  if(p[1]&&!SIZES.some(s=>s.id===p[1])&&!ownOK(m,parseSize(p[1])))return m;
   return p[1]?variant(m,p[1]):m};
 const nativeOf=m=>m.native||m.id;
 /* на странице «Свой размер» редактор работает с виртуальной моделью */
@@ -1085,7 +1128,28 @@ const userKey=()=>user?user.email:'guest';
 function loadUserData(){favs=store.get('favs.'+userKey(),store.get('favs',[]));}
 loadUserData();
 function saveFavs(){store.set('favs.'+userKey(),favs);store.set('favs',favs);updateHeader()}
-function saveCart(){store.set('cart',cart);updateHeader()}
+function saveCart(){try{localStorage.setItem('kontur.cart',JSON.stringify(cart));updateHeader();return true}
+  catch(e){updateHeader();return false}}
+/* промокоды: в коде лежат только хэши, сами коды выдаёт менеджер */
+const PROMO={'pfge2bmhe6':5,'ks2u64mr47':10,'c7ixrtvgvk':15,'tw6hy9ewq6':20};
+const cyrb53=(str,seed=0)=>{let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;
+  for(let i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677)}
+  h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);
+  return 4294967296*(2097151&h2)+(h1>>>0)};
+/* кириллица, набранная вместо латиницы (К, О, Н, Т, Р…), тоже считается */
+const promoNorm=s=>String(s||'').toUpperCase().replace(/\s+/g,'').replace(/[АВЕКМНОРСТУХ]/g,ch=>'ABEKMHOPCTYX'['АВЕКМНОРСТУХ'.indexOf(ch)]);
+const promoPct=code=>PROMO[cyrb53(promoNorm(code),1991).toString(36)]||0;
+const myPromo=()=>user?store.get('promo.'+user.email,null):null;
+const orderSum=o=>(o.items||[]).reduce((s,it)=>s+itemTotal(it),0);
+const orderPay=o=>orderSum(o)-(o.promo&&o.promo.pct?Math.round(orderSum(o)*o.promo.pct/100):0);
+const promoLine=o=>o.promo&&o.promo.pct?`<p class="note promo-note">Промокод <b class="num">${esc(o.promo.code)}</b> · скидка ${o.promo.pct}%: − ${rub(orderSum(o)-orderPay(o))} · к оплате <b class="num">${rub(orderPay(o))}</b></p>`:'';
+document.addEventListener('submit',e=>{if(e.target.id!=='promoForm')return;e.preventDefault();if(!user)return;
+  const code=promoNorm(new FormData(e.target).get('code')),pct=promoPct(code);
+  if(!pct){toast('Такого промокода нет — проверьте написание');return}
+  store.set('promo.'+user.email,{code,pct});toast(`Промокод принят: скидка ${pct}%`);render()});
+document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('[data-promooff]'))||!user)return;
+  try{localStorage.removeItem('kontur.promo.'+user.email)}catch(ex){}toast('Промокод убран');render()});
 async function hash(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return String(h)}}
 
 /* ---------- icons ---------- */
@@ -1995,7 +2059,7 @@ function home(){
       ['Проект','Привязываем дом к участку, готовим рабочие чертежи и спецификацию.','1–2 недели'],
       ['Фундамент','Винтовые сваи или УШП — по геологии участка.','3–10 дней'],
       ['Каркас и кровля','Домокомплект приезжает на участок готовым: сборка занимает от 3 дней до 2 недель.','3–14 дней'],
-      ['Отделка и сдача','Инженерия, отделка, уборка. Подписываем акт и отдаём ключи.','1–3 недели'],
+      ['Отделка и сдача','Инженерия, отделка, уборка. Подписываем акт, вы оплачиваете работы и получаете ключи.','1–3 недели'],
     ].map((s,i)=>`<div class="step reveal"><span class="n">Этап ${i+1}</span><h3>${s[0]}</h3><p>${s[1]}</p><span class="wk num">${s[2]}</span></div>`).join('')}</div>
   </section>
 
@@ -2004,7 +2068,9 @@ function home(){
     <div>${[
       ['Можно ли жить в доме зимой?','Да, если выбрать утепление от 150 мм. Базово в цену входит каменная вата 100 мм — это дача на тёплый сезон. Для зимы в Подмосковье берут 200 мм, для Урала и Сибири — 250 мм.'],
       ['Строите ли вы зимой?','Да, каркасная технология не требует мокрых процессов. Винтовые сваи монтируются в любой сезон.'],
-      ['Можно ли изменить планировку?','Внутренние перегородки можно переставить без изменения цены каркаса. Изменение размеров дома — это индивидуальный проект.'],
+      ['Можно ли изменить планировку и размер?','Внутренние перегородки можно переставить без изменения цены каркаса. Размер тоже можно задать свой: на странице любого дома впишите ширину и длину — площадь, планировка и цена пересчитаются.'],
+      ['Когда нужно платить?','Оплата производится по окончании работ — после того как вы примете готовый дом или модуль и подпишете акт.'],
+      ['Есть ли скидки и промокоды?','Да. Позвоните по номеру +7 999 888-60-99 или оставьте заявку — менеджер вышлет вам промокод на скидку. Промокод вводится в личном кабинете, в разделе «Промокод», и скидка сразу учитывается в корзине и в заявке.'],
       ['Подходит ли дом под ипотеку?','Каркасные дома можно купить в ипотеку в банках, которые кредитуют ИЖС по договору подряда. Поможем собрать документы.'],
       ['Какая гарантия?','Гарантия — 3 года на дома и модули: каркас, отделку и инженерию. Прописывается в договоре.'],
       ['Сборка входит в стоимость?','Да. И дом, и модуль собирает наша бригада на вашем участке — сборка входит в цену. Отдельно считается только доставка — 300 ₽ за километр.'],
@@ -2766,7 +2832,7 @@ function customView(){
 function modelView(id){
   const m=byId(id);if(!m)return notFound();
   const i=MODELS.findIndex(x=>x.id===nativeOf(m)),prev=MODELS[i-1],next=MODELS[i+1];
-  const on=favs.includes(nativeOf(m));const cfg=getCfg(m);const est=computeCalc(m,cfg);const sz='@'+m.size,szOf=x=>sizeOK(x,m.size)?sz:'';
+  const on=favs.includes(nativeOf(m));const cfg=getCfg(m);const est=computeCalc(m,cfg);const sz='@'+m.size,own=!SIZES.some(s=>s.id===m.size),szOf=x=>(sizeOK(x,m.size)||(own&&ownOK(x,parseSize(m.size))))?sz:'';
   return `<div class="wrap">
   <div class="crumbs"><a href="#/">Главная</a>/<a href="#/catalog">Каталог</a>/<span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)}</span></div>
   <div class="model">
@@ -2774,14 +2840,18 @@ function modelView(id){
     <div class="info">
       <h1><small class="num">Проект ${String(i+1).padStart(2,'0')} из ${MODELS.length} · ${fmtD(m.w)}×${fmtD(m.d)} м · ${String(m.area).replace('.',',')} м²</small>${m.name}</h1>
       <p style="color:var(--muted);font-size:18px;max-width:40ch">${m.lead}.</p>
-      <div style="display:grid;gap:10px"><span class="label">Размер дома · планировка и вид «${m.name}» сохраняются</span><div class="size-switch">${sizesOf(m).map(s=>`<a class="pill num ${s.id===m.size?'on':''}" href="#/house/${nativeOf(m)}@${s.id}">${s.w}×${s.d}</a>`).join('')}</div>
-        <small class="note">Проект «${m.name}» строится ${sizesOf(m).length===SIZES.length?'в любом из восьми размеров':`в размерах от ${sizesOf(m)[0].w}×${sizesOf(m)[0].d} до 12×10`}: площадь, комплект окон, планировка, срок и цена пересчитываются, сам дом остаётся тот же.</small></div>
+      <div style="display:grid;gap:10px"><span class="label">Размер дома · планировка и вид «${m.name}» сохраняются</span><div class="size-switch">${sizesOf(m).map(s=>`<a class="pill num ${s.id===m.size?'on':''}" href="#/house/${nativeOf(m)}@${s.id}">${s.w}×${s.d}</a>`).join('')}${own?`<span class="pill num on">${fmtD(m.w)}×${fmtD(m.d)} · свой</span>`:''}</div>
+        <form class="own-size" data-ownsize="${nativeOf(m)}"><span>Свой размер</span>
+          <input type="number" name="w" min="${OWN_MIN}" max="${OWN_MAXW}" step="0.5" value="${own?m.w:''}" placeholder="ширина" aria-label="Ширина, м" required>
+          <i>×</i><input type="number" name="d" min="${OWN_MIN}" max="${OWN_MAXD}" step="0.5" value="${own?m.d:''}" placeholder="длина" aria-label="Длина, м" required>
+          <em>м</em><button class="btn" type="submit">Пересчитать</button></form>
+        <small class="note">Проект «${m.name}» строится ${sizesOf(m).length===SIZES.length?'в любом из восьми размеров':`в размерах от ${sizesOf(m)[0].w}×${sizesOf(m)[0].d} до 12×10`} — или впишите свой размер с шагом 0,5 м (от ${ownMinA(m)} м²): площадь, комплект окон, планировка, срок и цена пересчитываются, сам дом остаётся тот же.</small></div>
       <div class="price-row"><div><small id="topPkg">${PKGS.find(p=>p.id===cfg.pkg).name} · ${rub(est.total/m.area)} за м² · сборка ${est.days} ${plural(est.days,['день','дня','дней'])}</small><b class="num" id="topPrice">${rub(est.total)}</b></div>
         <div class="buy"><a class="btn lamp" href="#calc" data-jump="calc">Рассчитать стоимость</a><button class="btn" data-add="${m.id}">В корзину</button><button class="circ fav-inline ${on?'':''}" data-fav="${nativeOf(m)}" aria-label="В избранное" style="${on?'color:var(--lamp);border-color:var(--lamp)':''}">${HEART.replace('fill="none"',on?'fill="currentColor"':'fill="none"')}</button></div></div>
       <div class="specs">${[
         ['Размер',`${fmtD(m.w)} × ${fmtD(m.d)} м, с террасой`],['Площадь дома',`${String(livingA(m)).replace('.',',')} м²${m.floors>1?' · все этажи':''}`],['Терраса в габарите',verA(m)?`${String(verA(m)).replace('.',',')} м² · ${isL(m)?`Г-образная: ${fmtD(m.ver.a)} м вдоль торца и ${fmtD(m.ver.b)} м вдоль тыла`:`${fmtD(m.ver.w)} × ${fmtD(m.ver.d)} м`}`:'нет'],['Общая площадь',`${String(m.area).replace('.',',')} м² · дом${m.floors>1?' (все этажи)':''} + терраса`],['Пятно застройки',`${String(footA(m)).replace('.',',')} м²`],['Этажность',floorsTxt(m.floors)],['Спальни',m.beds],['Санузлы',m.baths],
         ['Высота потолка',m.floors===1.5?'2,7 м / второй свет':'2,6 м'],['Стена','каркас 50×100…50×200'],['Утепление','каменная вата 100–250 мм'],['Мембраны','ветро-влагозащита + пароизоляция'],['Фундамент',m.base],['Кровля','профлист, цвет на выбор'],
-        ['Окна',`${WIN_TYPES.reduce((s,w)=>s+(m.wins[w[0]]||0),0)} шт, ПВХ 2-камерные`],['Сборка на участке',`входит в цену · ${m.days} ${plural(m.days,['день','дня','дней'])}`],['Гарантия','3 года']
+        ['Окна',`${WIN_TYPES.reduce((s,w)=>s+(m.wins[w[0]]||0),0)} шт, ПВХ 2-камерные`],['Сборка на участке',`входит в цену · ${m.days} ${plural(m.days,['день','дня','дней'])}`],['Гарантия','3 года'],['Оплата','по окончании работ']
       ].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
     </div>
   </div></div>
@@ -3053,7 +3123,7 @@ function modEstimateHTML(){const e=computeModule(modState),s=modSize(modState);
   <p class="note">Установка на участке входит в стоимость · гарантия 3 года. Предварительный расчёт, точная цена фиксируется в договоре.</p>`}
 const MOD_INCLUDED=[['Размер','от 5×2 до 6×6 м, высота 1,90 / 2,10 м (до 3,00 м за доплату)'],['Каркас','брус и доска камерной сушки'],['Утепление','минвата 50 мм, ветрозащита и пароизоляция'],
   ['Снаружи','вагонка сосна, класс С'],['Внутри','вагонка сосна, класс С'],['Пол','доска 25 мм'],['Кровля','односкатная, оцинкованный профлист (двускатная — за доплату)'],
-  ['Окно','деревянное 60×90 — 1 шт'],['Дверь','деревянная филёнчатая'],['Опоры','на бетонных блоках'],['Планировка','одно помещение без перегородок — рисуете сами'],['Сборка','на вашем участке, входит в стоимость'],['Гарантия','3 года']];
+  ['Окно','деревянное 60×90 — 1 шт'],['Дверь','деревянная филёнчатая'],['Опоры','на бетонных блоках'],['Планировка','одно помещение без перегородок — рисуете сами'],['Сборка','на вашем участке, входит в стоимость'],['Гарантия','3 года'],['Оплата','по окончании работ']];
 function modCard(s){const c={...modState,size:s.id,wins:{},paint:0,roofShape:'shed',rise:0,pile:'blocks',extras:[],outer:'vag',outerGrade:'C',roof:'zinc',door:'wood'};
   return `<article class="card reveal">
     <a class="pic mod" href="#/modules/${s.id}" aria-label="Модуль ${s.w}×${s.d}">${moduleSVG(c,true)}${modImgTag(MOD_PHOTOS[s.id],`alt="Модуль ${s.w}×${s.d} м" decoding="async"`)}<span class="size num">${s.w*s.d} м²</span></a>
@@ -3207,16 +3277,16 @@ async function sbLoadOrders(){
   if(!SB.on)return;
   if(SB.kind==='api'){try{const d=await apiReq('orders');
       SB.orders=(d.orders||[]).map(o=>({no:o.no,at:o.created,items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,region:o.region,
-        comment:o.comment,stage:o.stage,status:o.status,_id:o.id,_owner:o.email||'гость'}))}catch(e){SB.orders=[]}return}
+        comment:o.comment,stage:o.stage,status:o.status,promo:o.promo||null,_id:o.id,_owner:o.email||'гость'}))}catch(e){SB.orders=[]}return}
   try{let q=SB.c.from('orders').select('*').order('created_at',{ascending:false});
     const {data,error}=await q;if(error)throw error;
     SB.orders=(data||[]).map(o=>({no:o.no,at:new Date(o.created_at).getTime(),items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,
-      region:o.region,comment:o.comment,stage:o.stage||0,status:o.status||'new',_id:o.id,_owner:o.email||o.user_id||'гость'}))}
+      region:o.region,comment:o.comment,stage:o.stage||0,status:o.status||'new',promo:o.promo||null,_id:o.id,_owner:o.email||o.user_id||'гость'}))}
   catch(e){SB.orders=[]}}
 async function sbSaveOrder(o){
-  if(SB.kind==='api')return apiReq('order',{json:{...o,total:o.items.reduce((s,it)=>s+itemTotal(it),0)}});
+  if(SB.kind==='api')return apiReq('order',{json:{...o,total:orderPay(o)}});
   const {data,error}=await SB.c.from('orders').insert({no:o.no,fio:o.fio,phone:o.phone,email:o.email||null,region:o.region,
-    comment:o.comment,items:o.items,total:o.items.reduce((s,it)=>s+itemTotal(it),0),stage:0,status:'new'}).select().single();
+    comment:o.comment,items:o.items,total:orderPay(o),promo:o.promo||null,stage:0,status:'new'}).select().single();
   if(error)throw error;return data}
 async function sbSetStatus(id,patch){
   if(SB.kind==='api'){await apiReq('status',{json:{id,...patch}});await sbLoadOrders();return}const {error}=await SB.c.from('orders').update(patch).eq('id',id);if(error)throw error;await sbLoadOrders()}
@@ -3255,6 +3325,7 @@ function cartView(){
       <details class="spec-det"><summary>Полное описание и планировка</summary>
         <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
         ${!l.custom&&!l.module&&l.cfg&&l.cfg.rooms?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(l.id),l.cfg)}</div>`:''}</details>
+      ${refsBlock(l,i)}
       <a class="link" href="${l.module?'#/modules/'+l.cfg.size:l.custom?'#/custom':'#/house/'+l.m.id}" style="justify-self:start">${l.module?'Открыть конструктор модулей':l.custom?'Открыть калькулятор':'Открыть модель'}</a></div>
     <div class="r"><b class="num" style="font-size:18px">${rub(itemTotal(l))}</b><button class="link" data-remove="${i}">Удалить</button></div></div>`).join('')}</div>
   <form class="summary" id="checkout">
@@ -3264,12 +3335,53 @@ function cartView(){
     <div class="field"><label for="ph">Телефон</label><input id="ph" name="phone" type="tel" placeholder="+7 900 000-00-00" required></div>
     <div class="field"><label for="reg">Где участок</label><input id="reg" name="region" placeholder="Ленинградская обл., Выборгский р-н"></div>
     <div class="field"><label for="cm">Комментарий</label><textarea id="cm" name="comment" placeholder="Когда хотите начать стройку"></textarea></div>
-    <div class="tot"><span style="color:var(--muted)">Итого</span><b class="num">${rub(total)}</b></div>
+    ${(()=>{const pr=myPromo();if(!pr)return `<div class="tot"><span style="color:var(--muted)">Итого</span><b class="num">${rub(total)}</b></div>
+      <p class="note">${user?'Есть промокод? <a class="link" href="#/account/promo">Введите его в личном кабинете</a>.':'Промокод на скидку вводится в личном кабинете — войдите, и скидка появится здесь.'}</p>`;
+      const dsc=Math.round(total*pr.pct/100);
+      return `<div class="promo-rows"><div><span>Сумма</span><b class="num">${rub(total)}</b></div><div><span>Промокод ${esc(pr.code)} · −${pr.pct}%</span><b class="num" style="color:var(--lamp2)">− ${rub(dsc)}</b></div></div>
+      <div class="tot"><span style="color:var(--muted)">Итого со скидкой</span><b class="num">${rub(total-dsc)}</b></div>`})()}
     ${user?`<button class="btn lamp" type="submit" style="justify-content:center">Отправить заявку</button>`:`<button class="btn lamp" type="submit" style="justify-content:center">Отправить заявку</button>
     <button class="link" type="button" data-login style="justify-self:center">Войти, чтобы следить за стройкой</button>`}
-    <p class="note">Цена фиксируется в договоре после выезда на участок. Вопросы по заявке — <a class="num" style="color:var(--lamp2)" href="tel:+79998886099">+7 999 888-60-99</a>.</p>
+    <p class="note"><b style="color:var(--text);font-weight:500">Оплата — по окончании работ.</b> Цена фиксируется в договоре после выезда на участок. Вопросы по заявке — <a class="num" style="color:var(--lamp2)" href="tel:+79998886099">+7 999 888-60-99</a>.</p>
   </form></div></div>`;
 }
+document.addEventListener('submit',e=>{const f=e.target;if(!f.matches||!f.matches('[data-ownsize]'))return;e.preventDefault();
+  const base=byId(f.dataset.ownsize),fd=new FormData(f),r=v=>Math.round(parseFloat(String(v).replace(',','.'))*2)/2;
+  const w=r(fd.get('w')),d=r(fd.get('d'));
+  if(!(w>=OWN_MIN&&d>=OWN_MIN)){toast(`Ширина и длина — от ${OWN_MIN} м`);return}
+  if(w>OWN_MAXW||d>OWN_MAXD){toast(`Самое большое — ${OWN_MAXW}×${OWN_MAXD} м`);return}
+  const s=parseSize(sizeKey(w,d));
+  if(!ownOK(base,s)){toast(`«${base.name}» строится от ${ownMinA(base)} м² — увеличьте размер`);return}
+  const std=SIZES.find(x=>x.w===w&&x.d===d);
+  location.hash='#/house/'+base.id+'@'+(std&&sizeOK(base,std.id)?std.id:s.id)});
+/* свой проект: калькулятор «Свой размер» или дом из каталога в нестандартном размере */
+const isOwnProject=it=>!it.module&&(it.custom||(()=>{const m=byId(it.id);return !!(m&&m.native&&!SIZES.some(s=>s.id===m.size))})());
+const REF_MAX=4;
+const refsView=it=>(it.refs||[]).length?`<div class="ref-list ro">${it.refs.map(r=>`<button type="button" data-refview><img src="${r}" alt="Фото желаемого проекта"></button>`).join('')}</div>`:'';
+function refsBlock(it,i){if(!isOwnProject(it))return '';const rs=it.refs||[];
+  return `<div class="refs"><span class="label">Как должен выглядеть дом</span>
+    <div class="ref-list">${rs.map((r,j)=>`<figure><button type="button" data-refview><img src="${r}" alt="Фото проекта ${j+1}"></button><button type="button" class="ref-x" data-refdel="${i}|${j}" aria-label="Убрать фото">✕</button></figure>`).join('')}
+      ${rs.length<REF_MAX?`<label class="ref-add"><input type="file" accept="image/*" multiple data-refadd="${i}" hidden><b>+</b><span>Фото проекта</span></label>`:''}</div>
+    <small class="note">Загрузите фото или картинку дома, который хотите, — до ${REF_MAX} штук. Они уйдут вместе с заявкой.</small></div>`}
+/* сжимаем фото до 1280 px, чтобы корзина и заявка не весили мегабайты */
+function refShrink(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const im=new Image();im.onerror=rej;
+  im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+    let q=.8,u=c.toDataURL('image/jpeg',q);while(u.length>320000&&q>.4){q-=.1;u=c.toDataURL('image/jpeg',q)}res(u)};im.src=fr.result};fr.readAsDataURL(file)})}
+document.addEventListener('change',async e=>{const inp=e.target.closest&&e.target.closest('[data-refadd]');if(!inp)return;
+  const i=+inp.dataset.refadd,line=cart[i];if(!line)return;const files=[...inp.files].filter(f=>/^image\//.test(f.type));inp.value='';
+  if(!files.length){toast('Выберите файл с картинкой');return}
+  const before=(line.refs||[]).slice();let added=0;
+  for(const f of files){if((line.refs||[]).length>=REF_MAX)break;try{line.refs=[...(line.refs||[]),await refShrink(f)];added++}catch(ex){}}
+  if(!saveCart()){line.refs=before;saveCart();toast('Не хватило места в браузере — попробуйте фото поменьше');render();return}
+  if(files.length>added&&(line.refs||[]).length>=REF_MAX)toast(`Можно до ${REF_MAX} фото`);else toast(added===1?'Фото добавлено':`Добавлено фото: ${added}`);render()});
+document.addEventListener('click',e=>{
+  const d=e.target.closest&&e.target.closest('[data-refdel]');
+  if(d){const [i,j]=d.dataset.refdel.split('|').map(Number);if(cart[i]&&cart[i].refs){cart[i].refs=cart[i].refs.filter((_,k)=>k!==j);saveCart();render()}return}
+  const v=e.target.closest&&e.target.closest('[data-refview]');
+  if(v){const src=v.querySelector('img').src,box=document.createElement('div');box.className='ref-box';
+    box.innerHTML=`<img src="${src}" alt="Фото проекта"><button type="button" aria-label="Закрыть">✕</button>`;box.addEventListener('click',()=>box.remove());document.body.appendChild(box)}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.ref-box')?.remove()});
 function lineModel(it){
   if(it.module){const s=modSize(it.cfg);return{id:'module',name:'Модуль',w:s.w,d:s.d,area:s.w*s.d,floors:1}}
   if(!it.custom)return byId(it.id);
@@ -3360,6 +3472,11 @@ function accountView(tab){
   const orders=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
   tab=tab||'orders';
   const body=tab==='fav'?(favs.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:`<div class="empty"><p>Нажмите ♡ на карточке дома, чтобы сохранить его здесь.</p><a class="btn" href="#/catalog">В каталог</a></div>`)
+   :tab==='promo'?`<form class="summary" id="promoForm" style="position:static;max-width:520px"><h3 style="font-size:20px">Промокод на скидку</h3>
+      ${myPromo()?`<div class="promo-on"><b class="num">−${myPromo().pct}%</b><span>Промокод <b class="num">${esc(myPromo().code)}</b> активен — скидка учитывается в корзине и в заявке.</span></div>`:''}
+      <div class="field"><label for="promoIn">${myPromo()?'Другой промокод':'Введите промокод'}</label><input id="promoIn" name="code" autocomplete="off" autocapitalize="characters" placeholder="Например, KONTUR…" required></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn solid" type="submit">Применить</button>${myPromo()?'<button class="btn" type="button" data-promooff>Убрать промокод</button>':''}</div>
+      <p class="note">Как получить промокод: позвоните по номеру <a class="num" style="color:var(--lamp2)" href="tel:+79998886099">+7 999 888-60-99</a> или оставьте заявку — менеджер пришлёт вам промокод на скидку.</p></form>`
    :tab==='profile'?`<form class="summary" id="profile" style="position:static;max-width:520px"><h3 style="font-size:20px">Профиль</h3>
       <div class="field"><label for="pn">Имя</label><input id="pn" name="name" value="${esc(user.name)}" required></div>
       <div class="field"><label for="pe">Эл. почта</label><input id="pe" value="${esc(user.email)}" disabled></div>
@@ -3367,10 +3484,10 @@ function accountView(tab){
    :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">Заявка № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span class="status">${STAGES[o.stage]}</span></header>
       <div style="display:grid;gap:10px">${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
         return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
-        <details class="spec-det"><summary>Спецификация и планировка</summary>
+        ${refsView(it)}<details class="spec-det"><summary>Спецификация и планировка</summary>
           <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
           ${!it.custom&&!it.module&&it.cfg&&it.cfg.rooms?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details></div>`}).join('')}</div>
-      ${docsBlock(o.no,'client')}
+      ${promoLine(o)}${docsBlock(o.no,'client')}
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
   const orders_n=orders.length;
@@ -3378,6 +3495,7 @@ function accountView(tab){
   <div class="acc"><div class="acc-nav">
     <button class="${tab==='orders'?'on':''}" data-tab="orders">Мои заявки <span class="num">${orders_n}</span></button>
     <button class="${tab==='fav'?'on':''}" data-tab="fav">Избранное <span class="num">${favs.length}</span></button>
+    <button class="${tab==='promo'?'on':''}" data-tab="promo">Промокод <span class="num">${myPromo()?'−'+myPromo().pct+'%':''}</span></button>
     <button class="${tab==='profile'?'on':''}" data-tab="profile">Профиль</button>
     <a class="btn" href="#/cart" style="margin-top:8px;justify-content:center">Корзина · <span class="num">${cart.length}</span></a>
   </div><div>${body}</div></div></div>`;
@@ -3946,11 +4064,11 @@ function adminView(){
         ${os.map(o=>`<div class="adm-order"><div class="adm-row">
             <b class="num">№ ${o.no}</b><span class="num">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
             <span>${esc(o.region||'участок не указан')}</span>
-            <b class="num">${rub(o.items.reduce((a,it)=>a+itemTotal(it),0))}</b>
+            <b class="num">${rub(orderPay(o))}</b>
             <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></div>
-          ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}
+          ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}${promoLine(o)}
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
-            return `<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
+            return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
               <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
               ${!it.custom&&!it.module&&it.cfg?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details>`}).join('')}
           ${docsBlock(o.no,'manager')}
@@ -4036,7 +4154,7 @@ function bind(){
     store.set('mgr.accounts',acc);toast('Менеджер добавлен');render()});
   document.getElementById('checkout')?.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);
     const order={no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:cart.slice(),fio:f.get('fio'),email:user?user.email:'',
-      phone:f.get('phone'),region:f.get('region'),comment:f.get('comment'),stage:0,status:'new'};
+      phone:f.get('phone'),region:f.get('region'),comment:f.get('comment'),stage:0,status:'new',promo:myPromo()};
     if(SB.on){const btn=e.target.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
       try{await sbSaveOrder(order);await sbLoadOrders()}
       catch(ex){if(btn){btn.disabled=false;btn.textContent='Отправить заявку'}toast('Не удалось отправить заявку: '+(ex.message||'ошибка связи'));return}}

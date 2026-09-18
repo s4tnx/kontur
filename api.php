@@ -31,6 +31,9 @@ function db(): PDO {
   $pdo->exec('CREATE TABLE IF NOT EXISTS docs(
       id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER, name TEXT, cat TEXT, size INTEGER,
       by_role TEXT, who TEXT, path TEXT, uploader INTEGER, created INTEGER)');
+  /* промокод заявки — колонка появилась позже, добавляем в старые базы */
+  $cols = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(PDO::FETCH_ASSOC), 'name');
+  if (!in_array('promo', $cols, true)) $pdo->exec('ALTER TABLE orders ADD COLUMN promo TEXT');
   return $pdo;
 }
 
@@ -65,7 +68,8 @@ function pub(array $u): array { return ['id' => (int)$u['id'], 'email' => $u['em
 function orderRow(array $o): array {
   return ['id' => (int)$o['id'], 'no' => $o['no'], 'fio' => $o['fio'], 'phone' => $o['phone'], 'email' => $o['email'],
     'region' => $o['region'], 'comment' => $o['comment'], 'items' => json_decode($o['items'] ?: '[]', true),
-    'total' => (float)$o['total'], 'stage' => (int)$o['stage'], 'status' => $o['status'], 'created' => (int)$o['created'] * 1000];
+    'total' => (float)$o['total'], 'stage' => (int)$o['stage'], 'status' => $o['status'], 'created' => (int)$o['created'] * 1000,
+    'promo' => !empty($o['promo']) ? json_decode($o['promo'], true) : null];
 }
 
 $a = $_GET['a'] ?? '';
@@ -143,10 +147,12 @@ if ($a === 'order') {
   $u = me(); $b = body();
   $items = $b['items'] ?? [];
   if (!is_array($items) || !count($items)) fail('Корзина пуста');
-  $st = db()->prepare('INSERT INTO orders(no,user_id,fio,phone,email,region,comment,items,total,stage,status,created) VALUES(?,?,?,?,?,?,?,?,?,0,"new",?)');
+  $promo = (isset($b['promo']['code'], $b['promo']['pct']) && in_array((int)$b['promo']['pct'], [5, 10, 15, 20], true))
+    ? json_encode(['code' => substr((string)$b['promo']['code'], 0, 40), 'pct' => (int)$b['promo']['pct']], JSON_UNESCAPED_UNICODE) : null;
+  $st = db()->prepare('INSERT INTO orders(no,user_id,fio,phone,email,region,comment,items,total,stage,status,created,promo) VALUES(?,?,?,?,?,?,?,?,?,0,"new",?,?)');
   $st->execute([(string)($b['no'] ?? ''), $u ? (int)$u['id'] : null, (string)($b['fio'] ?? ''), (string)($b['phone'] ?? ''),
     $u ? $u['email'] : (string)($b['email'] ?? ''), (string)($b['region'] ?? ''), (string)($b['comment'] ?? ''),
-    json_encode($items, JSON_UNESCAPED_UNICODE), (float)($b['total'] ?? 0), time()]);
+    json_encode($items, JSON_UNESCAPED_UNICODE), (float)($b['total'] ?? 0), time(), $promo]);
   out(['id' => (int)db()->lastInsertId()]);
 }
 

@@ -43,6 +43,8 @@ create table if not exists public.orders(
   status text default 'new',
   created_at timestamptz default now()
 );
+-- промокод заявки: {"code":"…","pct":10}
+alter table public.orders add column if not exists promo jsonb;
 alter table public.orders enable row level security;
 
 drop policy if exists "orders insert" on public.orders;

@@ -948,6 +948,7 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 .mod-sizes button.on{border-color:var(--lamp);background:linear-gradient(160deg,rgba(231,163,92,.14),transparent)}
 .mod-sizes b{font-family:var(--display);font-weight:600;font-size:22px}
 .mod-sizes button.own{border-style:dashed}
+.floor-tabs{margin-bottom:-4px}
 .mod-own{margin:-12px 0 26px}
 .mod-sizes span{font-size:12.5px;color:var(--muted)}
 .mod-sizes em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--lamp2)}
@@ -1061,7 +1062,7 @@ const MODELS=[
   upper:{x:2.5,w:6},area:90,beds:3,baths:2,price:0,weeks:16,days:12,wins:{portal:2,w180180:2},base:'Бетонные блоки 400×200×200',
   lead:'Дом со стеклянным фронтоном: двухэтажный центральный объём 6×5 м, кухня-столовая в левом крыле и спальня в правом',
   plan:[['Кухня-столовая',0,0,2.5,5],['Котельная',2.5,0,2,1.5],['С/у',4.5,0,2,1.5],['Гостиная',2.5,1.5,4,3.5],['Лестница',6.5,0,2,3],['Прихожая',6.5,3,2,2],['Гардероб',8.5,0,3.5,1.5],['Спальня',8.5,1.5,3.5,3.5]],
-  plan2:[['Гардероб',0,0,1.8,1.8],['С/у',1.8,0,1.8,1.8],['Холл и лестница',3.6,0,2.4,2.4],['Спальня',0,1.8,3.6,3.2],['Детская',3.6,2.4,2.4,2.6]]},
+  plan2:[['Спальня',0,0,3,5],['Холл и лестница',3,0,3,5]]},
 ];
 const PKGS=[
  {id:'cold',name:'Холодный контур',k:.4144,txt:'Каркас, наружная обшивка, ветро-влагозащитная мембрана, кровля, окна и дверь — без утепления'},
@@ -1127,11 +1128,18 @@ const nativeOf=m=>m.native||m.id;
 function customModel(){const c=customState,base=c.planBase&&byId(c.planBase);
   return{id:'custom',custom:1,name:'Свой проект',w:c.w,d:c.d,floors:c.floors==='2'?2:c.floors==='1.5'?1.5:1,
     area:cArea(c),ver:cVer(c),plan:cPlan(c),wins:cWinsBase(c),winSides:base?base.winSides:[2,1,1,.6],roofShape:base?base.roofShape:null}}
+/* какой этаж открыт в редакторе планировки (у домов со вторым этажом) */
+let planFloor=1,planHouse='';
+/* второй этаж как отдельная «модель» для редактора: свои комнаты, окна и двери */
+function upperModel(m){return{...m,id:m.id+'#2',upperFloor:1,w:m.upper.w,d:m.d,ver:null,porch:null,door:null,noDoor:true,plan:m.plan2,wins:{},floors:1,winSides:[1,1,1,1],roofShape:'gable'}}
+const planModel=m=>m&&m.plan2&&planFloor===2&&!m.upperFloor?upperModel(m):m;
+const curHouse=()=>{const h=location.hash;return h.indexOf('#/house')===0?byId((h.split('/')[2]||'').split('?')[0]):null};
 function curModel(){const h=location.hash;
   if(h.indexOf('#/custom')===0)return customModel();
   if(h.indexOf('#/modules')===0)return moduleModel(modState);
-  return byId((h.split('/')[2]||'').split('?')[0])}
-function refreshAny(m,groups){if(m&&m.module)refreshModule(true);else if(m&&m.id==='custom')refreshCustom(true);else refreshCalc(m,groups)}
+  return planModel(byId((h.split('/')[2]||'').split('?')[0]))}
+function refreshAny(m,groups){if(m&&m.module)refreshModule(true);else if(m&&m.id==='custom')refreshCustom(true);
+  else refreshCalc(m&&m.upperFloor?byId(m.id.replace('#2','')):m,groups)}
 const estAny=m=>m&&m.module?modEstimateHTML():m&&m.id==='custom'?customEstimate():estimateHTML(m);
 /* минимальная цена проекта: самый маленький размер в холодном контуре */
 const minPrice=m=>Math.min.apply(null,[...sizesOf(byId(nativeOf(m))).map(s=>variant(byId(nativeOf(m)),s.id).price),byId(nativeOf(m)).price])*PKGS[0].k;
@@ -1174,7 +1182,7 @@ function deckOf(m,cfg){if(!cfg||!(cfg.terrace>0)||(m&&m.module))return null;
     const s=Math.sqrt(cfg.terrace/A);return{...d,w:+(d.w*s).toFixed(2),d:+Math.max(1,d.d*s).toFixed(2)}}
   const A=cfg.terrace,td=Math.min(3,Math.max(1.5,A/m.w)),tw=Math.min(m.w,A/td);return{wall:0,f:.5,w:+tw.toFixed(2),d:+td.toFixed(2)}}
 /* встроенную террасу переносим на другое место — площадь та же */
-function setVerPos(pos){const m=curModel();if(!m||m.module||m.id==='custom')return;const cfg=getCfg(m),raw=byIdRaw(m.id);
+function setVerPos(pos){const m=curHouse();if(!m)return;const cfg=getCfg(m),raw=byIdRaw(m.id);
   if(!raw||!raw.ver||!raw.ver.inset||isL(raw))return;
   const old=effModel(raw,cfg);cfg.verPos=pos===raw.ver.pos?null:pos;const nw=effModel(raw,cfg);
   if(cfg.rooms&&cfg.rooms.length)cfg.rooms=defaultRooms({...nw,plan:fitRoomsBox(nw,planOf(old,cfg))});
@@ -1227,7 +1235,7 @@ function porchGroups(m,cfg){const raw=byIdRaw(m.id)||m,pc=porchOf(raw,cfg),inc=p
    :`<button type="button" class="btn" data-porchadd style="justify-self:start">Добавить крыльцо 2×1 м · ${rub(2*PORCH_RATE)}</button><small class="note">Небольшая площадка со ступенями у входа — потом её можно передвинуть и изменить размер.</small>`)+`</div>`;
   return o}
 document.addEventListener('click',e=>{const tg=e.target.closest&&e.target.closest('[data-verpos],[data-porchwall],[data-porchoff],[data-porchadd]');if(!tg)return;
-  const m=curModel();if(!m||m.module||m.id==='custom')return;const cfg=getCfg(m),raw=byIdRaw(m.id);if(!raw)return;
+  const m=curHouse();if(!m)return;const cfg=getCfg(m),raw=byIdRaw(m.id);if(!raw)return;
   if(tg.dataset.verpos){setVerPos(tg.dataset.verpos);return}
   if(tg.dataset.porchwall!=null){const pc=porchOf(raw,cfg);if(pc)cfg.porch={...pc,wall:+tg.dataset.porchwall,f:.5}}
   else if(tg.hasAttribute('data-porchoff')){cfg.porch=false;toast('Крыльцо убрано')}
@@ -1235,12 +1243,12 @@ document.addEventListener('click',e=>{const tg=e.target.closest&&e.target.closes
     cfg.porch={wall:dw?dw.wall:0,f:dw?+Math.max(0,Math.min(1,dw.u/len+.5)).toFixed(3):.5,w:2,d:1};toast('Крыльцо добавлено у входной двери')}
   refreshAny(curModel(),true)});
 document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-porchsz]');if(!r)return;
-  const m=curModel();if(!m)return;const cfg=getCfg(m),raw=byIdRaw(m.id),pc=porchOf(raw,cfg);if(!pc)return;
+  const m=curHouse();if(!m)return;const cfg=getCfg(m),raw=byIdRaw(m.id),pc=porchOf(raw,cfg);if(!pc)return;
   cfg.porch={...pc,[r.dataset.porchsz]:+r.value};
   const l=document.getElementById(r.dataset.porchsz==='w'?'pwv':'pdv');if(l)l.textContent=fmtD(+r.value)+' м';
   r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%');
-  const m2=curModel(),pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(m2,cfg);bindPlanner()}
-  const es=document.getElementById('estimate');if(es)es.innerHTML=estimateHTML(m2);live3D(m2);
+  const m2=curHouse(),pm=planModel(m2),pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(pm,getCfg(pm));bindPlanner()}
+  const es=document.getElementById('estimate');if(es)es.innerHTML=estimateHTML(m2);live3D(pm);
   const tp=document.getElementById('topPrice');if(tp)tp.textContent=rub(computeCalc(m2,cfg).total)});
 /* сдвиг веранды вдоль фасада: по центру, к правому или левому краю — как на фотографии проекта */
 const verOff=m=>{if(!m.ver)return 0;const free=(m.w-Math.min(m.w,m.ver.w))/2;
@@ -2574,6 +2582,11 @@ function computeCalc(m,cfg){
   const noEdoor=!partsOf(m,cfg).edoor;
   CALC.forEach(g=>{if(g.key==='edoorT'&&noEdoor)return;const it=g.items.find(i=>i.id===cfg[g.key]);const d=optDelta(m,g.key,cfg[g.key],cfg);if(Math.round(d))lines.push([`${g.title}: ${lcFirst(it.name)}`,d])});
   const wd=winsDelta(m,cfg);if(Math.round(wd))lines.push(['Окна: изменение комплекта',wd]);
+  if(m.plan2&&!m.upperFloor){let c2=cfg.floor2||null;if(!c2){try{c2=calcState[m.id+'#2']}catch(e){}}
+    if(c2){const m2=upperModel(m),w2=winsDelta(m2,{...c2,win:cfg.win}),b2=basePartsOf(m2),p2=partsOf(m2,c2);
+      const pd2=PARTS.filter(p=>p[0]!=='edoor').reduce((s,p)=>s+((p2[p[0]]||0)-(b2[p[0]]||0))*p[3],0);
+      if(Math.round(w2))lines.push(['2 этаж: окна',w2]);if(Math.round(pd2))lines.push(['2 этаж: перегородки и двери',pd2]);
+      if(c2.rooms&&c2.rooms.length)lines.push([`2 этаж: своя планировка · ${c2.rooms.length} ${plural(c2.rooms.length,['комната','комнаты','комнат'])}`,0])}}
   const pd=partsDelta(m,cfg);if(Math.round(pd))lines.push(['Перегородки и двери: изменение',pd]);
   if(cfg.rooms&&cfg.rooms.length)lines.push([`Своя планировка: ${cfg.rooms.length} ${plural(cfg.rooms.length,['комната','комнаты','комнат'])} · ${roomsArea(cfg.rooms)} м²`,0]);
   const wide9=(cfg.idoors||[]).filter(d=>(d.w||IDOOR_W)>.85).length;
@@ -2847,10 +2860,14 @@ function bindPlanner(){
   svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
 }
 
+document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('[data-planfloor]');if(!f)return;
+  const base=curHouse();if(!base||!base.plan2)return;planFloor=+f.dataset.planfloor;const pm=planModel(base);
+  const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(pm,getCfg(pm));bindPlanner()}live3D(pm)});
 function roomsGroup(m,cfg){
   const own=!!(cfg.rooms&&cfg.rooms.length),rooms=own?cfg.rooms:defaultRooms(m),b=roomBox(m),
     auto=basePartsOf({plan:planOf(m,{rooms})}),fit=roomsArea(rooms)<=b.w*b.d+.01;
   return `<div class="cg"><div class="cg-h"><h3>Планировка</h3><span class="num">${fmtD(b.w)} × ${fmtD(b.d)} м под комнаты · ${roomsArea(rooms)} м²</span></div>
+  ${m.plan2||m.upperFloor?`<div class="tabs floor-tabs"><button type="button" class="pill ${m.upperFloor?'':'on'}" data-planfloor="1">1 этаж</button><button type="button" class="pill ${m.upperFloor?'on':''}" data-planfloor="2">2 этаж · ${fmtD(m.upperFloor?m.w:m.upper.w)}×${fmtD(m.d)} м</button></div>`:''}
   <div class="tabs"><button type="button" class="pill ${own?'':'on'}" data-plansrc="project">Проектная</button><button type="button" class="pill ${own?'on':''}" data-plansrc="own">Своя планировка</button></div>
   ${own?`${plannerSVG(m,cfg)}
     <small class="note" style="margin-top:8px">Перетаскивайте комнаты мышью, тяните за уголок — меняется размер. Входную дверь можно увести внутрь дома — она встанет на перегородку как межкомнатная, а её можно вытащить обратно на улицу. Окна и двери тащите вдоль стены или на другую стену — они «прилипают» к ближайшей. Шаг сетки 0,5 м, привязка 10 см.</small>
@@ -2902,10 +2919,10 @@ function estimateHTML(m){const cfg=getCfg(m),e=computeCalc(m,cfg);
   <button class="btn lamp" data-add="${m.id}" style="justify-content:center">Добавить в корзину</button>
   <button class="link" data-reset="${m.id}" style="justify-self:center">Сбросить настройки</button>
   <p class="note">Сборка на участке входит в стоимость · гарантия 3 года. Предварительный расчёт: точная смета — после выезда инженера на участок, цена фиксируется в договоре.</p>`}
-function refreshCalc(m,groups){
+function refreshCalc(m,groups){if(m&&m.upperFloor)m=byId(m.id.replace('#2',''));const pm=planModel(m);
   if(groups){const g=document.getElementById('calcGroups');if(g)g.innerHTML=calcGroups(m);
-    const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(m,getCfg(m));bindPlanner()}}
-  const cfg0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:cfg0.facade,roof:cfg0.roof,wins:winsOf(m,cfg0),terrace:cfg0.terrace,plan:planOf(m,cfg0),mdl:m,ver:m.ver,idoors:idoorsOf(m,cfg0),parts:partsOf(m,cfg0),winSides:m.winSides,roofShape:m.roofShape,openings:openingsOf(m,cfg0)});
+    const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(pm,getCfg(pm));bindPlanner()}}
+  live3D(pm);
   const es=document.getElementById('estimate');if(es)es.innerHTML=estimateHTML(m);
   const e=computeCalc(m,getCfg(m));const tp=document.getElementById('topPrice');if(tp)tp.textContent=rub(e.total);
   const tl=document.getElementById('topPkg');if(tl)tl.textContent=PKGS.find(p=>p.id===getCfg(m).pkg).name+' · '+rub(e.total/m.area)+' за м²';
@@ -3087,7 +3104,7 @@ function customView(){
   <section class="wrap" id="pkgTable" style="border-top:1px solid var(--line)">${pkgTableHTML()}</section>`;
 }
 function modelView(id){
-  const m=byId(id);if(!m)return notFound();
+  const m=byId(id);if(!m)return notFound();if(nativeOf(m)!==planHouse){planFloor=1;planHouse=nativeOf(m)}
   const i=MODELS.findIndex(x=>x.id===nativeOf(m)),prev=MODELS[i-1],next=MODELS[i+1];
   const on=favs.includes(nativeOf(m));const cfg=getCfg(m);const est=computeCalc(m,cfg);const sz='@'+m.size,own=!!m.native&&!SIZES.some(s=>s.id===m.size),szOf=x=>(sizeOK(x,m.size)||(own&&ownOK(x,parseSize(m.size))))?sz:'';
   return `<div class="wrap">
@@ -3119,7 +3136,7 @@ function modelView(id){
   <section class="wrap" id="planning" style="border-top:1px solid var(--line)">
     <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Планировка</span><h2 style="max-width:18ch">Схема и 3D</h2></div>
       <p>Слева рисуете: комнаты, окна, входные и межкомнатные двери. Справа тот же дом в объёме — его можно только вращать, он меняется вместе со схемой.</p></div>
-    <div class="plan-split"><div id="planEditor">${roomsGroup(m,getCfg(m))}</div><div class="plan-3d">${vizBlock()}</div></div>
+    <div class="plan-split"><div id="planEditor">${roomsGroup(planModel(m),getCfg(planModel(m)))}</div><div class="plan-3d">${vizBlock()}</div></div>
   </section>
   <section class="wrap" id="pkgTable" style="border-top:1px solid var(--line)">${pkgTableHTML()}</section>
   <section class="wrap" style="border-top:1px solid var(--line)"><div class="plan-sec">
@@ -3130,7 +3147,7 @@ function modelView(id){
   </div>${m.plan2?`<div class="plan-sec" style="margin-top:34px">
     <div style="display:grid;gap:18px"><span class="label">Второй этаж</span><h2 style="font-size:clamp(26px,3vw,40px)">План второго этажа</h2>
       <p style="color:var(--muted);max-width:44ch">Над центральным объёмом ${fmtD(m.upper.w)}×${fmtD(m.d)} м — ${fmtD(Math.round(m.upper.w*m.d*10)/10)} м². ${m.ceil||''}</p></div>
-    <div class="plan">${planSVG({...m,w:m.upper.w,plan:m.plan2,ver:null,porch:null,upperFloor:1})}</div></div>`:''}</section>
+    <div class="plan">${planSVG({...m,w:m.upper.w,plan:planOf(upperModel(m),getCfg(upperModel(m))),ver:null,porch:null,upperFloor:1})}</div></div>`:''}</section>
   <section class="wrap" style="border:0"><div class="sec-head"><h2>${modelsIn(m.size).length>=MODELS.length?`Другие дома ${fmtD(m.w)}×${fmtD(m.d)}`:'Другие проекты'}</h2><a class="btn" href="#/catalog${modelsIn(m.size).length>1?'/'+m.size:''}">${modelsIn(m.size).length>1?`Все дома ${fmtD(m.w)}×${fmtD(m.d)}`:'Весь каталог'}</a></div>
     <div class="grid">${MODELS.filter(x=>x.id!==nativeOf(m)).slice(Math.max(0,Math.min(i-2,MODELS.length-5)),Math.max(0,Math.min(i-2,MODELS.length-5))+4).map(x=>card(x,sizeOK(x,m.size)?m.size:null)).join('')}</div></section>`;
 }
@@ -3623,7 +3640,7 @@ function cartView(){
     <div style="display:grid;gap:4px"><h3>${l.m.name} <span class="num" style="color:var(--muted);font-weight:400">${fmtD(+l.m.w||l.m.w)}×${fmtD(+l.m.d||l.m.d)}</span></h3><p>${itemDesc(l)}</p>
       <details class="spec-det"><summary>Полное описание и планировка</summary>
         <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-        ${!l.custom&&!l.module&&l.cfg&&l.cfg.rooms?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(l.id),l.cfg)}</div>`:''}</details>
+        ${!l.custom&&!l.module&&l.cfg&&(l.cfg.rooms||(l.cfg.floor2&&l.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(l.id),l.cfg)}</div>${l.cfg.floor2&&l.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(l.id)),l.cfg.floor2)}</div>`:''}`:''}</details>
       ${refsBlock(l,i)}
       <a class="link" href="${l.module?'#/modules/'+l.cfg.size:l.custom?'#/custom':'#/house/'+l.m.id}" style="justify-self:start">${l.module?'Открыть конструктор модулей':l.custom?'Открыть калькулятор':'Открыть модель'}</a></div>
     <div class="r"><b class="num" style="font-size:18px">${rub(itemTotal(l))}</b><button class="link" data-remove="${i}">Удалить</button></div></div>`).join('')}</div>
@@ -3796,7 +3813,7 @@ function accountView(tab){
         return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
         ${refsView(it)}<details class="spec-det"><summary>Спецификация и планировка</summary>
           <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-          ${!it.custom&&!it.module&&it.cfg&&it.cfg.rooms?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details></div>`}).join('')}</div>
+          ${!it.custom&&!it.module&&it.cfg&&(it.cfg.rooms||(it.cfg.floor2&&it.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>${it.cfg.floor2&&it.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(it.id)),it.cfg.floor2)}</div>`:''}`:''}</details></div>`}).join('')}</div>
       ${promoLine(o)}${docsBlock(o.no,'client')}
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
@@ -4429,7 +4446,7 @@ function adminView(){
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
             return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
               <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-              ${!it.custom&&!it.module&&it.cfg?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}</details>`}).join('')}
+              ${!it.custom&&!it.module&&it.cfg?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>${it.cfg.floor2&&it.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(it.id)),it.cfg.floor2)}</div>`:''}`:''}</details>`}).join('')}
           ${docsBlock(o.no,'manager')}
         </div>`).join('')}</div>`}).join(''):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Оформите заказ из корзины — он появится здесь.</p></div>`}</div></div>`}
 
@@ -4478,7 +4495,7 @@ function paint(){
   document.querySelectorAll('.reveal').forEach(el=>{const r=el.getBoundingClientRect();if(r.top>innerHeight*1.12)io.observe(el)});
   document.querySelectorAll('input[type=range]').forEach(r=>r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%'));
   if((document.getElementById('viz3d')||document.getElementById('plan3d'))&&location.hash.indexOf('#/modules')===0)live3D(moduleModel(modState));
-  else if(document.getElementById('viz3d')||document.getElementById('plan3d')){const mm=byId((location.hash.split('/')[2]||''));
+  else if(document.getElementById('viz3d')||document.getElementById('plan3d')){const mm=planModel(byId((location.hash.split('/')[2]||'')));
     if(mm){const c0=getCfg(mm);mount3D({w:mm.w,d:mm.d,floors:mm.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(mm,c0),terrace:c0.terrace,plan:planOf(mm,c0),mdl:mm,ver:mm.ver,idoors:idoorsOf(mm,c0),parts:partsOf(mm,c0),winSides:mm.winSides,roofShape:mm.roofShape,openings:openingsOf(mm,c0)})}
     else mount3D(customViz())}
   bindPlanner();
@@ -4655,7 +4672,9 @@ document.addEventListener('click',e=>{
   const rs=e.target.closest('[data-reset]');if(rs){const m=byId(rs.dataset.reset);calcState[m.id]=defaultCfg(m);refreshAny(m,true);toast('Настройки сброшены');return}
   const j=e.target.closest('[data-jump]');if(j){e.preventDefault();document.getElementById(j.dataset.jump)?.scrollIntoView({behavior:'smooth'});return}
   if(e.target.closest('[data-contact]')){openContact();return}
-  const a=e.target.closest('[data-add]');if(a){const m=byId(a.dataset.add),cfg=JSON.parse(JSON.stringify(getCfg(m))),key=JSON.stringify(cfg);
+  const a=e.target.closest('[data-add]');if(a){const m=byId(a.dataset.add),cfg=JSON.parse(JSON.stringify(getCfg(m)));
+    if(m.plan2){let c2=null;try{c2=calcState[m.id+'#2']}catch(ex){}if(c2)cfg.floor2=JSON.parse(JSON.stringify({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}}))}
+    const key=JSON.stringify(cfg);
     if(cart.some(c=>c.id===m.id&&JSON.stringify(itemCfg(c))===key)){location.hash='#/cart';return}
     cart.push({id:m.id,cfg,total:computeCalc(m,cfg).total});saveCart();toast(`«${m.name}» с вашей сметой добавлен в корзину`);return}
   const r=e.target.closest('[data-remove]');if(r){cart.splice(+r.dataset.remove,1);saveCart();render();return}

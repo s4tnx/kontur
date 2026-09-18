@@ -529,6 +529,11 @@ footer{padding:50px 0 34px}
 .info h1{font-size:clamp(40px,5vw,70px);line-height:.95;font-weight:800;letter-spacing:-.03em}
 .info h1 small{display:block;font-family:var(--mono);font-weight:400;font-size:14px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
 .size-switch{display:flex;gap:6px;flex-wrap:wrap}
+.pl-deck rect:first-of-type{fill:rgba(242,180,92,.13);stroke:rgba(242,180,92,.75);stroke-width:1.5;stroke-dasharray:6 4;cursor:grab}
+.pl-deck:hover rect:first-of-type{fill:rgba(242,180,92,.24)}
+.pl-deck .pl-h{fill:var(--lamp);cursor:nwse-resize}
+.pl-deck text{pointer-events:none}
+.pl-niche rect{cursor:grab}.pl-niche:hover rect{fill:rgba(242,180,92,.2)}.pl-niche text{pointer-events:none}
 .pl-porch rect{fill:rgba(79,163,196,.14);stroke:#4FA3C4;stroke-width:1.5;stroke-dasharray:5 3;cursor:grab}
 .pl-porch:hover rect{fill:rgba(79,163,196,.28)}
 .pl-porch text{fill:#8FCBE2;pointer-events:none}
@@ -1155,8 +1160,20 @@ const roomBox=(m)=>{if(isL(m))return{w:+(m.w-m.ver.a).toFixed(2),d:+(m.d-m.ver.b
 const PORCH_RATE=14500,PORCH_WALLS=['спереди','справа','слева','сзади'];
 const porchOf=(m,cfg)=>{if(cfg&&cfg.porch===false)return null;const p=(cfg&&cfg.porch)||(m&&m.porch);return p?{...p}:null};
 const porchA=p=>p?Math.round(p.w*p.d*100)/100:0;
+/* пристроенная терраса {wall,f,w,d}: площадь = cfg.terrace; двигается и растягивается на схеме */
+function deckOf(m,cfg){if(!cfg||!(cfg.terrace>0)||(m&&m.module))return null;
+  if(cfg.deck){const d=cfg.deck,A=d.w*d.d;if(Math.abs(A-cfg.terrace)<.05)return{...d};
+    const s=Math.sqrt(cfg.terrace/A);return{...d,w:+(d.w*s).toFixed(2),d:+Math.max(1,d.d*s).toFixed(2)}}
+  const A=cfg.terrace,td=Math.min(3,Math.max(1.5,A/m.w)),tw=Math.min(m.w,A/td);return{wall:0,f:.5,w:+tw.toFixed(2),d:+td.toFixed(2)}}
+/* встроенную террасу переносим на другое место — площадь та же */
+function setVerPos(pos){const m=curModel();if(!m||m.module||m.id==='custom')return;const cfg=getCfg(m),raw=byIdRaw(m.id);
+  if(!raw||!raw.ver||!raw.ver.inset||isL(raw))return;
+  const old=effModel(raw,cfg);cfg.verPos=pos===raw.ver.pos?null:pos;const nw=effModel(raw,cfg);
+  if(cfg.rooms&&cfg.rooms.length)cfg.rooms=defaultRooms({...nw,plan:fitRoomsBox(nw,planOf(old,cfg))});
+  cfg.openings=null;cfg.idoors=null;refreshAny(curModel(),true);toast('Терраса перенесена')}
 /* вход по умолчанию — в середину выреза террасы на фасаде */
 const doorAim=(m,wall,len)=>{const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;return wall===0&&N&&!N.side?(N.nl+N.nr)/2:len*.22};
+const deckCorner=(pr,wall)=>wall===3?[pr.x+pr.w,pr.y]:wall===2?[pr.x,pr.y+pr.h]:[pr.x+pr.w,pr.y+pr.h];
 function porchRect(m,p){const b=roomBox(m),len=p.wall===0||p.wall===3?b.w:b.d,lim=Math.max(0,len/2-p.w/2),u=Math.max(-lim,Math.min(lim,(p.f-.5)*len));
   if(p.wall===0)return{x:b.w/2+u-p.w/2,y:b.d,w:p.w,h:p.d};
   if(p.wall===3)return{x:b.w/2-u-p.w/2,y:-p.d,w:p.w,h:p.d};
@@ -1203,9 +1220,7 @@ function porchGroups(m,cfg){const raw=byIdRaw(m.id)||m,pc=porchOf(raw,cfg),inc=p
   return o}
 document.addEventListener('click',e=>{const tg=e.target.closest&&e.target.closest('[data-verpos],[data-porchwall],[data-porchoff],[data-porchadd]');if(!tg)return;
   const m=curModel();if(!m||m.module||m.id==='custom')return;const cfg=getCfg(m),raw=byIdRaw(m.id);if(!raw)return;
-  if(tg.dataset.verpos){const old=effModel(raw,cfg),pos=tg.dataset.verpos;cfg.verPos=pos===raw.ver.pos?null:pos;const nw=effModel(raw,cfg);
-    if(cfg.rooms&&cfg.rooms.length)cfg.rooms=defaultRooms({...nw,plan:fitRoomsBox(nw,planOf(old,cfg))});
-    cfg.openings=null;cfg.idoors=null;refreshAny(curModel(),true);toast('Терраса перенесена');return}
+  if(tg.dataset.verpos){setVerPos(tg.dataset.verpos);return}
   if(tg.dataset.porchwall!=null){const pc=porchOf(raw,cfg);if(pc)cfg.porch={...pc,wall:+tg.dataset.porchwall,f:.5}}
   else if(tg.hasAttribute('data-porchoff')){cfg.porch=false;toast('Крыльцо убрано')}
   else{const ops=cfg.openings||autoOpenings(m,cfg),dw=ops.find(o=>o.t==='door'),len=dw?wallLen(m,dw.wall):1;
@@ -1934,13 +1949,18 @@ function p3Build(o){
       const dk=p3Box(pr.w,.12,pr.h,'#A07A52');dk.position.set(x+pr.w/2,-.06,z+pr.h/2);g.add(dk);
       const lab=p3Label('Крыльцо',`${fmtD(pc.w)}×${fmtD(pc.d)} м`,{scale:.0032,pri:3});lab.position.set(x+pr.w/2,.6,z+pr.h/2);g.add(lab)}}
   /* пристроенная терраса (ползунок «Пристроить террасу») — перед фасадом */
-  if(o.terrace>0&&!m.module){const A=o.terrace,td=Math.min(3,Math.max(1.5,A/m.w)),tw=Math.min(m.w,A/td),zf=m.d/2;
-    const dk=p3Box(tw,.1,td,'#A07A52');dk.position.set(0,-.05,zf+td/2);g.add(dk);
-    const n=Math.max(2,Math.round(tw/1.2)),rc='#7A5A3C';
-    for(let i=0;i<=n;i++){const pp=p3Box(.07,.95,.07,rc);pp.position.set(-tw/2+tw*i/n,.47,zf+td);g.add(pp)}
-    [[-tw/2],[tw/2]].forEach(([x])=>{const pp=p3Box(.07,.95,.07,rc);pp.position.set(x,.47,zf+td/2);g.add(pp)});
-    const top=p3Box(tw,.06,.07,rc);top.position.set(0,.95,zf+td);g.add(top);
-    const lab=p3Label('Терраса',`${String(A).replace('.',',')} м² · пристроенная`,{scale:.0034,pri:3});lab.position.set(0,.9,zf+td/2);g.add(lab)}
+  {let cs=null;try{cs=calcState[m.id]}catch(e){}const dd=o.terrace>0&&!m.module?deckOf(m,{...(cs||{}),terrace:o.terrace}):null;
+    if(dd){const pr=porchRect(m,dd),x0=r0.x0+pr.x,z0=r0.z0+pr.y,rc='#7A5A3C';
+      const dkb=p3Box(pr.w,.1,pr.h,'#A07A52');dkb.position.set(x0+pr.w/2,-.05,z0+pr.h/2);g.add(dkb);
+      /* перила по трём внешним сторонам */
+      const edges=dd.wall===0?[[x0,z0+pr.h,x0+pr.w,z0+pr.h],[x0,z0,x0,z0+pr.h],[x0+pr.w,z0,x0+pr.w,z0+pr.h]]
+        :dd.wall===3?[[x0,z0,x0+pr.w,z0],[x0,z0,x0,z0+pr.h],[x0+pr.w,z0,x0+pr.w,z0+pr.h]]
+        :dd.wall===1?[[x0+pr.w,z0,x0+pr.w,z0+pr.h],[x0,z0,x0+pr.w,z0],[x0,z0+pr.h,x0+pr.w,z0+pr.h]]
+        :[[x0,z0,x0,z0+pr.h],[x0,z0,x0+pr.w,z0],[x0,z0+pr.h,x0+pr.w,z0+pr.h]];
+      edges.forEach(([x1,z1,x2,z2])=>{const L=Math.hypot(x2-x1,z2-z1),n=Math.max(1,Math.round(L/1.2));
+        for(let i=0;i<=n;i++){const pp=p3Box(.07,.95,.07,rc);pp.position.set(x1+(x2-x1)*i/n,.47,z1+(z2-z1)*i/n);g.add(pp)}
+        const top=p3Box(Math.max(.07,Math.abs(x2-x1)),.06,Math.max(.07,Math.abs(z2-z1)),rc);top.position.set((x1+x2)/2,.95,(z1+z2)/2);g.add(top)});
+      const lab=p3Label('Терраса',`${fmtD(Math.round(pr.w*pr.h*10)/10)} м² · пристроенная`,{scale:.0034,pri:3});lab.position.set(x0+pr.w/2,.9,z0+pr.h/2);g.add(lab)}}
   /* комнаты: подсветка пола и подписи */
   const tints=['#E9C98F','#A9CBB7','#B7C3E0','#E3B3A6','#CDBBE0','#D9D59C','#9FD0D6'];
   const rooms=o.plan||[];
@@ -2519,8 +2539,8 @@ const partsOf=(m,cfg)=>{const auto=cfg&&cfg.rooms&&cfg.rooms.length?basePartsOf(
 const partsDelta=(m,cfg)=>{const b=basePartsOf(m),c=partsOf(m,cfg);
   return PARTS.reduce((s,p)=>s+((c[p[0]]||0)-(b[p[0]]||0))*p[3],0)};
 const EXTRAS=[
- ['floor','Водяной тёплый пол',m=>livingA(m)*2600],['septic','Септик на 4–6 человек',()=>189000],['well','Скважина до 60 м',()=>235000],
- ['stove','Печь-камин с дымоходом',()=>165000],['kupel','Купель у бани, кедр Ø1,2 м',()=>145000],['solar','Солнечные панели 5 кВт',()=>390000],['smart','Умный дом: свет, отопление, датчики',()=>120000],
+ ['floor','Водяной тёплый пол',m=>livingA(m)*7800],['septic','Септик на 4–6 человек',()=>283500],['well','Скважина до 60 м',()=>235000],
+ ['stove','Печь-камин с дымоходом',()=>214500],['kupel','Купель у бани, кедр Ø1,2 м',()=>145000],['solar','Солнечные панели 5 кВт',()=>390000],['smart','Умный дом: свет, отопление, датчики',()=>180000],
 ];
 const defFound=m=>'blocks';
 const defaultCfg=(m,pkg='cold')=>({pkg,found:'blocks',facade:(m&&m.facade)||'imit',roof:'prof',win:'pvc',ins:'100',bath:'none',edoorT:'metal',floorT:'base',wins:{},parts:{},terrace:0,km:50,extras:[]});
@@ -2549,7 +2569,7 @@ function computeCalc(m,cfg){
   if(cfg.terrace)lines.push([`Терраса ${cfg.terrace} м²`,cfg.terrace*14500]);
   {const r=byIdRaw(m.id)||m,pc=porchOf(r,cfg),dA=porchA(pc)-porchA(r.porch);
     if(Math.abs(dA)>.01)lines.push([pc?(r.porch?`Крыльцо ${fmtD(pc.w)}×${fmtD(pc.d)} м вместо ${fmtD(r.porch.w)}×${fmtD(r.porch.d)}`:`Крыльцо ${fmtD(pc.w)}×${fmtD(pc.d)} м`):'Без крыльца',dA*PORCH_RATE])}
-  EXTRAS.forEach(e=>{if(cfg.extras.includes(e[0]))lines.push([e[1],e[0]==='floor'&&cfg.found==='ushp'?livingA(m)*1400:e[2](m)])});
+  EXTRAS.forEach(e=>{if(cfg.extras.includes(e[0]))lines.push([e[1],e[0]==='floor'&&cfg.found==='ushp'?livingA(m)*4200:e[2](m)])});
   lines.push([`Доставка ${cfg.km} км × ${DELIVERY_RATE} ₽${cfg.addr?` · ${String(cfg.addr).split(',')[0]}`:''}`,cfg.km*DELIVERY_RATE]);
   const total=lines.reduce((s,l)=>s+l[1],0);
   const days=Math.min(14,m.days+(cfg.pkg==='draft'?3:cfg.pkg==='key'?6:cfg.pkg==='cold'?-1:0)+(cfg.found==='ushp'?3:cfg.found!=='blocks'?1:0)+(cfg.terrace?1:0));
@@ -2598,9 +2618,9 @@ const snap=v=>Math.round(v/PLAN_SNAP)*PLAN_SNAP;
 function plannerSVG(m,cfg){
   const b=roomBox(m),rooms=cfg.rooms||[],pc=porchOf(m,cfg);
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
-  const ta=!m.module&&cfg.terrace>0?cfg.terrace:0,tdp=ta?Math.min(3,Math.max(1.5,ta/m.w)):0,twd=ta?Math.min(m.w,ta/tdp):0;
-  const LL=isL(m),exL=N&&N.side&&!N.right?N.vw:0,exR=LL?m.ver.a:N&&N.side&&N.right?N.vw:0,exB=tdp,exT=LL?m.ver.b:0;
-  const k=Math.min(470/(b.w+exL+exR+(pc?pc.d*2:0)),380/(b.d+exB+exT+(pc?pc.d*2:0))),PW=b.w*k,PD=b.d*k,pad=46+(pc?pc.d*k:0);
+  const dk=deckOf(m,cfg),ext=Math.max(pc?pc.d:0,dk?dk.d:0);
+  const LL=isL(m),exL=N&&N.side&&!N.right?N.vw:0,exR=LL?m.ver.a:N&&N.side&&N.right?N.vw:0,exB=0,exT=LL?m.ver.b:0;
+  const k=Math.min(470/(b.w+exL+exR+ext*2),380/(b.d+exB+exT+ext*2)),PW=b.w*k,PD=b.d*k,pad=46+ext*k;
   const offx=exL*k,offy=exT*k,W=(b.w+exL+exR)*k+pad*2,H=(b.d+exB+exT)*k+pad*2;
   let o=`<svg viewBox="0 0 ${W} ${H}" class="pl-svg" data-k="${k}" data-pad="${pad}" data-offx="${offx}" data-offy="${offy}" role="img" aria-label="Редактор планировки"><g transform="translate(${offx},${offy})">`;
   if(LL){o+=`<path d="${lTerrPath(m,k,pad,pad)}" fill="rgba(242,180,92,.09)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
@@ -2611,11 +2631,12 @@ function plannerSVG(m,cfg){
   /* терраса — за пределами рабочего пятна */
   if(N){const tw=N.vw*k,td=N.side?PD:N.vd*k;
     const tx=N.side?(N.right?pad+PW:pad-tw):pad+(N.nl+m.w/2)*k,ty=N.side?pad:pad+PD-td;
-    o+=`<rect x="${tx}" y="${ty}" width="${tw}" height="${td}" fill="rgba(242,180,92,.09)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
-      <text x="${tx+tw/2}" y="${ty+td/2}" text-anchor="middle" class="pl-t">Терраса</text>`}
-  if(ta){const tx=pad+(m.w/2-b.ox-twd/2)*k,ty=pad+(m.d-b.oy)*k;
-    o+=`<rect x="${tx}" y="${ty}" width="${twd*k}" height="${tdp*k}" fill="rgba(242,180,92,.09)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
-      <text x="${tx+twd*k/2}" y="${ty+tdp*k/2+4}" text-anchor="middle" class="pl-t">Терраса ${String(ta).replace('.',',')} м² · пристроенная</text>`}
+    o+=`<g class="pl-niche" data-niche><title>Терраса в доме — перетащите на другое место: спереди слева, по центру, справа или сбоку</title><rect x="${tx}" y="${ty}" width="${tw}" height="${td}" fill="rgba(242,180,92,.09)" stroke="rgba(242,180,92,.5)" stroke-dasharray="6 4"/>
+      <text x="${tx+tw/2}" y="${ty+td/2}" text-anchor="middle" class="pl-t">Терраса</text></g>`}
+  if(dk){const pr=porchRect(m,dk),x=pad+pr.x*k,y=pad+pr.y*k,cx=x+pr.w*k/2,cy=y+pr.h*k/2,hc=deckCorner(pr,dk.wall);
+    o+=`<g class="pl-deck" data-deck><title>Пристроенная терраса — тяните вдоль любой стены, за уголок — меняйте размер</title><rect x="${x}" y="${y}" width="${pr.w*k}" height="${pr.h*k}" rx="3"/>
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" class="pl-t"${dk.wall===1||dk.wall===2?` transform="rotate(-90 ${cx} ${cy})"`:''}>Терраса ${fmtD(dk.w)}×${fmtD(dk.d)} · ${fmtD(Math.round(dk.w*dk.d*10)/10)} м²</text>
+      <rect class="pl-h" data-decksz x="${pad+hc[0]*k-7}" y="${pad+hc[1]*k-7}" width="14" height="14" rx="3"/></g>`}
   if(pc){const pr=porchRect(m,pc),cx=pad+(pr.x+pr.w/2)*k,cy=pad+(pr.y+pr.h/2)*k,vert=pc.wall===1||pc.wall===2;
     o+=`<g class="pl-porch" data-porch><title>Крыльцо — тяните вдоль любой стены</title><rect x="${pad+pr.x*k}" y="${pad+pr.y*k}" width="${pr.w*k}" height="${pr.h*k}" rx="3"/>
       <text x="${cx}" y="${cy+4}" text-anchor="middle" class="pl-t"${vert?` transform="rotate(-90 ${cx} ${cy})"`:''}>крыльцо ${fmtD(pc.w)}×${fmtD(pc.d)}</text></g>`}
@@ -2670,6 +2691,9 @@ function bindPlanner(){
     return{x:((e.clientX-r.left)*sc-pad)/k,y:((e.clientY-r.top)*sc-pad-(+svg.dataset.offy||0))/k}};
   svg.addEventListener('pointerdown',e=>{
     if(e.target.closest('[data-porch]')){drag={mode:'porch'};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
+    if(e.target.closest('[data-decksz]')){drag={mode:'decksz'};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
+    if(e.target.closest('[data-deck]')){drag={mode:'deck'};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
+    if(e.target.closest('[data-niche]')){drag={mode:'niche',p0:pt(e)};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
     const dd=e.target.closest('[data-did]');
     if(dd){if(!cfg.idoors)cfg.idoors=idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w}));
       drag={i:+dd.dataset.did,mode:'idoor'};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
@@ -2682,6 +2706,22 @@ function bindPlanner(){
     svg.setPointerCapture(e.pointerId);e.preventDefault()});
   svg.addEventListener('pointermove',e=>{
     if(!drag)return;
+    if(drag.mode==='niche'){const p=pt(e);drag.p=p;const gN=svg.querySelector('[data-niche]');
+      gN.setAttribute('transform',`translate(${(p.x-drag.p0.x)*k},${(p.y-drag.p0.y)*k})`);return}
+    if(drag.mode==='deck'||drag.mode==='decksz'){const p=pt(e),d0=deckOf(m,cfg);if(!d0)return;let d1;
+      if(drag.mode==='deck'){const dist=[[0,Math.abs(p.y-b.d)],[3,Math.abs(p.y)],[1,Math.abs(p.x-b.w)],[2,Math.abs(p.x)]].sort((a,c)=>a[1]-c[1]);
+        const wall=dist[0][0],len=wall===0||wall===3?b.w:b.d,u=wall===0?p.x-b.w/2:wall===3?b.w/2-p.x:b.d/2-p.y;
+        const w=Math.min(d0.w,len),lim=Math.max(0,len/2-w/2),uu=Math.max(-lim,Math.min(lim,snap(u)));d1={...d0,wall,w,f:+(uu/len+.5).toFixed(3)}}
+      else{const pr0=porchRect(m,d0),wl=d0.wall,len=wl===0||wl===3?b.w:b.d,r5=v=>Math.round(v*2)/2;
+        const along=wl===0||wl===3?2*Math.abs(p.x-(pr0.x+pr0.w/2)):2*Math.abs(p.y-(pr0.y+pr0.h/2));
+        const out=wl===0?p.y-b.d:wl===3?-p.y:wl===1?p.x-b.w:-p.x;
+        d1={...d0,w:Math.max(1.5,Math.min(len,r5(along))),d:Math.max(1,Math.min(4,r5(out)))}}
+      cfg.deck=d1;cfg.terrace=Math.round(d1.w*d1.d*10)/10;
+      const pr=porchRect(m,d1),P0=+svg.dataset.pad,gD=svg.querySelector('[data-deck]'),rr=gD.querySelector('rect'),tt=gD.querySelector('text'),hh=gD.querySelector('[data-decksz]'),hc=deckCorner(pr,d1.wall);
+      rr.setAttribute('x',P0+pr.x*k);rr.setAttribute('y',P0+pr.y*k);rr.setAttribute('width',pr.w*k);rr.setAttribute('height',pr.h*k);
+      {const tcx=P0+(pr.x+pr.w/2)*k,tcy=P0+(pr.y+pr.h/2)*k;tt.setAttribute('x',tcx);tt.setAttribute('y',tcy+4);if(d1.wall===1||d1.wall===2)tt.setAttribute('transform',`rotate(-90 ${tcx} ${tcy})`);else tt.removeAttribute('transform')}tt.textContent=`Терраса ${fmtD(d1.w)}×${fmtD(d1.d)} · ${fmtD(cfg.terrace)} м²`;
+      hh.setAttribute('x',P0+hc[0]*k-7);hh.setAttribute('y',P0+hc[1]*k-7);
+      const tv=document.getElementById('tv');if(tv)tv.textContent=fmtD(cfg.terrace)+' м²';live3D(m);return}
     if(drag.mode==='porch'){const p=pt(e),pc0=porchOf(m,cfg);if(!pc0)return;
       const dist=[[0,Math.abs(p.y-b.d)],[3,Math.abs(p.y)],[1,Math.abs(p.x-b.w)],[2,Math.abs(p.x)]].sort((a,c)=>a[1]-c[1]);
       const wall=dist[0][0],len=wall===0||wall===3?b.w:b.d,u=wall===0?p.x-b.w/2:wall===3?b.w/2-p.x:b.d/2-p.y;
@@ -2760,7 +2800,11 @@ function bindPlanner(){
     hh.setAttribute('x',x+rw-11);hh.setAttribute('y',y+rd-11);live3D(m)});
   /* дверь можно поставить и внутри дома: у перегородки она становится внутренней, у наружной стены — входной */
   const up=()=>{if(!drag)return;
-    if(drag.mode==='porch'){drag=null;refreshAny(curModel(),true);return}
+    if(drag.mode==='porch'||drag.mode==='deck'||drag.mode==='decksz'){drag=null;refreshAny(curModel(),true);return}
+    if(drag.mode==='niche'){const p=drag.p;drag=null;if(!p||m.module||m.id==='custom'){refreshAny(curModel(),true);if(p&&m.id==='custom')toast('Место веранды своего проекта задаётся планировкой-основой');return}
+      const fx=p.x+b.ox,fy=p.y+b.oy;
+      const pos=fy>m.d*.55?(fx<m.w/3?'front-left':fx>m.w*2/3?'front-right':'front'):(fx<m.w/2?'side-left':'side-right');
+      setVerPos(pos);return}
     const p=drag.p,b2=roomBox(m);
     if(drag.mode==='open'&&cfg.openings&&cfg.openings[drag.i]&&cfg.openings[drag.i].t==='door'&&p){
       const s=drag.inner||snapDoor(innerEdgesBox(m,cfg),p.x,p.y);
@@ -2897,7 +2941,7 @@ const cBaseWinCost=c=>{const b=cWinsBase(c);return WIN_TYPES.reduce((s,w)=>s+(b[
 function cOptDelta(c,key,id){const m=cMdl(c);id=id||cSel(c,key);
   if(key==='win')return cBaseWinCost(c)*(winK[id]/winK[cDef.win(c)]-1);
   const g=cGrp(key),it=g.items.find(i=>i.id===id),df=g.items.find(i=>i.id===cDef[key](c));return it.abs(m)-df.abs(m)}
-const cExtraCost=(c,e)=>e[0]==='floor'&&c.pile==='ushp'?livingA(cMdl(c))*1400:e[2](cMdl(c));
+const cExtraCost=(c,e)=>e[0]==='floor'&&c.pile==='ushp'?livingA(cMdl(c))*4200:e[2](cMdl(c));
 const signed=v=>Math.round(v)?(v>0?'+ ':'− ')+rub(Math.abs(v)):'включено';
 const customState={planBase:null,parts:{},w:6,d:8,floors:'1',veranda:12,contour:'warm',ins:'100',pile:'blocks',wins:{},opts:[],walls:0,doors:0,bath:'none',km:50,
   facade:'imit',roof:null,win:null,edoorT:'metal',extras:[]};
@@ -4637,7 +4681,7 @@ document.addEventListener('input',e=>{
   if(cc){const id=cc.dataset.cchk;customState.opts=cc.checked?[...new Set([...customState.opts,id])]:customState.opts.filter(v=>v!==id);refreshCustom(false);return}
   const m=byId((location.hash.split('/')[2])||'');if(!m)return;const cfg=getCfg(m);
   const r=e.target.closest('[data-range]');
-  if(r){cfg[r.dataset.range]=+r.value;const lab=document.getElementById(r.dataset.range==='km'?'kv':'tv');if(lab)lab.textContent=r.value+(r.dataset.range==='km'?' км':' м²');refreshCalc(m,false);
+  if(r){cfg[r.dataset.range]=+r.value;if(r.dataset.range==='terrace'&&!(+r.value))cfg.deck=null;const lab=document.getElementById(r.dataset.range==='km'?'kv':'tv');if(lab)lab.textContent=r.value+(r.dataset.range==='km'?' км':' м²');refreshCalc(m,false);
     if(r.dataset.range==='terrace'){const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(curModel(),cfg);bindPlanner()}}return}
   const x=e.target.closest('[data-extra]');
   if(x){const id=x.dataset.extra;cfg.extras=x.checked?[...new Set([...cfg.extras,id])]:cfg.extras.filter(v=>v!==id);refreshCalc(m,false)}

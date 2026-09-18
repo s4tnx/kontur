@@ -570,6 +570,12 @@ footer{padding:50px 0 34px}
 .own-size i,.own-size em{font-style:normal;color:var(--muted);font-size:13px}
 .own-size .btn{height:38px;padding:0 16px}
 .refs{display:grid;gap:8px;margin-top:6px}
+.line-pic{position:relative;display:block;width:150px;height:110px;border-radius:12px;overflow:hidden;cursor:pointer;outline:1px dashed transparent;transition:outline-color .2s}
+.line-pic:hover{outline-color:var(--lamp)}
+.line-pic img,.line-pic canvas{width:100%!important;height:100%!important;object-fit:cover;display:block;border-radius:0!important}
+.pic-add{position:absolute;left:6px;right:6px;bottom:6px;background:rgba(12,13,14,.78);color:#fff;font-size:11px;line-height:1.25;padding:5px 6px;border-radius:8px;text-align:center}
+.line-pic:hover .pic-add{background:var(--lamp);color:#1a120a}
+@media (max-width:860px){.line-pic{width:100px;height:80px}.pic-add{font-size:10px;padding:4px}}
 .ref-list{display:flex;flex-wrap:wrap;gap:8px}
 .ref-list figure{position:relative;margin:0}
 .ref-list button[data-refview]{padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:block;cursor:zoom-in}
@@ -2849,12 +2855,12 @@ const CUSTOM_OPTS=[
 /* своему проекту — те же фасад, кровля, окна, дверь и допы, что и у домов каталога */
 const cMdl=c=>({w:c.w,d:c.d,floors:c.floors==='2'?2:c.floors==='1.5'?1.5:1,ver:cVer(c),plan:cPlan(c),wins:cWinsBase(c)});
 const cGrp=key=>CALC.find(g=>g.key===key);
-const cDef={facade:()=>'imit',roof:c=>c.contour==='prem'?'metal':'prof',win:c=>['draft','key','prem'].includes(c.contour)?'pvc':'pvc1',edoorT:()=>'metal'};
+const cDef={facade:()=>'imit',roof:c=>c.contour==='prem'?'metal':'prof',win:()=>'pvc',edoorT:()=>'metal'};
 /* комплектации — как у домов каталога: холодный, тёплый, под чистовую, под ключ */
 const cPkgOf=c=>c.contour==='prem'?'key':PKGS.some(p=>p.id===c.contour)?c.contour:'warm';
-const cPkgPrice=(c,id)=>{const S=cTotal(c),C=CONTOURS[0],W=CONTOURS[1];
-  if(id==='cold')return (C.fix+C.rate*S)*MARKUP;
-  return (W.fix+W.rate*S)*MARKUP*PKGS.find(p=>p.id===id).k/PKGS[1].k};
+/* полная цена «под ключ» — как у домов каталога: ставка за м² дома по площади + терраса; комплектация — доля от неё */
+const cFullPrice=c=>{const L=cArea(c);return Math.round((rateFor(L)*L+cVerA(c)*TERR_BASE)/10000)*10000};
+const cPkgPrice=(c,id)=>cFullPrice(c)*PKGS.find(p=>p.id===id).k;
 const PKG_ROWS=[['Каркас 50×100, наружная обшивка, ветро-влагозащита, кровля',1],['Окна и входная дверь',1],['Черновой пол, фундамент на блоках, сборка',1],
   ['Утепление каменной ватой 100 мм: пол, стены, потолок',2],['Пароизоляция и внутренняя обшивка вагонкой',2],
   ['Электрика: щиток, кабель, розетки и выключатели',3],['Водопровод и канализация: разводка по дому',3],['Черновая отделка под покраску и плитку',3],
@@ -2884,7 +2890,8 @@ const cWallA=c=>2*(c.w+c.d)*2.7*(c.floors==='2'?2:c.floors==='1.5'?1.25:1);
 const baseIns=c=>c.contour==='prem'?'150':'100';
 const insDelta=c=>c.contour==='cold'?0:(INS.find(i=>i.id===c.ins).mm-INS.find(i=>i.id===baseIns(c)).mm)/50*INS_STEP*cWallA(c);
 const pilesCount=c=>{const st=c.floors==='1'?2.5:2;return (Math.ceil(c.w/st)+1)*(Math.ceil(c.d/st)+1)};
-const cWinK=c=>c.contour==='cold'?.8:c.contour==='prem'?1.2:1;
+/* окна — как у домов: цена по профилю, в базе двухкамерные ПВХ */
+const cWinK=c=>1;
 const cWinsBase=c=>{const S=cArea(c);return{w120150:Math.max(1,Math.round(S/28)),w120100:Math.max(1,Math.round(S/22)),w6090:1}};
 const cWins=c=>{const cc=calcState.custom;return cc&&cc.openings?winsFromOpenings(cc.openings):({...cWinsBase(c),...(c.wins||{})})};
 const cWinsDelta=c=>{const b=cWinsBase(c),cur=cWins(c),k=cWinK(c)*cWinF(c);
@@ -3499,7 +3506,7 @@ function cartView(){
   const total=lines.reduce((s,l)=>s+itemTotal(l),0);
   if(!lines.length)return `<div class="wrap"><div class="page-h"><h1>Корзина</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">В корзине пока нет домов</p><p>Выберите дом — от 6×4 до 12×10 м — или модуль от 5×2 до 6×6 м.</p><a class="btn solid" href="#/catalog">Перейти в каталог</a></div></div>`;
   return `<div class="wrap"><div class="page-h"><h1>Корзина</h1><span class="label num">${lines.length} ${plural(lines.length,['дом','дома','домов'])}</span></div>
-  <div class="cart"><div>${lines.map((l,i)=>`<div class="line">${l.module?`<div class="mod-thumb">${moduleSVG(l.cfg,true)}${modImgTag(modPhoto(l.cfg),'alt="" decoding="async"')}</div>`:byId(l.m.pic||l.m.id)&&byId(l.m.pic||l.m.id).photo?`<img src="${byId(l.m.pic||l.m.id).photo}" alt="">`:`<canvas data-scene="${l.m.pic||l.m.id}" data-fw=".7" data-fh=".62" data-stars="0"></canvas>`}
+  <div class="cart"><div>${lines.map((l,i)=>`<div class="line">${l.module?`<div class="mod-thumb">${moduleSVG(l.cfg,true)}${modImgTag(modPhoto(l.cfg),'alt="" decoding="async"')}</div>`:cartThumb(l,i)}
     <div style="display:grid;gap:4px"><h3>${l.m.name} <span class="num" style="color:var(--muted);font-weight:400">${l.m.w}×${l.m.d}</span></h3><p>${itemDesc(l)}</p>
       <details class="spec-det"><summary>Полное описание и планировка</summary>
         <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
@@ -3537,11 +3544,16 @@ document.addEventListener('submit',e=>{const f=e.target;if(!f.matches||!f.matche
 const isOwnProject=it=>!it.module&&(it.custom||(()=>{const m=byId(it.id);return !!(m&&m.native&&!SIZES.some(s=>s.id===m.size))})());
 const REF_MAX=4;
 const refsView=it=>(it.refs||[]).length?`<div class="ref-list ro">${it.refs.map(r=>`<button type="button" data-refview><img src="${r}" alt="Фото желаемого проекта"></button>`).join('')}</div>`:'';
+/* картинка позиции в корзине; у своего проекта по нажатию добавляется фото желаемого дома */
+function cartThumb(l,i){const pm=byId(l.m.pic||l.m.id),base=pm&&pm.photo?`<img src="${pm.photo}" alt="">`:`<canvas data-scene="${l.m.pic||l.m.id}" data-fw=".7" data-fh=".62" data-stars="0"></canvas>`;
+  if(!isOwnProject(l))return base;const rs=l.refs||[];
+  return `<label class="line-pic" title="Нажмите, чтобы добавить фото проекта">${rs.length?`<img src="${rs[0]}" alt="Фото желаемого проекта">`:base}
+    ${rs.length<REF_MAX?`<input type="file" accept="image/*" multiple data-refadd="${i}" hidden>`:''}<span class="pic-add">${rs.length?(rs.length<REF_MAX?`+ ещё фото · ${rs.length}/${REF_MAX}`:`фото ${rs.length}/${REF_MAX}`):'+ Добавить фото проекта'}</span></label>`}
 function refsBlock(it,i){if(!isOwnProject(it))return '';const rs=it.refs||[];
   return `<div class="refs"><span class="label">Как должен выглядеть дом</span>
     <div class="ref-list">${rs.map((r,j)=>`<figure><button type="button" data-refview><img src="${r}" alt="Фото проекта ${j+1}"></button><button type="button" class="ref-x" data-refdel="${i}|${j}" aria-label="Убрать фото">✕</button></figure>`).join('')}
       ${rs.length<REF_MAX?`<label class="ref-add"><input type="file" accept="image/*" multiple data-refadd="${i}" hidden><b>+</b><span>Фото проекта</span></label>`:''}</div>
-    <small class="note">Загрузите фото или картинку дома, который хотите, — до ${REF_MAX} штук. Они уйдут вместе с заявкой.</small></div>`}
+    <small class="note">Нажмите на картинку дома или на «+», чтобы загрузить фото желаемого проекта — до ${REF_MAX} штук. Фото уйдут менеджеру вместе с заявкой.</small></div>`}
 /* сжимаем фото до 1280 px, чтобы корзина и заявка не весили мегабайты */
 function refShrink(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const im=new Image();im.onerror=rej;
   im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);

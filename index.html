@@ -3024,7 +3024,7 @@ function customView(){
     </div>
     <small class="note">По умолчанию — свободная планировка. Схема выбранного проекта масштабируется под ваши размеры: её видно в 3D ниже — снаружи и в режиме «Планировка».</small></div>
   <section id="planning" style="border-top:1px solid var(--line);padding:40px 0 70px">
-    <div class="sec-head" style="padding-top:0"><div style="display:grid;gap:18px"><span class="label">Планировка</span><h2 style="max-width:18ch">Схема и 3D рядом</h2></div>
+    <div class="sec-head" style="padding-top:0"><div style="display:grid;gap:18px"><span class="label">Планировка</span><h2 style="max-width:18ch">Схема и 3D</h2></div>
       <p>Слева рисуете комнаты, окна и двери, справа тот же дом в объёме.</p></div>
     <div class="plan-split"><div id="planEditor">${roomsGroup(customModel(),getCfg(customModel()))}</div><div class="plan-3d">${vizBlock()}</div></div>
   </section></div>
@@ -3059,13 +3059,13 @@ function modelView(id){
   <section class="wrap" id="calc" style="border-top:1px solid var(--line)">
     <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Калькулятор</span><h2 style="max-width:18ch">Соберите свой «${m.name}» и узнайте цену</h2></div><p>Выберите фундамент, фасад, кровлю и оснащение — смета справа пересчитается сразу. Площади посчитаны для размера ${fmtD(m.w)}×${fmtD(m.d)} м.</p></div>
     <div class="calc"><div class="calc-groups" id="calcGroups">${calcGroups(m)}</div><aside class="estimate" id="estimate">${estimateHTML(m)}</aside></div>
-    <div id="pkgTable" style="padding:40px 0">${pkgTableHTML()}</div>
   </section>
   <section class="wrap" id="planning" style="border-top:1px solid var(--line)">
-    <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Планировка</span><h2 style="max-width:18ch">Схема и 3D рядом</h2></div>
+    <div class="sec-head"><div style="display:grid;gap:18px"><span class="label">Планировка</span><h2 style="max-width:18ch">Схема и 3D</h2></div>
       <p>Слева рисуете: комнаты, окна, входные и межкомнатные двери. Справа тот же дом в объёме — его можно только вращать, он меняется вместе со схемой.</p></div>
     <div class="plan-split"><div id="planEditor">${roomsGroup(m,getCfg(m))}</div><div class="plan-3d">${vizBlock()}</div></div>
   </section>
+  <section class="wrap" id="pkgTable" style="border-top:1px solid var(--line)">${pkgTableHTML()}</section>
   <section class="wrap" style="border-top:1px solid var(--line)"><div class="plan-sec">
     <div style="display:grid;gap:22px"><span class="label">Планировка</span><h2 style="font-size:clamp(28px,3.4vw,46px)">${m.floors===1?'План дома':'План первого этажа'}</h2>
       <p style="color:var(--muted);max-width:44ch">Размеры по осям в миллиметрах. Внутренние перегородки можно переставить — цена каркаса не меняется.</p>

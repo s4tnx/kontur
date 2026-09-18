@@ -222,4 +222,21 @@ if ($a === 'docdel') {
   out(['ok' => true]);
 }
 
+/* удалить заявку: сотрудник — любую, клиент — свою, пока она не дошла до договора */
+if ($a === 'orderdel') {
+  $u = need(); $b = body(); $id = (int)($b['id'] ?? 0);
+  $st = db()->prepare('SELECT * FROM orders WHERE id=?'); $st->execute([$id]);
+  $o = $st->fetch(PDO::FETCH_ASSOC);
+  if (!$o) fail('Заявка не найдена', 404);
+  if (!staff($u)) {
+    if ((int)$o['user_id'] !== (int)$u['id']) fail('Это не ваша заявка', 403);
+    if (!in_array($o['status'], ['new', 'call', 'visit'], true)) fail('Заявка уже в работе — удалить её может менеджер', 403);
+  }
+  $st = db()->prepare('SELECT path FROM docs WHERE order_id=?'); $st->execute([$id]);
+  foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $path) @unlink(UP_DIR . '/' . basename((string)$path));
+  db()->prepare('DELETE FROM docs WHERE order_id=?')->execute([$id]);
+  db()->prepare('DELETE FROM orders WHERE id=?')->execute([$id]);
+  out(['ok' => true]);
+}
+
 fail('Неизвестный запрос', 404);

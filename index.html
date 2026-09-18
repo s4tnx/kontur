@@ -191,7 +191,7 @@ p{margin:0}
 .adm-client header span{font-size:13px;color:var(--muted)}
 .adm-order{padding:14px 18px;border-bottom:1px solid var(--line);display:grid;gap:8px}
 .adm-order:last-child{border-bottom:0}
-.adm-row{display:grid;grid-template-columns:80px 100px 1fr auto 170px;gap:12px;align-items:center;font-size:14px}
+.adm-row{display:grid;grid-template-columns:80px 100px 1fr auto 170px auto;gap:12px;align-items:center;font-size:14px}
 .adm-row select{height:36px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--text);padding:0 8px}
 @media (max-width:760px){.adm-row{grid-template-columns:1fr 1fr}}
 .spec-det{margin-top:2px}
@@ -3492,7 +3492,7 @@ function accountView(tab){
       <div class="field"><label for="pn">Имя</label><input id="pn" name="name" value="${esc(user.name)}" required></div>
       <div class="field"><label for="pe">Эл. почта</label><input id="pe" value="${esc(user.email)}" disabled></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn solid" type="submit">Сохранить</button><button class="btn" type="button" id="logout">Выйти</button></div></form>`
-   :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">Заявка № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span class="status">${STAGES[o.stage]}</span></header>
+   :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">Заявка № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span style="display:flex;gap:10px;align-items:center"><span class="status">${STAGES[o.stage]}</span>${canClientDel(o)?`<button type="button" class="link" data-orderdel="${esc(o.no)}">Удалить</button>`:''}</span></header>
       <div style="display:grid;gap:10px">${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
         return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
         ${refsView(it)}<details class="spec-det"><summary>Спецификация и планировка</summary>
@@ -3982,6 +3982,29 @@ try{if(localStorage.getItem('kontur-theme')==='light')document.documentElement.s
 
 /* ---------- панель менеджера: все заявки по клиентам ---------- */
 const ORDER_ST=[['new','Новая'],['call','Связались'],['visit','Выезд инженера'],['contract','Договор'],['build','Стройка'],['done','Сдан']];
+/* клиент может удалить заявку, пока она не дошла до договора; сотрудник — любую */
+const CLIENT_DEL=['new','call','visit'];
+const canClientDel=o=>CLIENT_DEL.includes(o.status||'new');
+async function sbDeleteOrder(o){
+  if(SB.kind==='api'){await apiReq('orderdel',{json:{id:o._id}});await sbLoadOrders();return}
+  try{const {data}=await SB.c.from('docs').select('path').eq('order_id',o._id);
+    const paths=(data||[]).map(d=>d.path).filter(Boolean);if(paths.length)await SB.c.storage.from('docs').remove(paths)}catch(e){}
+  const {error}=await SB.c.from('orders').delete().eq('id',o._id);if(error)throw error;await sbLoadOrders()}
+function dropLocalDocs(no){try{localStorage.removeItem('kontur.docs.'+no)}catch(e){}}
+document.addEventListener('click',async e=>{
+  const c=e.target.closest&&e.target.closest('[data-orderdel]');
+  if(c&&user){const no=c.dataset.orderdel;
+    if(!confirm(`Удалить заявку № ${no}? Отменить удаление будет нельзя.`))return;
+    if(SB.on){const o=SB.orders.find(x=>x.no===no&&x.email===user.email);if(!o)return;
+      try{await sbDeleteOrder(o);toast('Заявка удалена');render()}catch(ex){toast(ex.message||'Не удалось удалить заявку')}return}
+    const key='orders.'+user.email;store.set(key,store.get(key,[]).filter(o=>o.no!==no));dropLocalDocs(no);toast('Заявка удалена');render();return}
+  const a=e.target.closest&&e.target.closest('[data-adorderdel]');
+  if(a&&mgrSession()){const no=a.dataset.no;
+    if(!confirm(`Удалить заявку № ${no} вместе с документами? Отменить удаление будет нельзя.`))return;
+    if(SB.on){const o=SB.orders.find(x=>String(x._id)===a.dataset.adorderdel);if(!o)return;
+      try{await sbDeleteOrder(o);toast('Заявка удалена');render()}catch(ex){toast(ex.message||'Не удалось удалить заявку')}return}
+    const [key,idx]=a.dataset.adorderdel.split('|'),list=store.get(key,[]);
+    if(list[+idx]&&list[+idx].no===no){list.splice(+idx,1);store.set(key,list);dropLocalDocs(no);toast('Заявка удалена');render()}}});
 function allOrders(){if(SB.on)return SB.orders.slice();const out=[];
   try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
     if(k&&k.indexOf('kontur.orders.')===0){const owner=k.slice(14);
@@ -4077,7 +4100,8 @@ function adminView(){
             <b class="num">№ ${o.no}</b><span class="num">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
             <span>${esc(o.region||'участок не указан')}</span>
             <b class="num">${rub(orderPay(o))}</b>
-            <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></div>
+            <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select>
+            <button type="button" class="link" data-adorderdel="${SB.on?o._id:o._key+'|'+o._idx}" data-no="${esc(o.no)}">Удалить</button></div>
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}${promoLine(o)}
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
             return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>

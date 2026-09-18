@@ -58,6 +58,11 @@ drop policy if exists "orders staff update" on public.orders;
 create policy "orders staff update" on public.orders for update
   using (public.is_staff()) with check (public.is_staff());
 
+-- удалить заявку: сотрудник — любую, клиент — свою до договора (документы удалятся каскадом)
+drop policy if exists "orders delete" on public.orders;
+create policy "orders delete" on public.orders for delete
+  using (public.is_staff() or (auth.uid() = user_id and status in ('new','call','visit')));
+
 -- 3. Документы по заявке (файлы лежат в хранилище, здесь — описание)
 create table if not exists public.docs(
   id bigint generated always as identity primary key,

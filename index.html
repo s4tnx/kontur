@@ -1059,7 +1059,7 @@ const MODELS=[
  {id:'altai',from:'6x5',size:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:1,area:172,beds:2,baths:1,price:9110000,weeks:16,days:12,wins:{w180180:1,w120150:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.2,5.2],['Спальня',0,5.2,4.2,4.8],['Кухня-гостиная',4.2,0,3.2,10]]},
  {id:'baikal',from:'6x8',size:'12x5',winSides:[3,1,.8,.5],ver:null,door:{wall:0,f:.625},photo:'h12x10.jpg',w:12,d:5,name:'Байкал',floors:1.5,floorsLabel:'2 этажа в центре',
   ceil:'1 этаж 2,7 м · 2 этаж 2,5 м (под коньком до 3,8 м) · в крыльях до 3,5 м под скатом',
-  upper:{x:2.5,w:6},area:90,beds:3,baths:2,price:0,weeks:16,days:12,wins:{portal:2,w180180:2},base:'Бетонные блоки 400×200×200',
+  upper:{x:2.5,w:6},wins2:{w180180:2},winSides2:[6,.2,.2,.1],area:90,beds:3,baths:2,price:0,weeks:16,days:12,wins:{portal:2,w180180:2},base:'Бетонные блоки 400×200×200',
   lead:'Дом со стеклянным фронтоном: двухэтажный центральный объём 6×5 м, кухня-столовая в левом крыле и спальня в правом',
   plan:[['Кухня-столовая',0,0,2.5,5],['Котельная',2.5,0,2,1.5],['С/у',4.5,0,2,1.5],['Гостиная',2.5,1.5,4,3.5],['Лестница',6.5,0,2,3],['Прихожая',6.5,3,2,2],['Гардероб',8.5,0,3.5,1.5],['Спальня',8.5,1.5,3.5,3.5]],
   plan2:[['Спальня',0,0,3,5],['Холл и лестница',3,0,3,5]]},
@@ -1127,18 +1127,19 @@ const nativeOf=m=>m.native||m.id;
 /* на странице «Свой размер» редактор работает с виртуальной моделью */
 function customModel(){const c=customState,base=c.planBase&&byId(c.planBase);
   return{id:'custom',custom:1,name:'Свой проект',w:c.w,d:c.d,floors:c.floors==='2'?2:c.floors==='1.5'?1.5:1,
-    area:cArea(c),ver:cVer(c),plan:cPlan(c),wins:cWinsBase(c),winSides:base?base.winSides:[2,1,1,.6],roofShape:base?base.roofShape:null}}
+    area:cArea(c),ver:cVer(c),plan:cPlan(c),wins:cWinsBase(c),winSides:base?base.winSides:[2,1,1,.6],roofShape:base?base.roofShape:null,
+    ...(cUp(c)?{upper:cUp(c),plan2:[['Комната',0,0,cUp(c).w/2,cUp(c).d],['Комната',cUp(c).w/2,0,cUp(c).w/2,cUp(c).d]]}:{})}}
 /* какой этаж открыт в редакторе планировки (у домов со вторым этажом) */
 let planFloor=1,planHouse='';
 /* второй этаж как отдельная «модель» для редактора: свои комнаты, окна и двери */
-function upperModel(m){return{...m,id:m.id+'#2',upperFloor:1,w:m.upper.w,d:m.d,ver:null,porch:null,door:null,noDoor:true,plan:m.plan2,wins:{},floors:1,winSides:[1,1,1,1],roofShape:'gable'}}
+function upperModel(m){return{...m,id:m.id+'#2',upperFloor:1,w:m.upper.w,d:m.upper.d||m.d,ver:null,porch:null,door:null,noDoor:true,plan:m.plan2,wins:m.wins2||{},floors:1,winSides:m.winSides2||[2,1,1,.6],roofShape:'gable'}}
 const planModel=m=>m&&m.plan2&&planFloor===2&&!m.upperFloor?upperModel(m):m;
 const curHouse=()=>{const h=location.hash;return h.indexOf('#/house')===0?byId((h.split('/')[2]||'').split('?')[0]):null};
 function curModel(){const h=location.hash;
-  if(h.indexOf('#/custom')===0)return customModel();
+  if(h.indexOf('#/custom')===0)return planModel(customModel());
   if(h.indexOf('#/modules')===0)return moduleModel(modState);
   return planModel(byId((h.split('/')[2]||'').split('?')[0]))}
-function refreshAny(m,groups){if(m&&m.module)refreshModule(true);else if(m&&m.id==='custom')refreshCustom(true);
+function refreshAny(m,groups){if(m&&m.module)refreshModule(true);else if(m&&(m.id==='custom'||m.id==='custom#2'))refreshCustom(true);
   else refreshCalc(m&&m.upperFloor?byId(m.id.replace('#2','')):m,groups)}
 const estAny=m=>m&&m.module?modEstimateHTML():m&&m.id==='custom'?customEstimate():estimateHTML(m);
 /* минимальная цена проекта: самый маленький размер в холодном контуре */
@@ -2861,6 +2862,7 @@ function bindPlanner(){
 }
 
 document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('[data-planfloor]');if(!f)return;
+  if(location.hash.indexOf('#/custom')===0){planFloor=+f.dataset.planfloor;refreshCustom(true);return}
   const base=curHouse();if(!base||!base.plan2)return;planFloor=+f.dataset.planfloor;const pm=planModel(base);
   const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(pm,getCfg(pm));bindPlanner()}live3D(pm)});
 function roomsGroup(m,cfg){
@@ -2976,7 +2978,11 @@ const customState={planBase:null,parts:{},w:6,d:8,floors:'1',veranda:12,contour:
   facade:'imit',roof:null,win:null,edoorT:'metal',extras:[]};
 const cVerA=c=>Math.max(0,Math.min(+c.veranda||0,Math.floor(c.w*c.d*.4)));
 /* площадь дома: габарит минус веранда, умноженный на этажность; веранда — внутри габарита */
-const cArea=c=>Math.round((c.w*c.d-cVerA(c))*FLOORS.find(f=>f.id===c.floors).k*10)/10;
+/* второй этаж / мансарда своего проекта: ширина и длина задаются, по умолчанию — весь дом или его половина */
+const cUp=c=>{if(!c||c.floors==='1')return null;const r=v=>Math.round(v*2)/2;
+  const w=Math.min(c.w,Math.max(2,+c.upW||c.w)),d=Math.min(c.d,Math.max(2,+c.upD||(c.floors==='2'?c.d:r(c.d/2))));return{w,d,x:(c.w-w)/2}};
+const cUpA=c=>{const u=cUp(c);return u?Math.round(u.w*u.d*10)/10:0};
+const cArea=c=>Math.round((c.w*c.d-cVerA(c)+cUpA(c))*10)/10;
 const cTotal=c=>Math.round((cArea(c)+cVerA(c))*10)/10;
 /* каменная вата: цена шага +50 мм ≈ 570 ₽/м² стены (вата, более крупное сечение каркаса, работа) + 50% за сложность = 850 ₽/м² */
 const INS=[{id:'100',mm:100,r:'2,6',txt:'Дача, весна–осень. Каркас 50×100'},{id:'150',mm:150,r:'3,9',txt:'Круглый год до −25 °C. Каркас 50×150'},
@@ -3003,6 +3009,11 @@ function computeCustom(c){
   const wdc=cWinsDelta(c);if(Math.round(wdc))lines.push(['Окна: изменение комплекта',wdc]);
   const b0=basePartsOf({plan:cPlan(c)}),cp=cParts(c);
   const pdc=PARTS.reduce((s,p)=>s+((cp[p[0]]||0)-(b0[p[0]]||0))*p[3],0);
+  const uc=cUp(c);let c2=c.floor2||null;if(uc&&!c2&&c===customState){try{c2=calcState['custom#2']}catch(e){}}
+  if(uc&&c2){const m2={w:uc.w,d:uc.d,ver:null,plan:[['Комната',0,0,uc.w/2,uc.d],['Комната',uc.w/2,0,uc.w/2,uc.d]],wins:{},noDoor:true,upperFloor:1,id:'custom#2',winSides:[2,1,1,.6]};
+    const w2=winsDelta(m2,{...c2,win:cSel(c,'win')}),b2=basePartsOf(m2),p2=partsOf(m2,c2);
+    const pd2=PARTS.filter(p=>p[0]!=='edoor').reduce((s,p)=>s+((p2[p[0]]||0)-(b2[p[0]]||0))*p[3],0);
+    if(Math.round(w2))lines.push(['2 этаж: окна',w2]);if(Math.round(pd2))lines.push(['2 этаж: перегородки и двери',pd2])}
   if(Math.round(pdc))lines.push(['Перегородки и двери: изменение',pdc]);
   if(cp.edoor){const d=cOptDelta(c,'edoorT');if(Math.round(d))lines.push([`Входная дверь: ${lcFirst(cGrp('edoorT').items.find(i=>i.id===cSel(c,'edoorT')).name)}`,d])}
   EXTRAS.forEach(e=>{if((c.extras||[]).includes(e[0]))lines.push([e[1],cExtraCost(c,e)])});
@@ -3026,6 +3037,10 @@ function customGroups(){const c=customState;
       <div class="field"><label for="cd">Длина, м</label><input id="cd" type="number" min="3" max="24" step="0.5" value="${c.d}" data-cnum="d"></div>
     </div>
     <div class="opts">${FLOORS.map(f=>opt('floors',f)).join('')}</div>
+    ${cUp(c)?`<div class="opts" style="grid-template-columns:1fr 1fr">
+      <div class="field"><label for="cuw">${c.floors==='2'?'2 этаж':'Мансарда'}: ширина, м</label><input id="cuw" type="number" min="2" max="${c.w}" step="0.5" value="${cUp(c).w}" data-cnum="upW"></div>
+      <div class="field"><label for="cud">${c.floors==='2'?'2 этаж':'Мансарда'}: длина, м</label><input id="cud" type="number" min="2" max="${c.d}" step="0.5" value="${cUp(c).d}" data-cnum="upD"></div></div>
+    <small class="note">${c.floors==='2'?'Второй этаж':'Мансарда'} — ${fmtD(cUpA(c))} м², стоит по центру дома. Планировку рисуйте ниже, в «Схеме и 3D» — вкладка «2 этаж».</small>`:''}
     ${rng('veranda','Веранда / терраса в габарите',0,40,2,'м²')}</div>
   <div class="cg"><div class="cg-h"><h3>Комплектация</h3><span>что входит — в таблице ниже</span></div><div class="opts">${PKGS.map(p=>opt('contour',{id:p.id,name:p.name,txt:p.txt},cPkgPrice(c,p.id))).join('')}</div>
     <a class="link" href="#pkgTable" data-jump="pkgTable" style="justify-self:start">Где есть электрика, вода и отделка →</a></div>
@@ -3081,13 +3096,14 @@ const customViz=()=>({w:customState.w,d:customState.d,floors:customState.floors=
 const cModel=()=>({w:customState.w,d:customState.d,ver:cVer(customState),plan:cPlan(customState),
   wins:cWins(customState),winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides});
 function refreshCustom(groups){
-  if(groups){const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(customModel(),getCfg(customModel()));setTimeout(bindPlanner,0)}}
-  mount3D(customViz());
+  const pm=planModel(customModel());
+  if(groups){const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(pm,getCfg(pm));setTimeout(bindPlanner,0)}}
+  if(pm.upperFloor)live3D(pm);else mount3D(customViz());
   if(groups){const g=document.getElementById('calcGroups');if(g){const a=document.activeElement,id=a&&a.id,pos=a&&a.selectionStart;g.innerHTML=customGroups();if(id){const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}}}}
   const es=document.getElementById('estimate');if(es)es.innerHTML=customEstimate();
   document.querySelectorAll('input[type=range]').forEach(r=>r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%'));
 }
-function customView(){
+function customView(){if(planHouse!=='custom'){planFloor=1;planHouse='custom'}
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Калькулятор</span><h1>Дом своего размера</h1><div class="size-switch"><a class="pill on" href="#/custom">Дом</a><a class="pill" href="#/modules/own">Модуль</a></div></div><p style="color:var(--muted);max-width:44ch">Впишите ширину и длину, выберите контур и улучшения — смета пересчитается сразу. Нужен размер из каталога? <a class="link" href="#/sizes">Смотрите готовые дома</a>.</p></div>
   <div class="calc" style="padding-bottom:40px"><div class="calc-groups" id="calcGroups">${customGroups()}</div><aside class="estimate" id="estimate">${customEstimate()}</aside></div>
   <div class="cg" style="margin-bottom:22px" id="planBase"><div class="cg-h"><h3>Планировка-основа · необязательно</h3><span>можно взять схему любого проекта — она подстроится под ваш размер</span></div>
@@ -3099,7 +3115,7 @@ function customView(){
   <section id="planning" style="border-top:1px solid var(--line);padding:40px 0 70px">
     <div class="sec-head" style="padding-top:0"><div style="display:grid;gap:18px"><span class="label">Планировка</span><h2 style="max-width:18ch">Схема и 3D</h2></div>
       <p>Слева рисуете комнаты, окна и двери, справа тот же дом в объёме.</p></div>
-    <div class="plan-split"><div id="planEditor">${roomsGroup(customModel(),getCfg(customModel()))}</div><div class="plan-3d">${vizBlock()}</div></div>
+    <div class="plan-split"><div id="planEditor">${roomsGroup(planModel(customModel()),getCfg(planModel(customModel())))}</div><div class="plan-3d">${vizBlock()}</div></div>
   </section></div>
   <section class="wrap" id="pkgTable" style="border-top:1px solid var(--line)">${pkgTableHTML()}</section>`;
 }
@@ -3721,7 +3737,7 @@ function itemSpec(it){
   if(it.module)return moduleSpec(it.cfg);
   if(it.custom){const c=it.cfg,b=BATHS.find(x=>x.id===c.bath),ct={name:PKGS.find(p=>p.id===cPkgOf(c)).name};
     return [['Дом',`${fmtM(c.w)} × ${fmtM(c.d)} м · ${cArea(c)} м²`],['Комплектация',ct.name],
-      ['Этажность',FLOORS.find(f=>f.id===c.floors).name],['Утепление',c.contour==='cold'?'без утепления':`каменная вата ${INS.find(i=>i.id===c.ins).mm} мм`],
+      ['Этажность',`${FLOORS.find(f=>f.id===c.floors).name}${cUp(c)?` · ${c.floors==='2'?'2 этаж':'мансарда'} ${fmtD(cUp(c).w)}×${fmtD(cUp(c).d)} м (${fmtD(cUpA(c))} м²)`:''}`],['Утепление',c.contour==='cold'?'без утепления':`каменная вата ${INS.find(i=>i.id===c.ins).mm} мм`],
       ['Веранда',c.veranda?`${c.veranda} м²`:'нет'],['Фундамент',c.pile==='blocks'?'бетонные блоки':c.pile==='ushp'?'УШП':`${cPile(c)[1]} · ${pilesCount(c)} шт`],
       ['Фасад',cGrp('facade').items.find(i=>i.id===cSel(c,'facade')).name],['Пол',cGrp('floorT').items.find(i=>i.id===cSel(c,'floorT')).name],['Кровля',cGrp('roof').items.find(i=>i.id===cSel(c,'roof')).name],
       ['Окна',`${WIN_TYPES.reduce((s,w)=>s+(cWins(c)[w[0]]||0),0)} шт · ${cGrp('win').items.find(i=>i.id===cSel(c,'win')).name}`],
@@ -4586,8 +4602,10 @@ document.addEventListener('click',e=>{
     refreshCustom(true);return}
   const co=e.target.closest('[data-copt]');if(co){const [k,v]=co.dataset.copt.split(':');customState[k]=v;
     if(k==='contour'){customState.ins=baseIns(customState);customState.roof=null;customState.win=null}
+    if(k==='floors'){customState.upW=null;customState.upD=null;try{delete calcState['custom#2']}catch(ex){}if(v==='1')planFloor=1}
     refreshCustom(true);return}
-  if(e.target.closest('[data-cadd]')){const cfg=JSON.parse(JSON.stringify(customState));cart.push({id:'custom',custom:true,cfg,total:computeCustom(cfg).total});saveCart();toast(`Дом ${fmtM(cfg.w)}×${fmtM(cfg.d)} добавлен в корзину`);return}
+  if(e.target.closest('[data-cadd]')){const cfg=JSON.parse(JSON.stringify(customState));
+    if(cUp(cfg)){let c2=null;try{c2=calcState['custom#2']}catch(ex){}if(c2)cfg.floor2=JSON.parse(JSON.stringify({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}}))}cart.push({id:'custom',custom:true,cfg,total:computeCustom(cfg).total});saveCart();toast(`Дом ${fmtM(cfg.w)}×${fmtM(cfg.d)} добавлен в корзину`);return}
   const o=e.target.closest('[data-opt]');if(o){const [k,v]=o.dataset.opt.split(':');const m=curModel();if(m){getCfg(m)[k]=v;refreshAny(m,true)}return}
   const pr2=e.target.closest('[data-planready]');
   if(pr2){const m=curModel();
@@ -4686,6 +4704,7 @@ const customNum=(e,commit)=>{const n=e.target.closest('[data-cnum]');if(!n)retur
   if(isNaN(v)||v<min||v>max){if(commit){v=Math.min(max,Math.max(min,isNaN(v)?customState[n.dataset.cnum]:v));n.value=v}else return true}
   customState[n.dataset.cnum]=Math.round(v*2)/2;
   if(commit&&calcState.custom){calcState.custom.rooms=null;calcState.custom.openings=null}
+  if(commit&&/^up[WD]$/.test(n.dataset.cnum))try{delete calcState['custom#2']}catch(ex){}
   refreshCustom(commit);return true};
 document.addEventListener('change',e=>{if(!customNum(e,true)&&e.target.closest('[data-crange]'))refreshCustom(true)});
 document.addEventListener('change',async e=>{const s=e.target.closest('[data-adstatus]');if(!s||!mgrSession())return;

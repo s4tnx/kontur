@@ -3087,11 +3087,11 @@ const MOD_GROUPS=[
    {id:'soft',name:'Мягкая кровля',txt:'Битумная черепица по OSB — тихая в дождь',rate:900,per:'roof'},
    {id:'none',name:'Без покрытия',txt:'Стропила и обрешётка — кровлю поставите сами',rate:-350,per:'roof'}]},
  {key:'door',title:'Входная дверь',hint:'одна в базе',items:[
-   {id:'wood',name:'Деревянная',txt:'Филёнчатая — в базе',rate:0,per:'fix'},
-   {id:'cut',name:'Вырезная',txt:'Полотно вырезано в стене модуля, снаружи заподлицо с обшивкой',rate:-4000,per:'fix'},
-   {id:'none',name:'Без двери',txt:'Входную дверь не ставим — проёма в стене нет',rate:-8000,per:'fix'},
-   {id:'metal',name:'Металлическая',txt:'Утеплённая, с замком',rate:16000,per:'fix'},
-   {id:'pvc',name:'ПВХ со стеклопакетом',txt:'Тёплый профиль, стекло — светлее внутри',rate:24000,per:'fix'}]},
+   {id:'cut',name:'Вырезная',txt:'В базе: полотно вырезано в стене модуля, снаружи заподлицо с обшивкой',rate:0,per:'fix'},
+   {id:'wood',name:'Деревянная филёнчатая',txt:'Отдельное полотно в коробке, с наличниками',rate:4000,per:'fix'},
+   {id:'metal',name:'Металлическая',txt:'Утеплённая, с замком',rate:20000,per:'fix'},
+   {id:'pvc',name:'ПВХ со стеклопакетом',txt:'Тёплый профиль, стекло — светлее внутри',rate:28000,per:'fix'},
+   {id:'none',name:'Без двери',txt:'Входную дверь не ставим — проёма в стене нет',rate:-4000,per:'fix'}]},
 ];
 /* [id, размер, описание, цена ПВХ, цена дерева — null, если деревянных такого размера нет] */
 /* класс древесины для отделки: С — в базе, В и А — дороже; считается по той же площади */
@@ -3204,7 +3204,7 @@ function modWin(id,delta){const cur=(modState.wins||{})[id]||0,wt=modWinById(id)
     if(cfg0.openings){const i=cfg0.openings.map(p=>p.t).lastIndexOf(id);if(i>=0)cfg0.openings=cfg0.openings.filter((_,k)=>k!==i)}
     if(id==='d6090'&&cur===0)toast(`Базовое окно убрано — минус ${rub(MOD_WBASE()[4])}`)}}
 
-const modState={size:'6x3',winTab:'wood',roofShape:'shed',ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'wood',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50};
+const modState={size:'6x3',winTab:'wood',roofShape:'shed',ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'cut',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50};
 /* свой размер модуля: длина 3…9 м, ширина 2…6 м, шаг 0,5 м */
 const MOD_OWN={minW:3,maxW:9,minD:2,maxD:6};
 function parseModSize(id){const s=MOD_SIZES.find(x=>x.id===id);if(s)return s;
@@ -3328,8 +3328,8 @@ function modEstimateHTML(){const e=computeModule(modState),s=modSize(modState);
   <p class="note">Установка на участке входит в стоимость · гарантия 3 года. Предварительный расчёт, точная цена фиксируется в договоре.</p>`}
 const MOD_INCLUDED=[['Размер','от 5×2 до 6×6 м или свой (длина 3–9 м, ширина 2–6 м), высота 1,90 / 2,10 м (до 3,00 м за доплату)'],['Каркас','брус и доска камерной сушки'],['Утепление','минвата 50 мм, ветрозащита и пароизоляция'],
   ['Снаружи','вагонка сосна, класс С'],['Внутри','вагонка сосна, класс С'],['Пол','доска 25 мм'],['Кровля','односкатная, оцинкованный профлист (двускатная — за доплату)'],
-  ['Окно','деревянное 60×90 — 1 шт'],['Дверь','деревянная филёнчатая'],['Опоры','на бетонных блоках'],['Планировка','одно помещение без перегородок — рисуете сами'],['Сборка','на вашем участке, входит в стоимость'],['Гарантия','3 года'],['Оплата','по окончании работ']];
-function modCard(s){const c={...modState,size:s.id,wins:{},paint:0,roofShape:'shed',rise:0,pile:'blocks',extras:[],outer:'vag',outerGrade:'C',roof:'zinc',door:'wood'};
+  ['Окно','деревянное 60×90 — 1 шт'],['Дверь','вырезная — полотно в стене модуля'],['Опоры','на бетонных блоках'],['Планировка','одно помещение без перегородок — рисуете сами'],['Сборка','на вашем участке, входит в стоимость'],['Гарантия','3 года'],['Оплата','по окончании работ']];
+function modCard(s){const c={...modState,size:s.id,wins:{},paint:0,roofShape:'shed',rise:0,pile:'blocks',extras:[],outer:'vag',outerGrade:'C',roof:'zinc',door:'cut'};
   return `<article class="card reveal">
     <a class="pic mod" href="#/modules/${s.id}" aria-label="Модуль ${fmtD(s.w)}×${fmtD(s.d)}">${moduleSVG(c,true)}${modImgTag(MOD_PHOTOS[s.id],`alt="Модуль ${fmtD(s.w)}×${fmtD(s.d)} м" decoding="async"`)}<span class="size num">${s.w*s.d} м²</span></a>
     <div class="body"><h3>Модуль ${fmtD(s.w)}×${fmtD(s.d)}</h3>
@@ -3387,7 +3387,7 @@ document.addEventListener('click',e=>{
   const w=e.target.closest('[data-mwin]');if(w){const [k,d]=w.dataset.mwin.split(':');modWin(k,+d);refreshModule(true);return}
   if(e.target.closest('[data-modadd]')){const cfg=JSON.parse(JSON.stringify(modState)),s=modSize(cfg),pc=getCfg(moduleModel());
     cfg.plan=JSON.parse(JSON.stringify({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}}));cart.push({id:'module',module:true,cfg,total:computeModule(cfg).total});saveCart();toast(`Модуль ${fmtD(s.w)}×${fmtD(s.d)} добавлен в корзину`);return}
-  if(e.target.closest('[data-modreset]')){Object.assign(modState,{winTab:modState.winTab||'wood',roofShape:'shed',ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'wood',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50});
+  if(e.target.closest('[data-modreset]')){Object.assign(modState,{winTab:modState.winTab||'wood',roofShape:'shed',ins:'50',outer:'vag',outerGrade:'C',inner:'vag',innerGrade:'C',floor:'board',roof:'zinc',door:'cut',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50});
     Object.keys(calcState).filter(k=>k.indexOf('module@')===0).forEach(k=>delete calcState[k]);refreshModule(true);toast('Настройки модуля сброшены')}});
 document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-mrange]');if(!r)return;
   modState[r.dataset.mrange]=+r.value;r.style.setProperty('--p',(r.value-r.min)/(r.max-r.min)*100+'%');

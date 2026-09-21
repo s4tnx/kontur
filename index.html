@@ -1110,7 +1110,7 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
       <a class="tel num" href="tel:+79998886099">+7 999 888-60-99</a>
       <button class="btn lamp" type="button" data-contact>Заказать звонок</button>
     </div>
-    <p class="credit"><a href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделал <b>Никита Соловьев</b></a></p>
+    <p class="credit"><a href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделан <b>Контур Студио</b></a></p>
   </div>
 </div>
 <div class="mdock" id="mdock" aria-live="polite"><div><small id="mdockLab">Итого за дом</small><b class="num" id="mdockSum"></b></div><button class="btn lamp" type="button" id="mdockGo">Смета</button></div>
@@ -1130,8 +1130,8 @@ const MODELS=[
  {id:'ladoga',from:'6x5',size:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w180180:2,w120100:1},
   proj:{size:'6x8',ver:{w:2.77,d:3.2},
     rooms:[{n:'Спальня',x:0,y:0,w:3.23,d:2.55},{n:'Кухня-гостиная',x:0,y:2.55,w:3.23,d:5.45},{n:'Гостиная',x:3.23,y:0,w:2.77,d:4.8}],
-    openings:[{t:'w120100',wall:1,u:1.8},{t:'w180180',wall:0,u:1.9},{t:'w180180',wall:0,u:-1.9},{t:'door',wall:0,u:-.4}],
-    idoors:[{x:1.6,y:2.55,w:.9},{x:3.23,y:4,w:.8},{x:3.23,y:6.55,w:.8}]},
+    openings:[{t:'w120100',wall:1,u:1.8},{t:'w180180',wall:0,u:1.6},{t:'w180180',wall:0,u:-1.4}],
+    idoors:[{x:1.6,y:2.55,w:.9},{x:3.23,y:4,w:.8},{x:3.23,y:6.55,w:.9,e:1}]},
   base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома: два панорамных окна 180×180, окно 100×120, две перегородки и две межкомнатные двери',plan:[['Душевая',0,0,3.3,1.4],['Кухня-гостиная',0,1.4,3.3,2.6],['Спальня',3.3,0,2.7,2.4]]},
  {id:'onega',from:'6x4',size:'6x5',winSides:[1,2,1,.2],ver:null,door:{wall:1,f:.15},porch:{wall:1,f:.15,w:2,d:1},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},
   proj:{size:'6x5',
@@ -2358,6 +2358,7 @@ function home(){
       ['Подходит ли дом под ипотеку?','Каркасные дома можно купить в ипотеку в банках, которые кредитуют ИЖС по договору подряда. Поможем собрать документы.'],
       ['Какая гарантия?','Гарантия — 3 года на дома и модули: каркас, отделку и инженерию. Прописывается в договоре.'],
       ['Сборка входит в стоимость?','Да. И дом, и модуль собирает наша бригада на вашем участке — сборка входит в цену. Отдельно считается только доставка — 300 ₽ за километр.'],
+      ['Куда вы доставляете?','Доставляем и строим по всему Центральному федеральному округу: Москва и область, Тверская, Ярославская, Владимирская, Калужская, Тульская, Рязанская, Смоленская, Брянская, Орловская, Курская, Белгородская, Липецкая, Тамбовская, Воронежская, Костромская и Ивановская области. Доставка считается от нашего производства — 300 ₽ за километр, точную сумму менеджер назовёт по адресу участка.'],
     ].map((q,i)=>`<details ${i===0?'open':''}><summary>${q[0]}<i>+</i></summary><p>${q[1]}</p></details>`).join('')}</div>
   </div></section>
 
@@ -2628,6 +2629,7 @@ const CALC=[
    {id:'vagonka',name:'Вагонка сосна',txt:'Профиль «софтлайн» 12,5 × 96 мм (рабочая 88 мм), длина 3 м. Класс древесины — ниже',abs:m=>-wallA(m)*250},
    {id:'imit',name:'Имитация бруса',txt:'Сосна 16 × 146 мм (рабочая 135 мм), длина 3–6 м — входит в цену. Класс древесины — ниже',abs:m=>0},
    {id:'shtil',name:'Вагонка «Штиль»',txt:'Сосна 14 × 147 мм (рабочая 135 мм), без фасок — ровная плоскость стены. Класс — ниже',abs:m=>wallA(m)*450},
+   {id:'block',name:'Блок-хаус',txt:'Сосна 36 × 145 мм (рабочая 135 мм), длина 3–6 м, полукруглый профиль — вид оцилиндрованного бревна. Класс — ниже',abs:m=>wallA(m)*650},
    {id:'plank',name:'Планкен лиственница',txt:'Скошенный 20 × 90 мм, длина 3–4 м, масло-воск — лиственница сорта АВ',abs:m=>wallA(m)*1400},
    {id:'fibro',name:'Фиброцемент',txt:'Доска 8 × 190 мм, длина 3 м — не горит и не требует покраски',abs:m=>wallA(m)*1900}]},
  {key:'roof',title:'Кровля',hint:m=>`≈ ${Math.round(roofA(m))} м² скатов`,items:[
@@ -2658,7 +2660,7 @@ const BATHS=[
 /* класс древесины: тот же, что в модулях — ВС в базе, АВ дороже на 550 ₽/м² */
 const WOOD_GRADES=[['BC','ВС','Живые сучки и смоляные кармашки, без трещин и обзола — рабочий класс, в базе',0],
  ['AB','АВ','Почти без сучков, ровный цвет — под прозрачное масло и лак',550]];
-const WOOD_FACADE=['vagonka','imit','shtil'],WOOD_INNER=['vag','imit','shtil'];
+const WOOD_FACADE=['vagonka','imit','shtil','block'],WOOD_INNER=['vag','imit','shtil'];
 const gradeOf=v=>WOOD_GRADES.find(g=>g[0]===v)||WOOD_GRADES.find(g=>g[0]===({C:'BC',B:'BC',A:'AB'})[v])||WOOD_GRADES[0];
 const gradeKeyOf=key=>key==='facade'?'facadeG':'innerG';
 const gradeAreaOf=(m,key)=>key==='facade'?wallA(m):wallA(m)+livingA(m);
@@ -2814,6 +2816,15 @@ function innerEdgesBox(m,cfg){if(cfg&&cfg.draw)return drawnWalls(cfg).map(w=>[w[
                   (Math.abs(e[0]-e[2])<eps&&(Math.abs(e[0])<eps||Math.abs(e[0]-b.w)<eps));
       if(onBox)return;const k=e.map(v=>v.toFixed(2)).join('|');if(seen[k])return;seen[k]=1;edges.push(e)})});
   return edges}
+/* стены, которые выходят на встроенную террасу, — наружные: там вход, а не межкомнатная дверь */
+function nicheBox(m){const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;if(!N)return null;const b=roomBox(m);
+  if(N.side)return{x1:N.right?b.w-N.vw:0,x2:N.right?b.w:N.vw,y1:0,y2:b.d};
+  return{x1:N.nl+m.w/2,x2:N.nr+m.w/2,y1:N.z2+m.d/2,y2:b.d}}
+function onNicheEdge(m,e){const R=nicheBox(m);if(!R||!e)return false;const q=.1;
+  const mx=(e[0]+e[2])/2,my=(e[1]+e[3])/2;
+  if(Math.abs(e[0]-e[2])<q&&(Math.abs(e[0]-R.x1)<q||Math.abs(e[0]-R.x2)<q)&&my>R.y1-q&&my<R.y2+q)return true;
+  if(Math.abs(e[1]-e[3])<q&&(Math.abs(e[1]-R.y1)<q||Math.abs(e[1]-R.y2)<q)&&mx>R.x1-q&&mx<R.x2+q)return true;
+  return false}
 /* ближайшая точка на перегородке, куда помещается дверь 80 см */
 function snapDoor(edges,x,y){let best=null;
   edges.forEach((e,i)=>{const vx=e[2]-e[0],vy=e[3]-e[1],L=Math.hypot(vx,vy);if(L<1)return;
@@ -2826,7 +2837,7 @@ const IDOOR_W=.8,IDOOR_W90=.9,IDOOR_UP=1350;   /* дверь 90 см внутр�
 function idoorsOf(m,cfg){const edges=innerEdgesBox(m,cfg);
   if(cfg&&cfg.idoors)return cfg.idoors.map(p=>{const s=snapDoor(edges,p.x,p.y);return s?{...s,w:p.w||(p.e?IDOOR_W90:IDOOR_W),e:p.e?1:0}:null}).filter(Boolean);
   const n=cfg&&cfg.parts&&cfg.parts.idoor!=null?cfg.parts.idoor:Math.max(0,(planOf(m,cfg)||[]).length-1),out=[];
-  const usable=edges.filter(e=>Math.hypot(e[2]-e[0],e[3]-e[1])>=1);
+  const usable=edges.filter(e=>Math.hypot(e[2]-e[0],e[3]-e[1])>=1&&!onNicheEdge(m,e));
   for(let i=0;i<n&&usable.length;i++){const e=usable[i%usable.length],f=[.5,.3,.7][Math.floor(i/usable.length)%3];
     const s=snapDoor(edges,e[0]+(e[2]-e[0])*f,e[1]+(e[3]-e[1])*f);if(s)out.push({...s,w:IDOOR_W})}
   return out}
@@ -3063,15 +3074,18 @@ function bindPlanner(){
         cfg.idoors=list.concat([{x:+px.toFixed(2),y:+py.toFixed(2),w:IDOOR_W90,e:1}]);
         cfg.openings=cfg.openings.filter((_,i)=>i!==drag.i);
         cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.filter(d=>!d.e).length,edoor:cfg.openings.filter(o=>o.t==='door').length+eDoorsIn(cfg)};
-        drag=null;refreshAny(m,true);toast('Входная дверь стоит внутри дома — та же, 90 × 205 см');return}}
+        drag=null;refreshAny(m,true);toast(onNicheEdge(m,s.e0)?'Вход с террасы — дверь та же, 90 × 205 см':'Входная дверь стоит внутри дома — та же, 90 × 205 см');return}}
     if(drag.mode==='idoor'&&p&&cfg.idoors&&cfg.idoors[drag.i]&&cfg.idoors[drag.i].e){
       const d0=Math.abs(p.y-wall0Y(m,b2,p.x-b2.w/2)),d3=Math.abs(p.y),d2=Math.abs(p.x),d1=Math.abs(p.x-b2.w);
       const arr=[[0,d0],[3,d3],[2,d2],[1,d1]].sort((a,c)=>a[1]-c[1]);
       const s=snapDoor(innerEdgesBox(m,cfg),p.x,p.y);
       if(arr[0][1]<.9&&(!s||arr[0][1]<s.d)){
         const wall=arr[0][0],u=wall===0?p.x-b2.w/2:wall===3?b2.w/2-p.x:b2.d/2-p.y;
-        const fu=freeU(m,cfg.openings||autoOpenings(m,cfg),-1,wall,snap(u),openSz('door')[0],wallLen(m,wall));
+        const szD=openSz('door')[0],lenD=wallLen(m,wall);
+        const fu0=freeU(m,cfg.openings||autoOpenings(m,cfg),-1,wall,snap(u),szD,lenD);
+        const fu=fu0!=null?fu0:segClamp(m,wall,Math.max(-lenD/2+szD/2+.2,Math.min(lenD/2-szD/2-.2,snap(u))),szD);
         if(fu!=null){cfg.openings=(cfg.openings||autoOpenings(m,cfg)).concat([{t:'door',wall,u:fu}]);
+          if(fu0==null)pushOpenings(m,cfg,cfg.openings.length-1);
           cfg.idoors=cfg.idoors.filter((_,i)=>i!==drag.i);
           cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.filter(d=>!d.e).length,edoor:cfg.openings.filter(o=>o.t==='door').length+eDoorsIn(cfg)};
           drag=null;refreshAny(m,true);toast('Входная дверь вернулась на наружную стену');return}}}
@@ -3141,8 +3155,8 @@ function calcGroups(m){const cfg=getCfg(m);const cold=cfg.pkg==='cold';
   `<div class="cg"><div class="cg-h"><h3>Покраска фасада</h3><span class="num">${Math.round(wallA(m))} м² стен · ${rub(HOUSE_PAINT)} за слой${cfg.pkg==='key'?' · 2 слоя уже в цене':''}</span></div>
     <div class="opts">${[0,1,2,3].map(n=>{const d=Math.max(0,n-(cfg.pkg==='key'?2:0))*HOUSE_PAINT*wallA(m);
       return `<button type="button" class="opt ${paintLayers(cfg)===n?'on':''}" data-paint="${n}"><b>${n?`${n} ${plural(n,['слой','слоя','слоёв'])}`:'Без покраски'}</b><small>${n?['','Антисептик-лазурь, лёгкий тон','Ровный цвет, защита 4–5 лет','Плотный цвет, защита 6–8 лет'][n]:'Дерево без покрытия'}</small><em class="num ${Math.round(d)?'':'z'}">${Math.round(d)?'+ '+rub(d):'в цене'}</em></button>`}).join('')}</div>
-    ${paintLayers(cfg)?ralPicker(cfg.ralWall||'7016','ralWall','Цвет краски по RAL'):''}
-    ${paintLayers(cfg)&&cfg.roof!=='soft'?ralPicker(cfg.ralRoof||'7024','ralRoof','Цвет кровли по RAL'):''}</div>`+
+    ${paintLayers(cfg)||cfg.facade==='proff'?ralPicker(cfg.ralWall||'7016','ralWall',paintLayers(cfg)?'Цвет краски по RAL':'Цвет профлиста фасада по RAL'):''}
+    ${(paintLayers(cfg)||cfg.facade==='proff')&&cfg.roof!=='soft'&&cfg.roof!=='ondulin'?ralPicker(cfg.ralRoof||'7024','ralRoof','Цвет кровли по RAL'):''}</div>`+
   `<div class="cg"><div class="cg-h"><h3>Инженерия и отделка</h3><span>${cfg.pkg==='key'?'всё включено в «под ключ»':cfg.pkg==='cold'?'только с тёплым контуром':'добавьте, что нужно'}</span></div>`+
   (cfg.pkg==='cold'?`<small class="note">В холодном контуре ничего этого нет — это «коробка» дома. Переключите комплектацию на тёплый контур, чтобы добавить электрику, воду и отделку, или возьмите «под ключ», где всё уже включено.</small></div>`
    :`<div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">${WARM_OPTS.map(o=>`<label class="chk"><input type="checkbox" data-inc="${o[0]}" ${cfg.pkg==='key'||(cfg.inc||[]).includes(o[0])?'checked':''} ${cfg.pkg==='key'?'disabled':''}><span>${o[1]}</span><em class="num">${cfg.pkg==='key'?'включено':rub(o[2](m))}</em></label>`).join('')}</div>
@@ -3432,7 +3446,8 @@ const MOD_GROUPS=[
    {id:'shtil',name:'Штиль',txt:'Сосна 14 × 147 мм (рабочая 135), без фаски — сплошная ровная стена',rate:350,per:'wall'},
    {id:'imit',name:'Имитация бруса',txt:'Сосна 16 × 146 мм (рабочая 135), длина 3–6 м',rate:500,per:'wall'},
    {id:'reika',name:'Декоративные рейки',txt:'Рейки 20 × 40 мм с зазором 20 мм, на чёрной подложке',rate:900,per:'wall'},
-   {id:'siding',name:'Сайдинг виниловый',txt:'Панель 3660 × 230 мм, 1,1 мм — не требует покраски',rate:320,per:'wall'}]},
+   {id:'siding',name:'Сайдинг виниловый',txt:'Панель 3660 × 230 мм, 1,1 мм — не требует покраски',rate:320,per:'wall'},
+   {id:'prof',name:'Профлист',txt:'С8, сталь 0,45 мм с полимером, рабочая ширина 1150 мм — цвет по RAL, без покраски',rate:380,per:'wall'}]},
  {key:'inner',grade:'innerGrade',title:'Внутренняя отделка',hint:'стены и потолок',items:[
    {id:'vag',name:'Вагонка',txt:'Сосна, «софтлайн» 12,5 × 96 мм (рабочая 88), длина 3 м — в базе',rate:0,per:'inner'},
    {id:'shtil',name:'Штиль',txt:'Сосна 14 × 147 мм (рабочая 135), без фаски',rate:350,per:'inner'},
@@ -3465,7 +3480,8 @@ const MOD_GROUPS=[
 /* класс древесины для отделки: С — в базе, В и А — дороже; считается по той же площади */
 const MOD_GRADES=[['BC','Класс ВС','Живые сучки и смоляные кармашки, без трещин и обзола — в базе',0],['AB','Класс АВ','Почти без сучков, ровный цвет — под прозрачное масло и лак',550]];
 const modGrade=(c,key)=>MOD_GRADES.find(g=>g[0]===c[key])||MOD_GRADES.find(g=>g[0]===({C:'BC',B:'BC',A:'AB'})[c[key]])||MOD_GRADES[0];
-const modFinishName=(c,g)=>{const it=g.items.find(i=>i.id===c[g.key])||g.items[0];return it.id==='none'||it.id==='siding'?it.name.toLowerCase():`${it.name.toLowerCase()}, класс ${modGrade(c,g.grade)[1].replace('Класс ','')}`};
+const MOD_NOGRADE=['none','siding','prof'];
+const modFinishName=(c,g)=>{const it=g.items.find(i=>i.id===c[g.key])||g.items[0];return MOD_NOGRADE.includes(it.id)?it.name.toLowerCase():`${it.name.toLowerCase()}, класс ${modGrade(c,g.grade)[1].replace('Класс ','')}`};
 /* [id, размер, материал, описание, цена]. Деревянные бывают только 50×50 и 60×90 */
 const MOD_WINS=[['d5050','50 × 50','wood','одностворчатое',4500],['d6090','60 × 90','wood','одностворчатое',6500],
   ['p5050','50 × 50','pvc','одностворчатое',6500],['p6090','60 × 90','pvc','одностворчатое',8500],['p80100','80 × 100','pvc','поворотно-откидное',12500],
@@ -3659,7 +3675,7 @@ function modGroupsHTML(){const c=modState,s=modSize(c),h=modH(c);
   const grp=g=>!g.grade?`<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span>${g.hint}</span></div><div class="opts">${g.items.map(it=>opt(g,it)).join('')}</div></div>`
     :`<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span class="num">${g.hint} · ${String(modPer(c,g.items[0].per)).replace('.',',')} м² · сейчас: ${modFinishName(c,g)}</span></div>
       <span class="label" style="font-size:10.5px">Материал</span><div class="opts">${g.items.map(it=>opt(g,it)).join('')}</div>
-      ${c[g.key]==='none'||c[g.key]==='siding'?'':`<span class="label" style="font-size:10.5px;margin-top:4px">Класс древесины</span><div class="opts">${MOD_GRADES.map(gr=>{const d=Math.round(gr[3]*modPer(c,g.items[0].per));
+      ${MOD_NOGRADE.includes(c[g.key])?'':`<span class="label" style="font-size:10.5px;margin-top:4px">Класс древесины</span><div class="opts">${MOD_GRADES.map(gr=>{const d=Math.round(gr[3]*modPer(c,g.items[0].per));
         return `<button type="button" class="opt ${modGrade(c,g.grade)[0]===gr[0]?'on':''}" data-mopt="${g.grade}:${gr[0]}"><b>${gr[1]}</b><small>${gr[2]}</small><em class="num ${d?'':'z'}">${d?'+ '+rub(d):'в базе'}</em></button>`}).join('')}</div>`}
       <small class="note">Цена материала и класса складываются: например, штиль класса АВ — ${rub(350+550)} за м².</small></div>`;
   const nw=modWinCount(c);
@@ -3670,8 +3686,8 @@ function modGroupsHTML(){const c=modState,s=modSize(c),h=modH(c);
     <small class="note">В базе 1,90 м у низкой стороны и 2,10 м у высокой, поднять можно до 3,00 м. ${c.rise?`Подъём на ${c.rise} см — ${rub(c.rise*MOD_RISE)}.`:'Тяните, чтобы поднять потолок.'}</small></div>`+
   grp(MOD_GROUPS[1])+
   `<div class="cg"><div class="cg-h"><h3>Покраска снаружи</h3><span class="num">${rub(MOD_PAINT)} за м² · один слой · ${String(modWallA(c)).replace('.',',')} м² стен</span></div><div class="opts">
-    ${c.paint?ralPicker(c.ralWall||'7016','ralWall','Цвет краски по RAL'):''}
-    ${c.paint&&c.roof!=='onduline'?ralPicker(c.ralRoof||'7024','ralRoof','Цвет кровли по RAL'):''}
+    ${+c.paint||c.outer==='prof'?ralPicker(c.ralWall||'7016','ralWall',+c.paint?'Цвет краски по RAL':'Цвет профлиста стен по RAL'):''}
+    ${c.roof==='color'||c.roof==='tile'?ralPicker(c.ralRoof||'7024','ralRoof','Цвет кровли по RAL'):''}
     ${[0,1,2,3].map(n=>`<button type="button" class="opt ${+c.paint===n?'on':''}" data-mopt="paint:${n}"><b>${n?`${n} ${plural(n,['слой','слоя','слоя'])}`:'Без покраски'}</b><small>${n?['','Антисептик-лазурь, лёгкий тон','Ровный цвет, защита 4–5 лет','Плотный цвет, защита 6–8 лет'][n]:'Дерево без покрытия'}</small><em class="num ${n?'':'z'}">${n?'+ '+rub(Math.round(n*MOD_PAINT*modWallA(c))):'в базе'}</em></button>`).join('')}</div></div>`+
   MOD_GROUPS.slice(2,5).map(grp).join('')+
   `<div class="cg"><div class="cg-h"><h3>Форма кровли</h3><span class="num">${isGable(c)?`стены ${mh(modH(c)[1])} м · конёк ${mh(modRidge(c))} м`:`скат с ${mh(modH(c)[0])} до ${mh(modH(c)[1])} м`}</span></div><div class="opts">
@@ -3792,7 +3808,7 @@ function moduleSpec(c){const pp=modParts(c),s=modSize(c),h=modH(c),nm=k=>{const 
   return [['Модуль',`${fmtD(s.w)} × ${fmtD(s.d)} м · ${fmtD(s.w*s.d)} м²${s.own?' · свой размер':''}`],['Высота потолка',`${isGable(c)?`${mh(h[0])} м, конёк ${mh(modRidge(c))} м`:`${mh(h[0])} / ${mh(h[1])} м`}${c.rise?` (+${c.rise} см)`:''}`],
     ['Утепление',nm('ins')],['Снаружи',modFinishName(c,MOD_GROUPS.find(g=>g.key==='outer'))],['Внутри',modFinishName(c,MOD_GROUPS.find(g=>g.key==='inner'))],['Пол',nm('floor')],['Кровля',`${nm('roof')} · ${isGable(c)?`двускатная, конёк ${mh(modRidge(c))} м`:'односкатная'}`],['Дверь',nm('door')],
     ['Окна',modWinCount(c)?[modHasBase(c)?`дер. 60×90 × ${1+Math.max(0,(c.wins||{}).d6090||0)} (1 в базе)`:'без базового окна',...MOD_WINS.filter(w=>w[0]!=='d6090'&&(c.wins||{})[w[0]]>0).map(w=>`${MOD_MAT[w[2]][1]} ${w[1]} × ${(c.wins||{})[w[0]]}`)].join(', '):'без окон'],
-    ['Покраска снаружи',+c.paint?`${c.paint} ${plural(+c.paint,['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...(+c.paint?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),
+    ['Покраска снаружи',+c.paint?`${c.paint} ${plural(+c.paint,['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:(c.outer==='prof'?`не нужна · профлист ${ralName(c.ralWall||'7016')}`:'нет')],...(c.roof==='color'||c.roof==='tile'?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),
     ['Опоры',c.pile==='blocks'?'бетонные блоки':`${p?p[1]:''} · ${modPiles(c)} шт`],
     ['Планировка',pp.rooms?`${pp.rooms} ${plural(pp.rooms,['помещение','помещения','помещений'])} · перегородки ${String(pp.wall).replace('.',',')} м · ${pp.idoor} ${plural(pp.idoor,['дверь','двери','дверей'])}`:'одно помещение, без перегородок'],
     ['Дополнительно',(c.extras||[]).length?(c.extras||[]).map(k=>(MOD_EXTRAS.find(x=>x[0]===k)||[,''])[1]).join(', '):'нет'],
@@ -4039,7 +4055,7 @@ function itemSpec(it){
   const rooms=(c.rooms&&c.rooms.length)?c.rooms:defaultRooms(m);
   const e=computeCalc(m,c);
   return [['Проект',`«${m.name}» ${fmtD(m.w)} × ${fmtD(m.d)} м`],['Площадь',`${livingA(m)} м² дом${verA(m)?` + ${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}`:''}`],
-    ['Комплектация',nm('pkg')],['Инженерия и отделка',c.pkg==='key'?'всё включено':c.pkg==='cold'?'нет — холодный контур':((c.inc||[]).length?WARM_OPTS.filter(o=>c.inc.includes(o[0])).map(o=>o[1].split(':')[0].toLowerCase()).join(', '):'не добавляли')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')+(hasGrade(c,'facade')?`, класс ${gradeName(c,'facade')}`:'')],['Покраска фасада',paintLayers(c)?`${paintLayers(c)} ${plural(paintLayers(c),['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...(paintLayers(c)&&c.roof!=='soft'?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),['Кровля',nm('roof')],['Пол',c.floorT==='base'?(c.pkg==='cold'?'черновая доска 25 мм':'черновая доска + OSB-3 15 мм'):nm('floorT')],['Внутри',c.pkg==='cold'?'нет — холодный контур':nm('innerT')+(hasGrade(c,'innerT')?`, класс ${gradeName(c,'innerT')}`:'')],
+    ['Комплектация',nm('pkg')],['Инженерия и отделка',c.pkg==='key'?'всё включено':c.pkg==='cold'?'нет — холодный контур':((c.inc||[]).length?WARM_OPTS.filter(o=>c.inc.includes(o[0])).map(o=>o[1].split(':')[0].toLowerCase()).join(', '):'не добавляли')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')+(hasGrade(c,'facade')?`, класс ${gradeName(c,'facade')}`:'')+(c.facade==='proff'&&!paintLayers(c)?` · ${ralName(c.ralWall||'7016')}`:'')],['Покраска фасада',paintLayers(c)?`${paintLayers(c)} ${plural(paintLayers(c),['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...((paintLayers(c)||c.facade==='proff')&&c.roof!=='soft'&&c.roof!=='ondulin'?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),['Кровля',nm('roof')],['Пол',c.floorT==='base'?(c.pkg==='cold'?'черновая доска 25 мм':'черновая доска + OSB-3 15 мм'):nm('floorT')],['Внутри',c.pkg==='cold'?'нет — холодный контур':nm('innerT')+(hasGrade(c,'innerT')?`, класс ${gradeName(c,'innerT')}`:'')],
     ['Фундамент',c.found==='blocks'?'бетонные блоки 400×200×200':`${nm('found')} · ${pileCount(m)} шт`],
     ['Крыльцо',(()=>{const pc=porchOf(m,c);return pc?`${fmtD(pc.w)}×${fmtD(pc.d)} м, ${PORCH_WALLS[pc.wall]}`:'нет'})()],
     ...(c.verPos?[['Терраса',(VER_POS.find(v=>v[0]===c.verPos)||['',''])[1].toLowerCase()]]:[]),
@@ -4340,7 +4356,7 @@ function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div><h4>&nbsp;</h4><ul>${MODELS.slice(4).map(m=>`<li><a href="#/house/${m.id}">${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>Покупателю</h4><ul><li><a href="#/projects">Наши проекты</a></li><li><a href="#/about">О компании</a></li><li><a href="#/modules">Модули для проживания</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
   <div><h4>Связь</h4><ul><li><a class="num" style="font-size:16px;color:var(--text)" href="tel:+79998886099">+7 999 888-60-99</a></li><li style="color:var(--muted);font-size:13.5px">Ежедневно 9:00–21:00</li><li><a href="#" data-contact>Заказать звонок</a></li></ul></div>
-  </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span><a class="credit" href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделал <b>Никита Соловьев</b></a></div></footer>`}
+  </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span><a class="credit" href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделан <b>Контур Студио</b></a></div></footer>`}
 
 /* ---------- страница «Технологии»: узлы, сваи, материалы, конструктор стены ---------- */
 const NODES={

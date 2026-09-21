@@ -31,8 +31,7 @@ else
   git clone --depth 1 "$REPO" "$SITE_DIR"
 fi
 
-echo "==> Включаем серверный кабинет (API_URL)"
-sed -i "s|const API_URL='';|const API_URL='/api.php';|" "$SITE_DIR/index.html"
+# серверный кабинет включается сам: сайт при запуске спрашивает api.php, отвечает ли он
 
 if [ -n "$YM" ]; then
   echo "==> Подключаем Яндекс Метрику, счётчик $YM"

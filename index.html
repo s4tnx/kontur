@@ -3862,8 +3862,12 @@ document.addEventListener('click',async e=>{
   toast(`${res.km} км по дорогам · доставка ${rub(res.km*DELIVERY_RATE)}`)});
 
 
-/* ---- свой сервер (api.php рядом с сайтом): регистрация, вход, заявки, документы ---- */
-const API_URL='';
+/* ---- свой сервер (api.php рядом с сайтом): регистрация, вход, заявки, документы ----
+   Ничего вписывать не нужно: при запуске сайт сам спрашивает api.php, отвечает ли он.
+   Отвечает (хостинг с PHP) — кабинет, заявки и переписка работают на сервере.
+   Не отвечает (бакет, Vercel, файл с диска) — сайт живёт как демо, данные в браузере.
+   Если нужно задать адрес вручную, впишите его здесь, например '/api.php'. */
+let API_URL='';
 let apiToken=null;
 try{apiToken=localStorage.getItem('kontur.token')||null}catch(e){}
 function apiSetToken(tk){apiToken=tk;try{tk?localStorage.setItem('kontur.token',tk):localStorage.removeItem('kontur.token')}catch(e){}}
@@ -3889,7 +3893,17 @@ const SB={c:null,on:false,kind:'',orders:[],docs:{},role:'client',loading:false}
 /* пользователь пришёл с сервера — раскладываем по местам */
 function srvUser(u){if(!u){user=null;SB.role='client';SB.orders=[];store.set('user',null);loadUserData();updateHeader();return}
   SB.role=u.role||'client';user={name:u.name||u.email,email:u.email,id:u.id,role:SB.role};store.set('user',user);loadUserData();updateHeader()}
+const API_FIXED=API_URL;
+async function apiDetect(){
+  if(API_FIXED)return true;
+  if(!/^https?:$/.test(location.protocol))return false;
+  try{const r=await fetch('api.php?a=ping',{cache:'no-store'});
+    if(!r.ok)return false;
+    const d=await r.json();
+    if(d&&d.ok){API_URL='api.php';return true}}catch(e){}
+  return false}
 async function sbInit(){
+  await apiDetect();
   if(API_URL){SB.on=true;SB.kind='api';
     try{if(apiToken){const d=await apiReq('me');srvUser(d.user)}}catch(e){apiSetToken(null)}
     await sbLoadOrders();render();return}

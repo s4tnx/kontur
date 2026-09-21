@@ -234,6 +234,10 @@ p{margin:0}
 .ral-dot.on{border-color:var(--lamp);color:var(--text);background:var(--panel2)}
 .chipx.pair{display:inline-flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;cursor:default}
 .chipx.pair b{font-weight:500;font-size:12.5px;color:var(--text)}
+.chipx.pair .cn,.chipx .cn{font-style:normal;min-width:20px;height:20px;padding:0 5px;border-radius:10px;display:inline-grid;place-items:center;font-size:11px;background:transparent;border:1px solid var(--line2);color:var(--dim);flex:none}
+.chipx.pair .cn.on,.chipx .cn.on{background:var(--lamp);border-color:var(--lamp);color:#1a120a;font-weight:600}
+.pl-op.idoor.entr .pl-oin{stroke:#F2B45C}
+.pl-op.idoor.entr .pl-lab{opacity:1;fill:#F2B45C}
 .chipx.pair em{font-style:normal;font-size:11.5px;color:var(--muted)}
 .chipx.pair button{width:22px;height:22px;border-radius:50%;border:1px solid var(--line2);background:transparent;color:var(--text);font-size:13px;line-height:1;cursor:pointer;display:grid;place-items:center;flex:none}
 .chipx.pair button:hover{border-color:var(--lamp);color:var(--lamp)}
@@ -595,6 +599,8 @@ footer{padding:50px 0 34px}
 .own-size i,.own-size em{font-style:normal;color:var(--muted);font-size:13px}
 .own-size .btn{height:38px;padding:0 16px}
 .refs{display:grid;gap:8px;margin-top:6px}
+.prj-ref{margin-bottom:22px}
+.prj-ref .ref-list img{max-height:220px}
 .line-pic{position:relative;display:block;width:150px;height:110px;border-radius:12px;overflow:hidden;cursor:pointer;outline:1px dashed transparent;transition:outline-color .2s}
 .line-pic:hover{outline-color:var(--lamp)}
 .line-pic img,.line-pic canvas{width:100%!important;height:100%!important;object-fit:cover;display:block;border-radius:0!important}
@@ -942,6 +948,31 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 .chat-act{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .chat-act .btn{height:38px;padding:0 18px;margin-left:auto}
 .chat-files{font-size:12px;color:var(--lamp2)}
+/* список диалогов и окно переписки */
+.tg-list{display:grid;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--panel)}
+.tg-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .2s}
+.tg-row:last-child{border-bottom:0}
+.tg-row:hover{background:var(--panel2)}
+.tg-ava{width:44px;height:44px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-family:var(--display);font-size:15px;font-weight:600;color:var(--lamp);border:1px solid var(--line)}
+.tg-main{display:grid;gap:2px;min-width:0}
+.tg-main b{font-weight:500;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg-main i,.tg-main u{font-style:normal;text-decoration:none;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg-main u{font-size:12px;color:var(--dim)}
+.tg-row.unread .tg-main i{color:var(--text)}
+.tg-side{display:grid;gap:6px;justify-items:end;align-content:center}
+.tg-side em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+.tg-badge{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--lamp);color:#1a120a;font-size:12px;font-weight:600;display:inline-grid;place-items:center}
+.tg-room{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;display:grid}
+.tg-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.tg-back{width:34px;height:34px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;flex:none;cursor:pointer}
+.tg-back:hover{border-color:var(--lamp);color:var(--lamp)}
+.tg-head b{display:block;font-size:15px;font-weight:500}
+.tg-head span{font-size:12.5px;color:var(--muted)}
+.tg-room .chat-list{max-height:min(58vh,520px);overflow-y:auto;padding:16px;gap:10px}
+.tg-room .chat-form{padding:14px 16px;border-top:1px solid var(--line)}
+.tg-link{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);cursor:pointer;transition:border-color .2s}
+.tg-link:hover{border-color:var(--lamp)}
+.tg-link .tg-side em{font-size:15px;color:var(--muted)}
 .chat-pick{display:grid;gap:6px}
 .chat-pick select{height:38px;border:1px solid var(--line2);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:13.5px;padding:0 10px}
 .msg-item{display:grid;gap:8px;border:1px solid rgba(231,163,92,.4);border-radius:12px;padding:10px 12px;background:rgba(231,163,92,.06);margin-top:4px}
@@ -1096,7 +1127,7 @@ const MODELS=[
  {id:'ladoga',from:'6x5',size:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w180180:2,w120100:1},
   proj:{size:'6x8',ver:{w:2.77,d:3.2},
     rooms:[{n:'Спальня',x:0,y:0,w:3.23,d:2.55},{n:'Кухня-гостиная',x:0,y:2.55,w:3.23,d:5.45},{n:'Гостиная',x:3.23,y:0,w:2.77,d:4.8}],
-    openings:[{t:'w120100',wall:1,u:1.8},{t:'w180180',wall:0,u:1.6},{t:'w180180',wall:0,u:-1.5},{t:'door',wall:0,u:2.6}],
+    openings:[{t:'w120100',wall:1,u:1.8},{t:'w180180',wall:0,u:1.9},{t:'w180180',wall:0,u:-1.9},{t:'door',wall:0,u:-.4}],
     idoors:[{x:1.6,y:2.55,w:.9},{x:3.23,y:4,w:.8},{x:3.23,y:6.55,w:.8}]},
   base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома: два панорамных окна 180×180, окно 100×120, две перегородки и две межкомнатные двери',plan:[['Душевая',0,0,3.3,1.4],['Кухня-гостиная',0,1.4,3.3,2.6],['Спальня',3.3,0,2.7,2.4]]},
  {id:'onega',from:'6x4',size:'6x5',winSides:[1,2,1,.2],ver:null,door:{wall:1,f:.15},porch:{wall:1,f:.15,w:2,d:1},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих: прямоугольный, без террасы, вход через небольшое боковое крыльцо',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,2.1],['С/у',3.6,2.1,2.4,1.4],['Прихожая',3.6,3.5,2.4,1.5]]},
@@ -2108,10 +2139,10 @@ function p3Build(o){
     let bi=-1,bd=1e9,bt=.5;inner.forEach((e,i)=>{const vx=e[2]-e[0],vz=e[3]-e[1],L2=vx*vx+vz*vz||1;
       const tt=Math.max(0,Math.min(1,((wx-e[0])*vx+(wz-e[1])*vz)/L2)),px=e[0]+vx*tt,pz=e[1]+vz*tt,dd=Math.hypot(px-wx,pz-wz);
       if(dd<bd){bd=dd;bi=i;bt=tt}});
-    if(bi>=0&&bd<.2)doorOn[bi].push({t:bt,w:sw})});
+    if(bi>=0&&bd<.2)doorOn[bi].push({t:bt,w:sw,e:s.e?1:0})});
   inner.forEach((e,i)=>{const L=Math.hypot(e[2]-e[0],e[3]-e[1]);
     const holes=doorOn[i].map(o2=>{const dw=Math.min(o2.w,L*.45)/L,cm=Math.round(o2.w*100);
-      return{a:o2.t-dw/2,b:o2.t+dw/2,h:2.0,type:'door',cm,meta:{t:'idoor',name:`Дверь ${cm} см внутри`,size:`${cm} × 200 см`}}});
+      return{a:o2.t-dw/2,b:o2.t+dw/2,h:o2.e?2.05:2.0,type:'door',cm,meta:{t:'idoor',name:o2.e?'Входная дверь внутри дома':`Дверь ${cm} см внутри`,size:o2.e?'90 × 205 см':`${cm} × 200 см`}}});
     p3Wall(g,e[0],e[1],e[2],e[3],P3TI,cPart,holes);
     holes.forEach(h=>{const f=(h.a+h.b)/2,lab=p3Label(`дверь ${h.cm}`,null,{bg:'#1F5E78',fg:'#E8F7FD',scale:.0024,pri:1});
       lab.position.set(e[0]+(e[2]-e[0])*f,P3H+.3,e[1]+(e[3]-e[1])*f);g.add(lab)})});
@@ -2360,6 +2391,9 @@ function orderPlanSVG(m,cfg){
     o+=`<rect x="${x}" y="${y}" width="${rw}" height="${rd}" fill="rgba(236,232,225,.03)" stroke="var(--line2)"/>
       <text x="${x+rw/2}" y="${y+rd/2-2}" text-anchor="middle" class="r">${r[0]}</text>
       <text x="${x+rw/2}" y="${y+rd/2+13}" text-anchor="middle" class="n">${(r[3]*r[4]).toFixed(1).replace('.',',')} м² · ${r[3].toFixed(1).replace('.',',')}×${r[4].toFixed(1).replace('.',',')}</text>`});
+  drawnWalls(cfg).forEach(w=>{const ax=pad+w[0]*k,ay=pad+w[1]*k,bx2=pad+w[2]*k,by2=pad+w[3]*k;
+    o+=`<line x1="${ax}" y1="${ay}" x2="${bx2}" y2="${by2}" stroke="#141618" stroke-width="7"/>
+      <line x1="${ax}" y1="${ay}" x2="${bx2}" y2="${by2}" stroke="#D8C9A8" stroke-width="3"/>`});
   o+=`<rect x="${pad}" y="${pad}" width="${W}" height="${D}" fill="none" stroke="#ECE8E1" stroke-width="3"/>`;
   /* межкомнатные двери — там же, где в 3D */
   (function(){const r0=boxRect(m),eps=.08,onBox=e=>(Math.abs(e[0]-e[2])<eps&&(Math.abs(e[0]-r0.x0)<eps||Math.abs(e[0]-(r0.x0+r0.w))<eps))||
@@ -2369,11 +2403,11 @@ function orderPlanSVG(m,cfg){
     rooms.forEach(rm=>{const x1=-m.w/2+rm[1],z1=-m.d/2+rm[2],x2=x1+rm[3],z2=z1+rm[4];
       [[x1,z1,x2,z1],[x2,z1,x2,z2],[x2,z2,x1,z2],[x1,z2,x1,z1]].forEach(e=>{if(onBox(e))return;
         const a=key(e),bb=key([e[2],e[3],e[0],e[1]]);if(seen[a]||seen[bb])return;seen[a]=1;inner.push(e)})});
-    (cfg?idoorsOf(m,cfg):[]).forEach(s=>{const e0=s.e,vx=(e0[2]-e0[0])/s.L,vy=(e0[3]-e0[1])/s.L;
-      const A=[pad+(s.x-vx*.4)*k,pad+(s.y-vy*.4)*k],B=[pad+(s.x+vx*.4)*k,pad+(s.y+vy*.4)*k],vert=Math.abs(vx)<.5;
+    (cfg?idoorsOf(m,cfg):[]).forEach(s=>{const e0=s.e0,vx=(e0[2]-e0[0])/s.L,vy=(e0[3]-e0[1])/s.L;
+      const hw0=(s.w||IDOOR_W)/2,A=[pad+(s.x-vx*hw0)*k,pad+(s.y-vy*hw0)*k],B=[pad+(s.x+vx*hw0)*k,pad+(s.y+vy*hw0)*k],vert=Math.abs(vx)<.5;
       o+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#141618" stroke-width="6"/>
         <line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#4FA3C4" stroke-width="3"/>
-        <text x="${(A[0]+B[0])/2+(vert?8:0)}" y="${(A[1]+B[1])/2+(vert?3:-7)}" text-anchor="${vert?'start':'middle'}" class="lab-d">дверь 80</text>`})})();
+        <text x="${(A[0]+B[0])/2+(vert?8:0)}" y="${(A[1]+B[1])/2+(vert?3:-7)}" text-anchor="${vert?'start':'middle'}" class="lab-d">${s.e?'вход 90':`дверь ${Math.round((s.w||IDOOR_W)*100)}`}</text>`})})();
   ops.forEach(p=>{const sz=openSz(p.t)[0]*k,c=p.t==='door'?'#4FA3C4':'#F4F1EA';
     let x1,y1,x2,y2;
     if(p.wall===0){const cx=pad+(p.u+b.w/2)*k;x1=cx-sz/2;x2=cx+sz/2;y1=y2=pad+wall0Y(m,b,p.u)*k}
@@ -2393,6 +2427,19 @@ function orderPlanSVG(m,cfg){
   o+=`<text x="${pad}" y="${pad+(b.d+exB)*k+30}" class="n">${rooms.length} ${plural(rooms.length,['комната','комнаты','комнат'])} · перегородки ${pr.wall} м · двери ${pr.idoor} + ${pr.edoor} входная · окон ${ops.filter(p=>p.t!=='door').length}</text>`;
   return o+'</g></svg>';
 }
+/* планировки позиции заказа: дом из каталога, свой проект или модуль */
+function orderPlansHTML(it){
+  if(!it||!it.cfg)return '';
+  try{
+    if(it.module){const pl=it.cfg.plan;
+      if(!pl||!((pl.rooms&&pl.rooms.length)||pl.draw))return '';
+      return `<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(moduleModel(it.cfg),pl)}</div>`}
+    if(it.custom){const c=it.cfg;
+      return c.plan1?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(customModelOf(c),c.plan1)}</div>`:''}
+    const m=byId(it.id);if(!m)return '';
+    let o=`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(m,it.cfg)}</div>`;
+    if(it.cfg.floor2&&it.cfg.floor2.rooms)o+=`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(m),it.cfg.floor2)}</div>`;
+    return o}catch(e){return ''}}
 function planSVG(m){
   const inset=!!(m.ver&&m.ver.inset);
   const vd=m.ver&&!inset?m.ver.d:0,vw=m.ver?Math.min(m.w,m.ver.w):0;
@@ -2641,12 +2688,15 @@ const defaultRooms=m=>{const b=roomBox(m);
 function freeSpot(rooms,b,w,d){for(let y=0;y<=b.d-d+.01;y+=.5)for(let x=0;x<=b.w-w+.01;x+=.5){
     if(!(rooms||[]).some(r=>x<(r.x||0)+r.w-.01&&x+w>(r.x||0)+.01&&y<(r.y||0)+r.d-.01&&y+d>(r.y||0)+.01))return{x:+x.toFixed(2),y:+y.toFixed(2)}}
   return{x:0,y:0}};
-const partsOf=(m,cfg)=>{if(cfg&&cfg.draw)return{wall:wallsLen(cfg),idoor:(cfg.idoors||[]).length,
-    edoor:cfg.openings?cfg.openings.filter(o=>o.t==='door').length:1,...(cfg.parts&&cfg.parts.edoor!=null?{edoor:cfg.parts.edoor}:{})};
+/* входная дверь, перенесённая внутрь дома, остаётся входной: она лежит в idoors с меткой e */
+const eDoorsIn=cfg=>(cfg&&cfg.idoors?cfg.idoors.filter(d=>d.e).length:0);
+const partsOf=(m,cfg)=>{if(cfg&&cfg.draw)return{wall:wallsLen(cfg),idoor:(cfg.idoors||[]).filter(d=>!d.e).length,
+    edoor:(cfg.openings?cfg.openings.filter(o=>o.t==='door').length:1)+eDoorsIn(cfg),
+    ...(cfg.parts&&cfg.parts.edoor!=null?{edoor:cfg.parts.edoor}:{})};
   const auto=cfg&&cfg.rooms&&cfg.rooms.length?basePartsOf({plan:planOf(m,cfg)}):basePartsOf(m);
   const p={...auto,...((cfg&&cfg.parts)||{})};
-  if(cfg&&cfg.openings)p.edoor=cfg.openings.filter(o=>o.t==='door').length;
-  if(cfg&&cfg.idoors)p.idoor=cfg.idoors.length;
+  if(cfg&&cfg.openings)p.edoor=cfg.openings.filter(o=>o.t==='door').length+eDoorsIn(cfg);
+  if(cfg&&cfg.idoors)p.idoor=cfg.idoors.filter(d=>!d.e).length;
   return p};
 const partsDelta=(m,cfg)=>{const b=basePartsOf(m),c=partsOf(m,cfg);
   return PARTS.reduce((s,p)=>s+((c[p[0]]||0)-(b[p[0]]||0))*p[3],0)};
@@ -2683,7 +2733,7 @@ function computeCalc(m,cfg){
   const pd=partsDelta(m,cfg);if(Math.round(pd))lines.push(['Перегородки и двери: изменение',pd]);
   if(cfg.draw)lines.push([`Свой чертёж: перегородки ${String(wallsLen(cfg)).replace('.',',')} м`,0]);
   else if(cfg.rooms&&cfg.rooms.length)lines.push([`Своя планировка: ${cfg.rooms.length} ${plural(cfg.rooms.length,['комната','комнаты','комнат'])} · ${roomsArea(cfg.rooms)} м²`,0]);
-  const wide9=(cfg.idoors||[]).filter(d=>(d.w||IDOOR_W)>.85).length;
+  const wide9=(cfg.idoors||[]).filter(d=>!d.e&&(d.w||IDOOR_W)>.85).length;
   if(wide9)lines.push([`Двери 90 см внутри × ${wide9}`,wide9*IDOOR_UP]);
   if(cfg.pkg==='warm')WARM_OPTS.forEach(o=>{if((cfg.inc||[]).includes(o[0]))lines.push([o[1],o[2](m)])});
   if(paintLayers(cfg)){const v=paintPaid(m,cfg);
@@ -2723,12 +2773,12 @@ function snapDoor(edges,x,y){let best=null;
   edges.forEach((e,i)=>{const vx=e[2]-e[0],vy=e[3]-e[1],L=Math.hypot(vx,vy);if(L<1)return;
     const hw=.5/L;let tt=((x-e[0])*vx+(y-e[1])*vy)/(L*L);tt=Math.max(hw,Math.min(1-hw,tt));
     const px=e[0]+vx*tt,py=e[1]+vy*tt,dd=Math.hypot(px-x,py-y);
-    if(!best||dd<best.d)best={i,t:tt,x:+px.toFixed(2),y:+py.toFixed(2),d:dd,L,e}});
+    if(!best||dd<best.d)best={i,t:tt,x:+px.toFixed(2),y:+py.toFixed(2),d:dd,L,e0:e}});
   return best}
 /* межкомнатные двери: сохранённые или разложенные по перегородкам */
 const IDOOR_W=.8,IDOOR_W90=.9,IDOOR_UP=1350;   /* дверь 90 см внутри — дороже обычной на 1 350 ₽ */
 function idoorsOf(m,cfg){const edges=innerEdgesBox(m,cfg);
-  if(cfg&&cfg.idoors)return cfg.idoors.map(p=>{const s=snapDoor(edges,p.x,p.y);return s?{...s,w:p.w||IDOOR_W}:null}).filter(Boolean);
+  if(cfg&&cfg.idoors)return cfg.idoors.map(p=>{const s=snapDoor(edges,p.x,p.y);return s?{...s,w:p.w||(p.e?IDOOR_W90:IDOOR_W),e:p.e?1:0}:null}).filter(Boolean);
   const n=cfg&&cfg.parts&&cfg.parts.idoor!=null?cfg.parts.idoor:Math.max(0,(planOf(m,cfg)||[]).length-1),out=[];
   const usable=edges.filter(e=>Math.hypot(e[2]-e[0],e[3]-e[1])>=1);
   for(let i=0;i<n&&usable.length;i++){const e=usable[i%usable.length],f=[.5,.3,.7][Math.floor(i/usable.length)%3];
@@ -2742,7 +2792,7 @@ function wall0Y(m,b,u){const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
 const PLAN_SNAP=.1;
 const snap=v=>Math.round(v/PLAN_SNAP)*PLAN_SNAP;
 function plannerSVG(m,cfg){
-  const b=roomBox(m),rooms=cfg.rooms||[],pc=porchOf(m,cfg);
+  const b=roomBox(m),rooms=cfg.draw?[]:(cfg.rooms||(m.module?[]:defaultRooms(m))),pc=porchOf(m,cfg);
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
   const dk=deckOf(m,cfg),ext=Math.max(pc?pc.d:0,dk?dk.d:0);
   const LL=isL(m),exL=N&&N.side&&!N.right?N.vw:0,exR=LL?m.ver.a:N&&N.side&&N.right?N.vw:0,exB=0,exT=LL?m.ver.b:0;
@@ -2781,11 +2831,11 @@ function plannerSVG(m,cfg){
       <text x="${x+rw/2}" y="${y+rd/2+13}" text-anchor="middle" class="pl-t" data-wide="${rw>120?1:0}">${(r.w*r.d).toFixed(1).replace('.',',')} м²${rw>120?` · ${String(r.w).replace('.',',')}×${String(r.d).replace('.',',')}`:''}</text>
       <rect class="pl-h" data-rsz="${i}" x="${x+rw-11}" y="${y+rd-11}" width="11" height="11" rx="2"/></g>`});
   /* межкомнатные двери на перегородках — тянутся вдоль и на другую перегородку */
-  idoorsOf(m,cfg).forEach((s,i)=>{const e=s.e,vx=(e[2]-e[0])/s.L,vy=(e[3]-e[1])/s.L,h=(s.w||IDOOR_W)/2,dcm=Math.round((s.w||IDOOR_W)*100);
+  idoorsOf(m,cfg).forEach((s,i)=>{const e=s.e0,vx=(e[2]-e[0])/s.L,vy=(e[3]-e[1])/s.L,h=(s.w||IDOOR_W)/2,dcm=Math.round((s.w||IDOOR_W)*100);
     const x1=pad+(s.x-vx*h)*k,y1=pad+(s.y-vy*h)*k,x2=pad+(s.x+vx*h)*k,y2=pad+(s.y+vy*h)*k,vert=Math.abs(vx)<.5;
-    o+=`<g class="pl-op door idoor" data-did="${i}"><title>Дверь ${dcm} × 200 см внутри — тяните вдоль перегородки или к наружной стене</title>
+    o+=`<g class="pl-op door idoor${s.e?' entr':''}" data-did="${i}"><title>${s.e?'Входная дверь 90 × 205 см внутри дома — тяните вдоль перегородки или обратно к наружной стене':`Дверь ${dcm} × 200 см внутри — тяните вдоль перегородки или к наружной стене`}</title>
       <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="11"/><line class="pl-oin" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="5"/>
-      <text x="${(x1+x2)/2+(vert?12:0)}" y="${(y1+y2)/2+(vert?4:-10)}" text-anchor="${vert?'start':'middle'}" class="pl-lab">дверь ${dcm}</text>
+      <text x="${(x1+x2)/2+(vert?12:0)}" y="${(y1+y2)/2+(vert?4:-10)}" text-anchor="${vert?'start':'middle'}" class="pl-lab">${s.e?'вход 90':`дверь ${dcm}`}</text>
       <circle cx="${(x1+x2)/2}" cy="${(y1+y2)/2}" r="12" class="pl-ohit"/></g>`});
   /* проёмы: окна жёлтые, двери синие — на стенах пятна застройки */
   (cfg.openings||[]).forEach((p,i)=>{const s0=openSz(p.t),sz=s0[0]*k;
@@ -2829,7 +2879,7 @@ function bindPlanner(){
     if(e.target.closest('[data-deck]')){drag={mode:'deck'};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
     if(e.target.closest('[data-niche]')){drag={mode:'niche',p0:pt(e)};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
     const dd=e.target.closest('[data-did]');
-    if(dd){if(!cfg.idoors)cfg.idoors=idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w}));
+    if(dd){if(!cfg.idoors)cfg.idoors=idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w,e:s.e}));
       drag={i:+dd.dataset.did,mode:'idoor'};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
     const op=e.target.closest('[data-oid]');
     if(op){if(!cfg.openings)cfg.openings=autoOpenings(m,cfg);const i=+op.dataset.oid;if(!cfg.openings[i])return;
@@ -2838,6 +2888,7 @@ function bindPlanner(){
       const sx=Math.max(0,Math.min(b0.w,q(p.x))),sy=Math.max(0,Math.min(b0.d,q(p.y)));
       drag={mode:'draw',a:{x:sx,y:sy}};svg.setPointerCapture(e.pointerId);e.preventDefault();return}
     const h=e.target.closest('[data-rsz]'),g=e.target.closest('[data-rid]');if(!g)return;
+    if(!cfg.rooms||!cfg.rooms.length)cfg.rooms=defaultRooms(m);
     const i=+g.dataset.rid,p=pt(e);
     drag={i,mode:h?'size':'move',sx:p.x,sy:p.y,r:{...cfg.rooms[i]}};
     svg.setPointerCapture(e.pointerId);e.preventDefault()});
@@ -2877,8 +2928,8 @@ function bindPlanner(){
       t2.setAttribute('x',cx);t2.setAttribute('y',cy+4);if(wall===1||wall===2)t2.setAttribute('transform',`rotate(-90 ${cx} ${cy})`);else t2.removeAttribute('transform');
       live3D(m);return}
     if(drag.mode==='idoor'){const p=pt(e);drag.p=p;const s=snapDoor(innerEdgesBox(m,cfg),p.x,p.y);if(!s)return;
-      cfg.idoors[drag.i]={x:s.x,y:s.y};
-      const g2=svg.querySelector(`[data-did="${drag.i}"]`),vx=(s.e[2]-s.e[0])/s.L,vy=(s.e[3]-s.e[1])/s.L,h=.4,P0=+svg.dataset.pad;
+      cfg.idoors[drag.i]={...cfg.idoors[drag.i],x:s.x,y:s.y};
+      const g2=svg.querySelector(`[data-did="${drag.i}"]`),vx=(s.e0[2]-s.e0[0])/s.L,vy=(s.e0[3]-s.e0[1])/s.L,h=(cfg.idoors[drag.i].w||IDOOR_W)/2,P0=+svg.dataset.pad;
       const x1=P0+(s.x-vx*h)*k,y1=P0+(s.y-vy*h)*k,x2=P0+(s.x+vx*h)*k,y2=P0+(s.y+vy*h)*k,vert=Math.abs(vx)<.5;
       g2.querySelectorAll('line').forEach(ln=>{ln.setAttribute('x1',x1);ln.setAttribute('y1',y1);ln.setAttribute('x2',x2);ln.setAttribute('y2',y2)});
       const c2=g2.querySelector('circle');c2.setAttribute('cx',(x1+x2)/2);c2.setAttribute('cy',(y1+y2)/2);
@@ -2889,13 +2940,13 @@ function bindPlanner(){
       if(o.t==='door'){const si=snapDoor(innerEdgesBox(m,cfg),p.x,p.y);
         const wD=Math.min(Math.abs(p.y-wall0Y(m,b,p.x-b.w/2)),Math.abs(p.y),Math.abs(p.x),Math.abs(p.x-b.w));
         if(si&&si.d<wD){drag.inner=si;
-          const gi=svg.querySelector(`[data-oid="${drag.i}"]`),vx=(si.e[2]-si.e[0])/si.L,vy=(si.e[3]-si.e[1])/si.L,hw=IDOOR_W90/2;
+          const gi=svg.querySelector(`[data-oid="${drag.i}"]`),vx=(si.e0[2]-si.e0[0])/si.L,vy=(si.e0[3]-si.e0[1])/si.L,hw=IDOOR_W90/2;
           const PX=pad,PY=+svg.dataset.pad+(+svg.dataset.offy||0);
           const ix1=PX+(si.x-vx*hw)*k,iy1=PY+(si.y-vy*hw)*k,ix2=PX+(si.x+vx*hw)*k,iy2=PY+(si.y+vy*hw)*k;
           gi.querySelectorAll('line').forEach(ln=>{ln.setAttribute('x1',ix1);ln.setAttribute('y1',iy1);ln.setAttribute('x2',ix2);ln.setAttribute('y2',iy2)});
           const ci2=gi.querySelector('circle');if(ci2){ci2.setAttribute('cx',(ix1+ix2)/2);ci2.setAttribute('cy',(iy1+iy2)/2)}
           const ti=gi.querySelector('text');
-          if(ti){const vert=Math.abs(vx)<.5;ti.textContent='дверь 90';ti.removeAttribute('transform');
+          if(ti){const vert=Math.abs(vx)<.5;ti.textContent='вход 90';ti.removeAttribute('transform');
             ti.setAttribute('x',(ix1+ix2)/2+(vert?12:0));ti.setAttribute('y',(iy1+iy2)/2+(vert?4:-10));ti.setAttribute('text-anchor',vert?'start':'middle')}
           return}
         drag.inner=null}
@@ -2958,16 +3009,16 @@ function bindPlanner(){
       const s=drag.inner||snapDoor(innerEdgesBox(m,cfg),p.x,p.y);
       const wallD=Math.min(Math.abs(p.y-wall0Y(m,b2,p.x-b2.w/2)),Math.abs(p.y),Math.abs(p.x),Math.abs(p.x-b2.w));
       if(s&&(drag.inner||(s.d<.55&&s.d<wallD))){
-        const list=cfg.idoors||idoorsOf(m,cfg).map(x=>({x:x.x,y:x.y,w:x.w}));
+        const list=cfg.idoors||idoorsOf(m,cfg).map(x=>({x:x.x,y:x.y,w:x.w,e:x.e}));
         /* не ставим дверь впритык к соседней на той же перегородке */
-        let px=s.x,py=s.y;const vx=(s.e[2]-s.e[0])/s.L,vy=(s.e[3]-s.e[1])/s.L;
+        let px=s.x,py=s.y;const vx=(s.e0[2]-s.e0[0])/s.L,vy=(s.e0[3]-s.e0[1])/s.L;
         for(const sh of [0,1,-1,1.8,-1.8]){const nx=s.x+vx*sh,ny=s.y+vy*sh;
           if(!list.some(d=>Math.hypot(d.x-nx,d.y-ny)<.95)){px=nx;py=ny;break}}
-        cfg.idoors=list.concat([{x:+px.toFixed(2),y:+py.toFixed(2),w:IDOOR_W90}]);
+        cfg.idoors=list.concat([{x:+px.toFixed(2),y:+py.toFixed(2),w:IDOOR_W90,e:1}]);
         cfg.openings=cfg.openings.filter((_,i)=>i!==drag.i);
-        cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.length,edoor:cfg.openings.filter(o=>o.t==='door').length};
-        drag=null;refreshAny(m,true);toast('Дверь 90 см перенесена внутрь');return}}
-    if(drag.mode==='idoor'&&p&&cfg.idoors){
+        cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.filter(d=>!d.e).length,edoor:cfg.openings.filter(o=>o.t==='door').length+eDoorsIn(cfg)};
+        drag=null;refreshAny(m,true);toast('Входная дверь стоит внутри дома — та же, 90 × 205 см');return}}
+    if(drag.mode==='idoor'&&p&&cfg.idoors&&cfg.idoors[drag.i]&&cfg.idoors[drag.i].e){
       const d0=Math.abs(p.y-wall0Y(m,b2,p.x-b2.w/2)),d3=Math.abs(p.y),d2=Math.abs(p.x),d1=Math.abs(p.x-b2.w);
       const arr=[[0,d0],[3,d3],[2,d2],[1,d1]].sort((a,c)=>a[1]-c[1]);
       const s=snapDoor(innerEdgesBox(m,cfg),p.x,p.y);
@@ -2976,8 +3027,8 @@ function bindPlanner(){
         const fu=freeU(m,cfg.openings||autoOpenings(m,cfg),-1,wall,snap(u),openSz('door')[0],wallLen(m,wall));
         if(fu!=null){cfg.openings=(cfg.openings||autoOpenings(m,cfg)).concat([{t:'door',wall,u:fu}]);
           cfg.idoors=cfg.idoors.filter((_,i)=>i!==drag.i);
-          cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.length,edoor:cfg.openings.filter(o=>o.t==='door').length};
-          drag=null;refreshAny(m,true);toast('Дверь перенесена на наружную стену');return}}}
+          cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.filter(d=>!d.e).length,edoor:cfg.openings.filter(o=>o.t==='door').length+eDoorsIn(cfg)};
+          drag=null;refreshAny(m,true);toast('Входная дверь вернулась на наружную стену');return}}}
     if(drag.mode==='open'&&cfg.openings&&cfg.openings[drag.i])pushOpenings(m,cfg,drag.i);
     drag=null;refreshAny(m,true)};
   svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
@@ -2988,9 +3039,12 @@ document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest
   const base=curHouse();if(!base||!base.plan2)return;planFloor=+f.dataset.planfloor;const pm=planModel(base);
   const pe=document.getElementById('planEditor');if(pe){pe.innerHTML=roomsGroup(pm,getCfg(pm));bindPlanner()}live3D(pm)});
 /* «− окно +» в палитре: одним нажатием добавить или убрать */
-const winChip=(w,cfg)=>`<span class="chipx win pair" title="${w[1]} · ${w[2]}"><button type="button" data-opensub="${w[0]}" aria-label="Убрать ${w[1]}">−</button><b>${w[1].replace('Окно ','').replace('Панорамное ','')}</b><em class="num">${rub(w[3]*winK[cfg.win])}</em><button type="button" data-openadd="${w[0]}" aria-label="Добавить ${w[1]}">+</button></span>`;
-const doorChip=cfg=>`<span class="chipx door pair"><button type="button" data-opensub="door" aria-label="Убрать входную дверь">−</button><b>Входная дверь</b><em class="num">${rub(PARTS[2][3])}</em><button type="button" data-openadd="door" aria-label="Добавить входную дверь">+</button></span>`;
+const cnBadge=n=>`<i class="cn num${n?' on':''}">${n}</i>`;
+const winChip=(w,cfg,n)=>`<span class="chipx win pair" title="${w[1]} · ${w[2]}"><button type="button" data-opensub="${w[0]}" aria-label="Убрать ${w[1]}">−</button><b>${w[1].replace('Окно ','').replace('Панорамное ','')}</b>${cnBadge(n||0)}<em class="num">${rub(w[3]*winK[cfg.win])}</em><button type="button" data-openadd="${w[0]}" aria-label="Добавить ${w[1]}">+</button></span>`;
+const doorChip=(cfg,n)=>`<span class="chipx door pair"><button type="button" data-opensub="door" aria-label="Убрать входную дверь">−</button><b>Входная дверь</b>${cnBadge(n||0)}<em class="num">${rub(PARTS[2][3])}</em><button type="button" data-openadd="door" aria-label="Добавить входную дверь">+</button></span>`;
 function roomsGroup(m,cfg){
+  const ops0=openingsOf(m,cfg),ids0=idoorsOf(m,cfg),nDoorIn=ids0.filter(d=>d.e).length;
+  const nOpen=tp=>ops0.filter(o=>o.t===tp).length,nDoor=ops0.filter(o=>o.t==='door').length+nDoorIn,nIdoor=ids0.length-nDoorIn;
   const own=!!(cfg.rooms&&cfg.rooms.length),rooms=own?cfg.rooms:defaultRooms(m),b=roomBox(m),
     auto=basePartsOf({plan:planOf(m,{rooms})}),fit=roomsArea(rooms)<=b.w*b.d+.01;
   return `<div class="cg"><div class="cg-h"><h3>Планировка</h3><span class="num">${fmtD(b.w)} × ${fmtD(b.d)} м под комнаты · ${roomsArea(rooms)} м²</span></div>
@@ -2999,19 +3053,19 @@ function roomsGroup(m,cfg){
   ${cfg.draw?`${plannerSVG(m,cfg)}
     <small class="note" style="margin-top:8px">Зажмите мышь (или палец) и проведите линию — получится перегородка. Линии прилипают к сетке 25 см и к стенам дома. Нажмите на перегородку, чтобы убрать её. Двери и окна тащите как обычно: межкомнатные двери встают на нарисованные стены.</small>
     <div class="op-pal"><span class="label" style="margin-right:4px">Добавить</span>
-      ${WIN_TYPES.map(w=>winChip(w,cfg)).join('')}
-      ${doorChip(cfg)}
-      <span class="chipx door pair"><button type="button" data-idoorsub aria-label="Убрать межкомнатную дверь">−</button><b>Межкомнатная 80</b><em class="num">${rub(PARTS[1][3])}</em><button type="button" data-idooradd aria-label="Добавить межкомнатную дверь">+</button></span>
+      ${WIN_TYPES.map(w=>winChip(w,cfg,nOpen(w[0]))).join('')}
+      ${doorChip(cfg,nDoor)}
+      <span class="chipx door pair"><button type="button" data-idoorsub aria-label="Убрать межкомнатную дверь">−</button><b>Межкомнатная 80</b>${cnBadge(nIdoor)}<em class="num">${rub(PARTS[1][3])}</em><button type="button" data-idooradd aria-label="Добавить межкомнатную дверь">+</button></span>
       <button type="button" class="chipx" data-walldel>Убрать последнюю стену</button>
       <button type="button" class="chipx" data-wallclr>Очистить чертёж</button></div>
     <div class="spec-list" style="margin-top:12px"><div><span>Перегородки начерчено</span><b class="num">${String(wallsLen(cfg)).replace('.',',')} м</b></div>
       <div><span>Межкомнатные двери</span><b class="num">${(cfg.idoors||[]).length}</b></div></div>`
-   :own?`${plannerSVG(m,cfg)}
-    <small class="note" style="margin-top:8px">Перетаскивайте комнаты мышью, тяните за уголок — меняется размер. Входную дверь можно увести внутрь дома — она встанет на перегородку как межкомнатная, а её можно вытащить обратно на улицу. Окна и двери тащите вдоль стены или на другую стену — они «прилипают» к ближайшей. Шаг сетки 0,5 м, привязка 10 см.</small>
+   :`${plannerSVG(m,cfg)}
+    <small class="note" style="margin-top:8px">Перетаскивайте комнаты мышью, тяните за уголок — меняется размер. Входную дверь можно увести внутрь дома: она останется входной 90 × 205 см и просто встанет на перегородку, а вытащить её обратно на улицу можно тем же движением. Окна и двери тащите вдоль стены или на другую стену — они «прилипают» к ближайшей. Шаг сетки 0,5 м, привязка 10 см.</small>
     <div class="op-pal"><span class="label" style="margin-right:4px">Добавить</span>
-      ${WIN_TYPES.map(w=>winChip(w,cfg)).join('')}
-      ${doorChip(cfg)}
-      <span class="chipx door pair"><button type="button" data-idoorsub aria-label="Убрать межкомнатную дверь">−</button><b>Межкомнатная 80</b><em class="num">${rub(PARTS[1][3])}</em><button type="button" data-idooradd aria-label="Добавить межкомнатную дверь">+</button></span></div>
+      ${WIN_TYPES.map(w=>winChip(w,cfg,nOpen(w[0]))).join('')}
+      ${doorChip(cfg,nDoor)}
+      <span class="chipx door pair"><button type="button" data-idoorsub aria-label="Убрать межкомнатную дверь">−</button><b>Межкомнатная 80</b>${cnBadge(nIdoor)}<em class="num">${rub(PARTS[1][3])}</em><button type="button" data-idooradd aria-label="Добавить межкомнатную дверь">+</button></span></div>
     <div class="rooms">${rooms.map((r,i)=>`<div class="room-row">
       <input value="${(r.n||'').replace(/"/g,'&quot;')}" data-room="${i}:n" aria-label="Название комнаты">
       <input type="number" min="1" max="20" step="0.1" value="${r.w}" data-room="${i}:w" aria-label="Ширина">
@@ -3022,8 +3076,7 @@ function roomsGroup(m,cfg){
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
       <button type="button" class="btn" data-roomadd>Добавить комнату</button>
       <button type="button" class="btn lamp" data-planready>Готово — сохранить планировку</button></div>
-    <small class="note">${fit?`Помещается: ${roomsArea(rooms)} из ${Math.round(b.w*b.d*10)/10} м². Считаем ${auto.wall} м перегородок и ${auto.idoor} ${plural(auto.idoor,['дверь','двери','дверей'])} — разница с проектной планировкой уходит в смету.`:`Комнаты не помещаются в пятно ${b.w} × ${b.d} м — уменьшите размеры или возьмите размер побольше.`}</small>`
-   :`<small class="note">Планировка проекта: ${defaultRooms(m).map(r=>r.n).join(', ')}. Нажмите «Своя планировка», чтобы задать свои комнаты — схема, перегородки, двери и смета пересчитаются.</small>`}
+    <small class="note">${fit?`Помещается: ${roomsArea(rooms)} из ${Math.round(b.w*b.d*10)/10} м². Считаем ${auto.wall} м перегородок и ${auto.idoor} ${plural(auto.idoor,['дверь','двери','дверей'])} — разница с проектной планировкой уходит в смету.`:`Комнаты не помещаются в пятно ${b.w} × ${b.d} м — уменьшите размеры или возьмите размер побольше.`}</small>`}
   </div>`}
 function partsGroup(base,cur,attr){
   const cost=PARTS.reduce((s,p)=>s+((cur[p[0]]||0)-(base[p[0]]||0))*p[3],0);
@@ -3043,7 +3096,7 @@ function calcGroups(m){const cfg=getCfg(m);const cold=cfg.pkg==='cold';
     <div class="opts">${[0,1,2,3].map(n=>{const d=Math.max(0,n-(cfg.pkg==='key'?2:0))*HOUSE_PAINT*wallA(m);
       return `<button type="button" class="opt ${paintLayers(cfg)===n?'on':''}" data-paint="${n}"><b>${n?`${n} ${plural(n,['слой','слоя','слоёв'])}`:'Без покраски'}</b><small>${n?['','Антисептик-лазурь, лёгкий тон','Ровный цвет, защита 4–5 лет','Плотный цвет, защита 6–8 лет'][n]:'Дерево без покрытия'}</small><em class="num ${Math.round(d)?'':'z'}">${Math.round(d)?'+ '+rub(d):'в цене'}</em></button>`}).join('')}</div>
     ${paintLayers(cfg)?ralPicker(cfg.ralWall||'7016','ralWall','Цвет краски по RAL'):''}
-    ${cfg.roof!=='soft'?ralPicker(cfg.ralRoof||'7024','ralRoof','Цвет кровли по RAL'):''}</div>`+
+    ${paintLayers(cfg)&&cfg.roof!=='soft'?ralPicker(cfg.ralRoof||'7024','ralRoof','Цвет кровли по RAL'):''}</div>`+
   `<div class="cg"><div class="cg-h"><h3>Инженерия и отделка</h3><span>${cfg.pkg==='key'?'всё включено в «под ключ»':cfg.pkg==='cold'?'только с тёплым контуром':'добавьте, что нужно'}</span></div>`+
   (cfg.pkg==='cold'?`<small class="note">В холодном контуре ничего этого нет — это «коробка» дома. Переключите комплектацию на тёплый контур, чтобы добавить электрику, воду и отделку, или возьмите «под ключ», где всё уже включено.</small></div>`
    :`<div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">${WARM_OPTS.map(o=>`<label class="chk"><input type="checkbox" data-inc="${o[0]}" ${cfg.pkg==='key'||(cfg.inc||[]).includes(o[0])?'checked':''} ${cfg.pkg==='key'?'disabled':''}><span>${o[1]}</span><em class="num">${cfg.pkg==='key'?'включено':rub(o[2](m))}</em></label>`).join('')}</div>
@@ -3249,6 +3302,7 @@ function refreshCustom(groups){
 }
 function customView(){if(planHouse!=='custom'){planFloor=1;planHouse='custom'}
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Калькулятор</span><h1>Дом своего размера</h1><div class="size-switch"><a class="pill on" href="#/custom">Дом</a><a class="pill" href="#/modules/own">Модуль</a></div></div><p style="color:var(--muted);max-width:44ch">Впишите ширину и длину, выберите контур и улучшения — смета пересчитается сразу. Нужен размер из каталога? <a class="link" href="#/sizes">Смотрите готовые дома</a>.</p></div>
+  ${prjRefBlock(customState,'custom')}
   <div class="calc" style="padding-bottom:40px"><div class="calc-groups" id="calcGroups">${customGroups()}</div><aside class="estimate" id="estimate">${customEstimate()}</aside></div>
   <div class="cg" style="margin-bottom:22px" id="planBase"><div class="cg-h"><h3>Планировка-основа · необязательно</h3><span>можно взять схему любого проекта — она подстроится под ваш размер</span></div>
     <div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
@@ -3448,15 +3502,15 @@ document.addEventListener('submit',e=>{if(e.target.id!=='modOwn')return;e.preven
 function modDoorSync(){const m=moduleModel(),cfg=getCfg(m);if(!cfg.openings)cfg.openings=autoOpenings(m,cfg);
   const has=cfg.openings.some(p=>p.t==='door');
   if(m.noDoor){cfg.openings=cfg.openings.filter(p=>p.t!=='door');cfg.parts={...(cfg.parts||{}),edoor:0}}
-  else if(!has&&!(cfg.idoors||[]).some(d=>(d.w||IDOOR_W)>.85)){const p=placeOpening(m,cfg,'door');if(p)cfg.openings=cfg.openings.concat([p]);cfg.parts={...(cfg.parts||{}),edoor:1}}}
+  else if(!has&&!(cfg.idoors||[]).some(d=>d.e||(d.w||IDOOR_W)>.85)){const p=placeOpening(m,cfg,'door');if(p)cfg.openings=cfg.openings.concat([p]);cfg.parts={...(cfg.parts||{}),edoor:1}}}
 function modRoomsGroup(){const m=moduleModel(),cfg=getCfg(m);if(!cfg.openings)cfg.openings=autoOpenings(m,cfg);
   if(m.noDoor&&cfg.openings.some(p=>p.t==='door'))cfg.openings=cfg.openings.filter(p=>p.t!=='door');const rooms=cfg.rooms||[],p=modParts(modState);
   return `<div class="cg"><div class="cg-h"><h3>Планировка модуля</h3><span class="num">${m.w} × ${m.d} м · ${rooms.length?`${rooms.length} ${plural(rooms.length,['помещение','помещения','помещений'])}`:'внутри пусто'}</span></div>
     ${plannerSVG(m,cfg)}
     <small class="note" style="margin-top:8px">В базе внутри ничего нет — одно помещение. Добавьте комнаты: перегородки и двери появятся между ними и уйдут в смету. Окна и дверь тащите вдоль стены или на другую стену.</small>
     <div class="op-pal"><span class="label" style="margin-right:4px">Добавить</span>
-      ${MOD_WINS.map(w=>`<span class="chipx win pair ${w[2]==='wood'?'wood':''}" title="Окно ${MOD_MAT[w[2]][2]} ${w[1]}"><button type="button" data-mwin="${w[0]}:-1" aria-label="Убрать окно ${w[1]}">−</button><b>${MOD_MAT[w[2]][1]} ${w[1]}</b><em class="num">${rub(w[4])}</em><button type="button" data-mwin="${w[0]}:1" aria-label="Добавить окно ${w[1]}">+</button></span>`).join('')}
-      <button type="button" class="chipx door" data-idooradd>Межкомнатная дверь 80 · ${rub(MOD_IDOOR)}</button>
+      ${MOD_WINS.map(w=>`<span class="chipx win pair ${w[2]==='wood'?'wood':''}" title="Окно ${MOD_MAT[w[2]][2]} ${w[1]}"><button type="button" data-mwin="${w[0]}:-1" aria-label="Убрать окно ${w[1]}">−</button><b>${MOD_MAT[w[2]][1]} ${w[1]}</b>${cnBadge((w[0]==='d6090'&&modHasBase(modState)?1:0)+((modState.wins||{})[w[0]]||0))}<em class="num">${rub(w[4])}</em><button type="button" data-mwin="${w[0]}:1" aria-label="Добавить окно ${w[1]}">+</button></span>`).join('')}
+      <button type="button" class="chipx door" data-idooradd>Межкомнатная дверь 80 ${cnBadge(p.idoor||0)} · ${rub(MOD_IDOOR)}</button>
       <button type="button" class="chipx" data-idoordel>Убрать межкомнатную</button>
       <button type="button" class="chipx" data-mwinlast>Убрать последнее окно</button></div>
     <div class="rooms">${rooms.map((r,i)=>`<div class="room-row">
@@ -3569,6 +3623,7 @@ function modGroupsHTML(){const c=modState,s=modSize(c),h=modH(c);
   grp(MOD_GROUPS[1])+
   `<div class="cg"><div class="cg-h"><h3>Покраска снаружи</h3><span class="num">${rub(MOD_PAINT)} за м² · один слой · ${String(modWallA(c)).replace('.',',')} м² стен</span></div><div class="opts">
     ${c.paint?ralPicker(c.ralWall||'7016','ralWall','Цвет краски по RAL'):''}
+    ${c.paint&&c.roof!=='onduline'?ralPicker(c.ralRoof||'7024','ralRoof','Цвет кровли по RAL'):''}
     ${[0,1,2,3].map(n=>`<button type="button" class="opt ${+c.paint===n?'on':''}" data-mopt="paint:${n}"><b>${n?`${n} ${plural(n,['слой','слоя','слоя'])}`:'Без покраски'}</b><small>${n?['','Антисептик-лазурь, лёгкий тон','Ровный цвет, защита 4–5 лет','Плотный цвет, защита 6–8 лет'][n]:'Дерево без покрытия'}</small><em class="num ${n?'':'z'}">${n?'+ '+rub(Math.round(n*MOD_PAINT*modWallA(c))):'в базе'}</em></button>`).join('')}</div></div>`+
   MOD_GROUPS.slice(2,5).map(grp).join('')+
   `<div class="cg"><div class="cg-h"><h3>Форма кровли</h3><span class="num">${isGable(c)?`стены ${mh(modH(c)[1])} м · конёк ${mh(modRidge(c))} м`:`скат с ${mh(modH(c)[0])} до ${mh(modH(c)[1])} м`}</span></div><div class="opts">
@@ -3624,6 +3679,7 @@ function modulesView(size){const ps=parseModSize(size);if(ps)modState.size=ps.id
   const c=modState,s=modSize(c),L=modLineOf(s.id);
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Модули</span><h1>${L?`Модуль «${L.name}»`:'Модуль своего размера'}</h1></div>
     <p style="color:var(--muted);max-width:46ch">Утеплённые бытовки на дачу, стройку или для постоянной жизни. Собираем на вашем участке — сборка входит в стоимость, гарантия 3 года. Размеры от 5×2 до 6×6 м, всё остальное настраивается ниже.</p></div>
+  ${prjRefBlock(modState,'module')}
   <div class="tabs" style="margin-bottom:14px">${MOD_LINE.map(x=>`<button type="button" class="pill ${L&&L.id===x.id?'on':''}" data-mline="${x.id}">${x.name} · ${x.sizes.map(z=>z.replace('x','×')).join(', ')}</button>`).join('')}</div>
   <div class="mod-sizes" role="group" aria-label="Размер модуля">${(L?MOD_SIZES.filter(x=>L.sizes.includes(x.id)):MOD_SIZES).map(x=>`<button type="button" class="${x.id===c.size?'on':''}" data-msize="${x.id}"><b class="num">${x.w}×${x.d}</b><span>${x.w*x.d} м²</span><em class="num">от ${rub(modBase(x))}</em></button>`).join('')}
     <button type="button" class="own ${s.own?'on':''}" data-mownfocus><b>${s.own?`${fmtD(s.w)}×${fmtD(s.d)}`:'Свой'}</b><span>${s.own?`${fmtD(s.w*s.d)} м² · свой`:'любой размер'}</span><em class="num">${s.own?rub(modBase(s)):'длина × ширина'}</em></button></div>
@@ -3672,7 +3728,7 @@ document.addEventListener('click',e=>{
     modState[k]=v;if(k==='door')modDoorSync();refreshModule(true);return}
   const w=e.target.closest('[data-mwin]');if(w){const [k,d]=w.dataset.mwin.split(':');modWin(k,+d);refreshModule(true);return}
   if(e.target.closest('[data-modadd]')){const cfg=JSON.parse(JSON.stringify(modState)),s=modSize(cfg),pc=getCfg(moduleModel());
-    cfg.plan=JSON.parse(JSON.stringify({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}}));cart.push({id:'module',module:true,cfg,total:computeModule(cfg).total});saveCart();toast(`Модуль ${fmtD(s.w)}×${fmtD(s.d)} добавлен в корзину`);return}
+    cfg.plan=JSON.parse(JSON.stringify({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}}));delete cfg.refs;cart.push({id:'module',module:true,cfg,refs:(modState.refs||[]).slice(),total:computeModule(cfg).total});saveCart();toast(`Модуль ${fmtD(s.w)}×${fmtD(s.d)} добавлен в корзину`);return}
   if(e.target.closest('[data-modreset]')){Object.assign(modState,{winTab:modState.winTab||'wood',roofShape:'shed',ins:'50',outer:'vag',outerGrade:'BC',inner:'vag',innerGrade:'BC',floor:'board',roof:'zinc',door:'cut',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50});
     Object.keys(calcState).filter(k=>k.indexOf('module@')===0).forEach(k=>delete calcState[k]);refreshModule(true);toast('Настройки модуля сброшены')}});
 document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-mrange]');if(!r)return;
@@ -3688,7 +3744,7 @@ function moduleSpec(c){const pp=modParts(c),s=modSize(c),h=modH(c),nm=k=>{const 
   return [['Модуль',`${fmtD(s.w)} × ${fmtD(s.d)} м · ${fmtD(s.w*s.d)} м²${s.own?' · свой размер':''}`],['Высота потолка',`${isGable(c)?`${mh(h[0])} м, конёк ${mh(modRidge(c))} м`:`${mh(h[0])} / ${mh(h[1])} м`}${c.rise?` (+${c.rise} см)`:''}`],
     ['Утепление',nm('ins')],['Снаружи',modFinishName(c,MOD_GROUPS.find(g=>g.key==='outer'))],['Внутри',modFinishName(c,MOD_GROUPS.find(g=>g.key==='inner'))],['Пол',nm('floor')],['Кровля',`${nm('roof')} · ${isGable(c)?`двускатная, конёк ${mh(modRidge(c))} м`:'односкатная'}`],['Дверь',nm('door')],
     ['Окна',modWinCount(c)?[modHasBase(c)?`дер. 60×90 × ${1+Math.max(0,(c.wins||{}).d6090||0)} (1 в базе)`:'без базового окна',...MOD_WINS.filter(w=>w[0]!=='d6090'&&(c.wins||{})[w[0]]>0).map(w=>`${MOD_MAT[w[2]][1]} ${w[1]} × ${(c.wins||{})[w[0]]}`)].join(', '):'без окон'],
-    ['Покраска снаружи',+c.paint?`${c.paint} ${plural(+c.paint,['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],['Цвет кровли',ralName(c.ralRoof||'7024')],
+    ['Покраска снаружи',+c.paint?`${c.paint} ${plural(+c.paint,['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...(+c.paint?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),
     ['Опоры',c.pile==='blocks'?'бетонные блоки':`${p?p[1]:''} · ${modPiles(c)} шт`],
     ['Планировка',pp.rooms?`${pp.rooms} ${plural(pp.rooms,['помещение','помещения','помещений'])} · перегородки ${String(pp.wall).replace('.',',')} м · ${pp.idoor} ${plural(pp.idoor,['дверь','двери','дверей'])}`:'одно помещение, без перегородок'],
     ['Дополнительно',(c.extras||[]).length?(c.extras||[]).map(k=>(MOD_EXTRAS.find(x=>x[0]===k)||[,''])[1]).join(', '):'нет'],
@@ -3815,6 +3871,12 @@ async function sbDeleteDoc(no,d){
   if(SB.kind==='api'){await apiReq('docdel',{json:{id:+d.id}});await sbLoadDocs(no);return}
   await SB.c.storage.from('docs').remove([d.path]);
   const {error}=await SB.c.from('docs').delete().eq('id',d.id);if(error)throw error;await sbLoadDocs(no)}
+/* контакты клиента: из сохранённого профиля или из самой первой заявки */
+function contactOf(){if(!user)return{fio:'',phone:'',region:''};
+  const saved=store.get('contact.'+user.email,null)||{};
+  const os=(SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]))||[];
+  const first=os.length?os.slice().sort((a,b)=>a.at-b.at)[0]:null;
+  return{fio:saved.fio||(first&&first.fio)||user.name||'',phone:saved.phone||(first&&first.phone)||'',region:saved.region||(first&&first.region)||''}}
 function cartView(){
   const lines=cart.map(c=>({...c,m:lineModel(c)})).filter(c=>c.m);
   const total=lines.reduce((s,l)=>s+itemTotal(l),0);
@@ -3824,16 +3886,17 @@ function cartView(){
     <div style="display:grid;gap:4px"><h3>${l.m.name} <span class="num" style="color:var(--muted);font-weight:400">${fmtD(+l.m.w||l.m.w)}×${fmtD(+l.m.d||l.m.d)}</span></h3><p>${itemDesc(l)}</p>
       <details class="spec-det"><summary>Полное описание и планировка</summary>
         <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-        ${l.custom&&l.cfg.plan1&&(l.cfg.plan1.rooms||l.cfg.plan1.draw)?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(customModelOf(l.cfg),l.cfg.plan1)}</div>`:''}${!l.custom&&!l.module&&l.cfg&&(l.cfg.rooms||l.cfg.draw||(l.cfg.floor2&&l.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(l.id),l.cfg)}</div>${l.cfg.floor2&&l.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(l.id)),l.cfg.floor2)}</div>`:''}`:''}</details>
+        ${orderPlansHTML(l)}</details>
       ${refsBlock(l,i)}
       <a class="link" href="${l.module?'#/modules/'+l.cfg.size:l.custom?'#/custom':'#/house/'+l.m.id}" style="justify-self:start">${l.module?'Открыть конструктор модулей':l.custom?'Открыть калькулятор':'Открыть модель'}</a></div>
     <div class="r"><b class="num" style="font-size:18px">${rub(itemTotal(l))}</b><button class="link" data-remove="${i}">Удалить</button></div></div>`).join('')}</div>
   <form class="summary" id="checkout">
     <h3 style="font-size:20px">Оформить заявку</h3>
     ${user?'':`<p style="color:var(--muted);font-size:14px">Войдите, чтобы отправить заявку и следить за этапами стройки в личном кабинете.</p>`}
-    <div class="field"><label for="fio">Фамилия, имя и отчество</label><input id="fio" name="fio" placeholder="Иванов Иван Иванович" required value="${user&&user.name?user.name:''}"></div>
-    <div class="field"><label for="ph">Телефон</label><input id="ph" name="phone" type="tel" placeholder="+7 900 000-00-00" required></div>
-    <div class="field"><label for="reg">Где участок</label><input id="reg" name="region" placeholder="Ленинградская обл., Выборгский р-н"></div>
+    ${(()=>{const ct=contactOf();return `<div class="field"><label for="fio">Фамилия, имя и отчество</label><input id="fio" name="fio" placeholder="Иванов Иван Иванович" required value="${esc(ct.fio)}"></div>
+    <div class="field"><label for="ph">Телефон</label><input id="ph" name="phone" type="tel" placeholder="+7 900 000-00-00" required value="${esc(ct.phone)}"></div>
+    <div class="field"><label for="reg">Где участок</label><input id="reg" name="region" placeholder="Ленинградская обл., Выборгский р-н" value="${esc(ct.region)}"></div>
+    ${user&&ct.phone?`<p class="note" style="margin-top:-4px">Контакты подставлены из вашей первой заявки — поменяйте, если что-то изменилось.</p>`:''}`})()}
     <div class="field"><label for="cm">Комментарий</label><textarea id="cm" name="comment" placeholder="Когда хотите начать стройку"></textarea></div>
     ${(()=>{const pr=myPromo();if(!pr)return `<div class="tot"><span style="color:var(--muted)">Итого</span><b class="num">${rub(total)}</b></div>
       <p class="note">${user?'Есть промокод? <a class="link" href="#/account/promo">Введите его в личном кабинете</a>.':'Промокод на скидку вводится в личном кабинете — войдите, и скидка появится здесь.'}</p>`;
@@ -3866,7 +3929,7 @@ function cartThumb(l,i){const pm=byId(l.m.pic||l.m.id),base=pm&&pm.photo?`<img s
   if(!isOwnProject(l))return base;const rs=l.refs||[];
   return `<label class="line-pic${rs.length?'':' empty'}" title="Нажмите, чтобы добавить фото проекта">${rs.length?`<img src="${rs[0]}" alt="Фото желаемого проекта">`:'<span class="pic-empty" aria-hidden="true">+</span>'}
     ${rs.length<REF_MAX?`<input type="file" accept="image/*" multiple data-refadd="${i}" hidden>`:''}<span class="pic-add">${rs.length?(rs.length<REF_MAX?`+ ещё фото · ${rs.length}/${REF_MAX}`:`фото ${rs.length}/${REF_MAX}`):'+ Добавить фото проекта'}</span></label>`}
-function refsBlock(it,i){if(!isOwnProject(it))return '';const rs=it.refs||[];
+function refsBlock(it,i){if(!isOwnProject(it)&&!(it.refs||[]).length)return '';const rs=it.refs||[];
   return `<div class="refs"><span class="label">Как должен выглядеть дом</span>
     <div class="ref-list">${rs.map((r,j)=>`<figure><button type="button" data-refview><img src="${r}" alt="Фото проекта ${j+1}"></button><button type="button" class="ref-x" data-refdel="${i}|${j}" aria-label="Убрать фото">✕</button></figure>`).join('')}
       ${rs.length<REF_MAX?`<label class="ref-add"><input type="file" accept="image/*" multiple data-refadd="${i}" hidden><b>+</b><span>Фото проекта</span></label>`:''}</div>
@@ -3917,6 +3980,9 @@ function itemSpec(it){
       ['Фасад',cGrp('facade').items.find(i=>i.id===cSel(c,'facade')).name],['Пол',cGrp('floorT').items.find(i=>i.id===cSel(c,'floorT')).name],['Кровля',cGrp('roof').items.find(i=>i.id===cSel(c,'roof')).name],
       ['Окна',`${WIN_TYPES.reduce((s,w)=>s+(cWins(c)[w[0]]||0),0)} шт · ${cGrp('win').items.find(i=>i.id===cSel(c,'win')).name}`],
       ['Входная дверь',cParts(c).edoor?cGrp('edoorT').items.find(i=>i.id===cSel(c,'edoorT')).name:'нет'],
+      ...(c.plan1?[['Планировка',c.plan1.draw?`свой чертёж · перегородки ${String(wallsLen(c.plan1)).replace('.',',')} м · межкомнатных дверей ${(c.plan1.idoors||[]).filter(d=>!d.e).length}`
+        :(c.plan1.rooms&&c.plan1.rooms.length?`${c.plan1.rooms.length} ${plural(c.plan1.rooms.length,['комната','комнаты','комнат'])} · ${roomsArea(c.plan1.rooms)} м²`:'по типовой схеме')]]:[]),
+      ...(c.floor2&&c.floor2.rooms&&c.floor2.rooms.length?[['Планировка 2 этажа',`${c.floor2.rooms.length} ${plural(c.floor2.rooms.length,['комната','комнаты','комнат'])} · ${roomsArea(c.floor2.rooms)} м²`]]:[]),
       ['Дополнительно',(c.extras||[]).length?EXTRAS.filter(e=>c.extras.includes(e[0])).map(e=>e[1]).join(', '):'нет'],
       ['Баня',b&&b.id!=='none'?b.name:'нет'],
       ['Доставка',`${c.km} км${c.addr?` · ${c.addr}`:''}`]]}
@@ -3925,12 +3991,12 @@ function itemSpec(it){
   const rooms=(c.rooms&&c.rooms.length)?c.rooms:defaultRooms(m);
   const e=computeCalc(m,c);
   return [['Проект',`«${m.name}» ${fmtD(m.w)} × ${fmtD(m.d)} м`],['Площадь',`${livingA(m)} м² дом${verA(m)?` + ${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}`:''}`],
-    ['Комплектация',nm('pkg')],['Инженерия и отделка',c.pkg==='key'?'всё включено':c.pkg==='cold'?'нет — холодный контур':((c.inc||[]).length?WARM_OPTS.filter(o=>c.inc.includes(o[0])).map(o=>o[1].split(':')[0].toLowerCase()).join(', '):'не добавляли')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')],['Покраска фасада',paintLayers(c)?`${paintLayers(c)} ${plural(paintLayers(c),['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],['Цвет кровли',ralName(c.ralRoof||'7024')],['Кровля',nm('roof')],['Пол',nm('floorT')],['Внутри',c.pkg==='cold'?'нет — холодный контур':nm('innerT')],
+    ['Комплектация',nm('pkg')],['Инженерия и отделка',c.pkg==='key'?'всё включено':c.pkg==='cold'?'нет — холодный контур':((c.inc||[]).length?WARM_OPTS.filter(o=>c.inc.includes(o[0])).map(o=>o[1].split(':')[0].toLowerCase()).join(', '):'не добавляли')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')],['Покраска фасада',paintLayers(c)?`${paintLayers(c)} ${plural(paintLayers(c),['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...(paintLayers(c)&&c.roof!=='soft'?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),['Кровля',nm('roof')],['Пол',nm('floorT')],['Внутри',c.pkg==='cold'?'нет — холодный контур':nm('innerT')],
     ['Фундамент',c.found==='blocks'?'бетонные блоки 400×200×200':`${nm('found')} · ${pileCount(m)} шт`],
     ['Крыльцо',(()=>{const pc=porchOf(m,c);return pc?`${fmtD(pc.w)}×${fmtD(pc.d)} м, ${PORCH_WALLS[pc.wall]}`:'нет'})()],
     ...(c.verPos?[['Терраса',(VER_POS.find(v=>v[0]===c.verPos)||['',''])[1].toLowerCase()]]:[]),
     ['Окна',`${nw} шт, профиль: ${lcFirst(nm('win'))}`],['Входная дверь',nm('edoorT')],
-    ['Планировка',`${rooms.length} ${plural(rooms.length,['комната','комнаты','комнат'])}${c.rooms&&c.rooms.length?' (своя)':''} · перегородки ${pr.wall} м · двери ${pr.idoor} + ${pr.edoor} входная`],
+    ['Планировка',c.draw?`свой чертёж · перегородки ${String(wallsLen(c)).replace('.',',')} м · двери ${pr.idoor} + ${pr.edoor} входная`:`${rooms.length} ${plural(rooms.length,['комната','комнаты','комнат'])}${c.rooms&&c.rooms.length?' (своя)':''} · перегородки ${pr.wall} м · двери ${pr.idoor} + ${pr.edoor} входная`],
     ['Терраса сверх проекта',c.terrace?`${c.terrace} м²`:'нет'],
     ['Баня',(BATHS.find(b=>b.id===c.bath)||{}).id!=='none'?(BATHS.find(b=>b.id===c.bath)||{}).name:'нет'],
     ['Дополнительно',c.extras.length?c.extras.map(k=>(EXTRAS.find(x=>x[0]===k)||[,''])[1]).join(', '):'нет'],
@@ -3962,8 +4028,7 @@ function msgItemHTML(it,i,no){const m=lineModel(it);if(!m)return '';
     <p class="note" style="margin:0">${esc(itemDesc(it))}</p>
     <details class="spec-det"><summary>Спецификация и планировка</summary>
       <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-      ${!it.custom&&!it.module&&it.cfg?`<div class="pc-plan" style="margin-top:10px">${orderPlanSVG(byId(it.id),it.cfg)}</div>`:''}
-      ${it.custom&&it.cfg.plan1?`<div class="pc-plan" style="margin-top:10px">${orderPlanSVG(customModelOf(it.cfg),it.cfg.plan1)}</div>`:''}</details>
+      ${orderPlansHTML(it)}</details>
     <button type="button" class="btn" data-msgadd="${no}|${i}">Добавить в корзину</button></div>`}
 async function chatSend(no,text,files,role,item){
   const mgr=(()=>{try{const s=mgrSession();return s&&mgrAccounts()[s.login]?mgrAccounts()[s.login].name:''}catch(e){return ''}})();
@@ -3977,27 +4042,67 @@ async function chatSend(no,text,files,role,item){
   try{localStorage.setItem('kontur.'+chatKey(no),JSON.stringify(list))}catch(e){throw new Error('Не хватило места в браузере — уменьшите фото')}
   CHAT[no]=list;return list}
 const chatTime=at=>new Date(at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+/* непрочитанные и превью последнего сообщения — как в мессенджере */
+const chatOf=no=>CHAT[no]!==undefined?CHAT[no]:(SB.on?[]:store.get(chatKey(no),[]));
+const chatSeenMap=role=>store.get('chatseen.'+role,{});
+function chatMarkSeen(no,role){const s=chatSeenMap(role);s[no]=Date.now();store.set('chatseen.'+role,s)}
+const chatUnread=(no,role)=>{const t0=chatSeenMap(role)[no]||0;return chatOf(no).filter(m=>m.role!==role&&m.at>t0).length};
+const chatLastMsg=no=>{const l=chatOf(no);return l.length?l[l.length-1]:null};
+const chatShort=at=>{const d=new Date(at),n=new Date();
+  return d.toDateString()===n.toDateString()?d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})};
+const chatPreview=(no,role)=>{const m=chatLastMsg(no);if(!m)return '';
+  const txt=m.text||(m.item?'вариант дома из конструктора':'')||((m.files||[]).length?`${m.files.length} ${plural(m.files.length,['фото','фото','фото'])}`:'сообщение');
+  return (m.role===role?'Вы: ':'')+txt};
+const orderTitleOf=o=>{const it=(o.items||[])[0],m=it&&lineModel(it);
+  return m?`${m.name} ${fmtD(m.w)}×${fmtD(m.d)}${o.items.length>1?` и ещё ${o.items.length-1}`:''}`:'Заявка'};
+/* список диалогов */
+let CHAT_LIST=null;
+function chatListHTML(rows,role,attrOf){CHAT_LIST={rows,role,attrOf};
+  return `<div class="tg-list" data-chatlist="${rows.map(r=>r.no).join(',')}">${rows.map(r=>{const u=chatUnread(r.no,role),l=chatLastMsg(r.no),pv=chatPreview(r.no,role);
+    return `<a class="tg-row${u?' unread':''}" ${attrOf(r)} tabindex="0"><span class="tg-ava">${esc(r.ava||'К')}</span>
+      <span class="tg-main"><b>${esc(r.title)}</b><i>${pv?esc(pv):'Сообщений пока нет — напишите первым'}</i><u>${esc(r.sub||'')}</u></span>
+      <span class="tg-side">${l?`<em class="num">${chatShort(l.at)}</em>`:''}${u?`<span class="tg-badge num">${u}</span>`:''}</span></a>`}).join('')}</div>`}
+function chatListSync(){const el=document.querySelector('[data-chatlist]');if(!el||el.dataset.sync||!CHAT_LIST)return;el.dataset.sync='1';
+  const nos=(el.dataset.chatlist||'').split(',').filter(Boolean);
+  (async()=>{for(const no of nos){try{await chatLoad(no)}catch(e){}}
+    const cur=document.querySelector('[data-chatlist]'),L=CHAT_LIST;
+    if(cur&&L){cur.outerHTML=chatListHTML(L.rows,L.role,L.attrOf);const n2=document.querySelector('[data-chatlist]');if(n2)n2.dataset.sync='1'}})()}
+/* окно переписки */
+function chatRoomHTML(no,role,title,sub,back){chatMarkSeen(no,role);const ms=chatOf(no);
+  return `<div class="tg-room" data-chat="${no}" data-role="${role}" data-room="1" data-title="${esc(title)}" data-sub="${esc(sub||'')}" data-back="${esc(back)}">
+    <div class="tg-head"><a class="tg-back" ${/^#/.test(back)?`href="${back}"`:`${back} tabindex="0"`} aria-label="Назад к списку">←</a>
+      <div><b>${esc(title)}</b><span>${esc(sub||'')}</span></div></div>
+    <div class="chat-list">${ms.length?ms.map(m=>msgHTML({...m,no},role)).join(''):`<p class="note">${role==='manager'?'Напишите клиенту: пришлите планировку, спецификацию, фото — или соберите дом в калькуляторе и отправьте карточкой.':'Напишите менеджеру. Он пришлёт варианты домов, планировки и фотографии — а собранный дом можно будет сразу положить в корзину.'}</p>`}</div>
+    ${chatFormHTML(no,role)}</div>`}
+const chatLink=(no,role,attr)=>{const u=chatUnread(no,role),pv=chatPreview(no,role);
+  return `<a class="tg-link" ${attr} tabindex="0"><span class="tg-main"><b>Переписка с ${role==='manager'?'клиентом':'менеджером'}</b><i>${pv?esc(pv):'Сообщений пока нет'}</i></span>
+    <span class="tg-side">${u?`<span class="tg-badge num">${u}</span>`:''}<em>→</em></span></a>`}
+function chatScroll(){document.querySelectorAll('.tg-room .chat-list').forEach(el=>{el.scrollTop=el.scrollHeight})}
 const msgHTML=(msg,role,no)=>`<div class="msg ${msg.role===role?'mine':''}" data-mid="${msg.id}">
   <div class="msg-h"><b>${msg.role==='manager'?'Менеджер'+(msg.who?' · '+esc(msg.who):''):'Клиент'+(msg.who?' · '+esc(msg.who):'')}</b><span>${chatTime(msg.at)}</span></div>
   ${msg.text?`<p>${esc(msg.text).replace(/\n/g,'<br>')}</p>`:''}
   ${(msg.files||[]).length?`<div class="ref-list ro">${msg.files.map(f=>`<button type="button" data-refview><img src="${f}" alt="Вложение"></button>`).join('')}</div>`:''}
   ${msg.item?msgItemHTML(msg.item,msg.id,msg.no||''):''}</div>`;
-function chatBlock(no,role){const ms=CHAT[no]||[],d=(CHAT_DRAFT[no]||[]).length;
-  return `<details class="chat" data-chat="${no}" data-role="${role}"${ms.length?' open':''}>
-    <summary>Переписка с ${role==='manager'?'клиентом':'менеджером'}${ms.length?` · ${ms.length}`:''}</summary>
-    <div class="chat-list">${ms.length?ms.map(m=>msgHTML({...m,no},role)).join(''):`<p class="note">${role==='manager'?'Отправьте клиенту варианты домов: планировку, спецификацию и фото — он увидит их в личном кабинете.':'Здесь менеджер пришлёт варианты домов, планировки и фотографии. Можно ответить и приложить свои фото.'}</p>`}</div>
-    <form class="chat-form" data-chatsend="${no}">
+function chatFormHTML(no,role){const d=(CHAT_DRAFT[no]||[]).length;
+  return `<form class="chat-form" data-chatsend="${no}">
       <textarea name="text" rows="2" placeholder="${role==='manager'?'Например: предлагаю Ладогу 6×8 с террасой — планировка и спецификация во вложении':'Напишите менеджеру'}"></textarea>
       ${cart.length?`<div class="chat-pick"><label class="label" style="font-size:10.5px">Приложить дом из корзины</label>
         <select data-chatitem="${no}"><option value="">— не прикладывать —</option>${cart.map((c,i)=>{const lm=lineModel(c);return lm?`<option value="${i}">${esc(lm.name)} ${fmtD(lm.w)}×${fmtD(lm.d)} · ${rub(itemTotal(c))}</option>`:''}).join('')}</select>
         <small class="note" style="margin:0">Соберите дом в калькуляторе, добавьте в корзину — и отправьте его собеседнику: он увидит спецификацию, планировку и сможет положить его себе в корзину.</small></div>`:''}
       <div class="chat-act"><label class="link">Прикрепить фото<input type="file" accept="image/*" multiple hidden data-chatfile="${no}"></label>
         <span class="chat-files num">${d?`${d} ${plural(d,['фото','фото','фото'])} готово к отправке`:''}</span>
-        <button class="btn" type="submit">Отправить</button></div></form></details>`}
+        <button class="btn" type="submit">Отправить</button></div></form>`}
+function chatBlock(no,role){const ms=CHAT[no]||[],d=(CHAT_DRAFT[no]||[]).length;
+  return `<details class="chat" data-chat="${no}" data-role="${role}"${ms.length?' open':''}>
+    <summary>Переписка с ${role==='manager'?'клиентом':'менеджером'}${ms.length?` · ${ms.length}`:''}</summary>
+    <div class="chat-list">${ms.length?ms.map(m=>msgHTML({...m,no},role)).join(''):`<p class="note">${role==='manager'?'Отправьте клиенту варианты домов: планировку, спецификацию и фото — он увидит их в личном кабинете.':'Здесь менеджер пришлёт варианты домов, планировки и фотографии. Можно ответить и приложить свои фото.'}</p>`}</div>
+    ${chatFormHTML(no,role)}</details>`}
 function chatSync(){document.querySelectorAll('[data-chat]').forEach(async el=>{const no=el.dataset.chat;
   if(el.dataset.sync)return;el.dataset.sync='1';await chatLoad(no);refreshChat(no)})}
 function refreshChat(no){document.querySelectorAll(`[data-chat="${no}"]`).forEach(el=>{
-  const role=el.dataset.role,open=el.open;el.outerHTML=chatBlock(no,role).replace('<details class="chat"',`<details class="chat"${open?' open':''}`)})}
+  const role=el.dataset.role;
+  if(el.dataset.room){el.outerHTML=chatRoomHTML(no,role,el.dataset.title,el.dataset.sub,el.dataset.back);setTimeout(chatScroll,0);return}
+  const open=el.open;el.outerHTML=chatBlock(no,role).replace('<details class="chat"',`<details class="chat"${open?' open':''}`)})}
 document.addEventListener('change',async e=>{const f=e.target.closest&&e.target.closest('[data-chatfile]');if(!f)return;
   const no=f.dataset.chatfile,files=[...f.files].filter(x=>/^image\//.test(x.type));f.value='';
   if(!files.length)return;const cur=CHAT_DRAFT[no]||[];
@@ -4056,7 +4161,13 @@ document.addEventListener('click',e=>{
   if(x){const [no,id]=x.dataset.docdel.split('|'),d=docsOf(no).find(y=>y.id===id);if(!d||!confirm(`Удалить «${d.name}»?`))return;
     if(SB.on){sbDeleteDoc(no,d).then(()=>{refreshDocs(no);toast('Файл удалён')}).catch(()=>toast('Не удалось удалить файл'));return}
     store.set('docs.'+no,docsOf(no).filter(y=>y.id!==id));refreshDocs(no);toast('Файл удалён')}});
-function accountView(tab){
+function chatTabView(orders,sub){
+  const rows=orders.slice().reverse().map(o=>({no:o.no,title:`Заявка № ${o.no}`,sub:orderTitleOf(o),ava:'М'}));
+  if(!rows.length)return `<div class="empty"><p style="color:var(--text);font-size:18px">Переписки пока нет</p><p>Отправьте заявку — и здесь появится чат с менеджером: планировки, варианты домов и фотографии.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`;
+  const cur=rows.find(r=>String(r.no)===String(sub));
+  if(cur)return chatRoomHTML(cur.no,'client',`Менеджер · заявка № ${cur.no}`,cur.sub,'#/account/chat');
+  return chatListHTML(rows,'client',r=>`href="#/account/chat/${r.no}"`)}
+function accountView(tab,sub){
   if(!user)return `<div class="wrap"><div class="page-h"><h1>Личный кабинет</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">Войдите, чтобы увидеть заявки и избранное</p><p>Здесь хранятся ваши дома, этапы стройки и контакты.</p><button class="btn solid" data-login>Войти или зарегистрироваться</button></div>
     ${favs.length?`<div class="sec-head"><h2>Избранное на этом устройстве</h2></div><div class="grid" style="margin-bottom:80px">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:''}</div>`;
   const orders=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
@@ -4070,20 +4181,25 @@ function accountView(tab){
    :tab==='profile'?`<form class="summary" id="profile" style="position:static;max-width:520px"><h3 style="font-size:20px">Профиль</h3>
       <div class="field"><label for="pn">Имя</label><input id="pn" name="name" value="${esc(user.name)}" required></div>
       <div class="field"><label for="pe">Эл. почта</label><input id="pe" value="${esc(user.email)}" disabled></div>
+      ${(()=>{const ct=contactOf();return `<div class="field"><label for="pp">Телефон</label><input id="pp" name="phone" type="tel" placeholder="+7 900 000-00-00" value="${esc(ct.phone)}"></div>
+      <div class="field"><label for="pr">Где участок</label><input id="pr" name="region" placeholder="Ленинградская обл., Выборгский р-н" value="${esc(ct.region)}"></div>
+      <p class="note">Эти данные подставятся в заявку — в корзине не придётся заполнять их заново.</p>`})()}
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn solid" type="submit">Сохранить</button><button class="btn" type="button" id="logout">Выйти</button></div></form>`
+   :tab==='chat'?chatTabView(orders,sub)
    :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">Заявка № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span style="display:flex;gap:10px;align-items:center"><span class="status">${STAGES[o.stage]}</span>${canClientDel(o)?`<button type="button" class="link" data-orderdel="${esc(o.no)}">Удалить</button>`:''}</span></header>
       <div style="display:grid;gap:10px">${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
         return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
         ${refsView(it)}<details class="spec-det"><summary>Спецификация и планировка</summary>
           <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-          ${it.custom&&it.cfg.plan1&&(it.cfg.plan1.rooms||it.cfg.plan1.draw)?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(customModelOf(it.cfg),it.cfg.plan1)}</div>`:''}${!it.custom&&!it.module&&it.cfg&&(it.cfg.rooms||it.cfg.draw||(it.cfg.floor2&&it.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>${it.cfg.floor2&&it.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(it.id)),it.cfg.floor2)}</div>`:''}`:''}</details></div>`}).join('')}</div>
-      ${promoLine(o)}${chatBlock(o.no,'client')}${docsBlock(o.no,'client')}
+          ${orderPlansHTML(it)}</details></div>`}).join('')}</div>
+      ${promoLine(o)}${chatLink(o.no,'client',`href="#/account/chat/${o.no}"`)}${docsBlock(o.no,'client')}
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
-  const orders_n=orders.length;
+  const orders_n=orders.length,unread=orders.reduce((s,o)=>s+chatUnread(o.no,'client'),0);
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Личный кабинет</span><h1>Здравствуйте, ${esc(user.name.split(' ')[0])}</h1></div></div>
   <div class="acc"><div class="acc-nav">
     <button class="${tab==='orders'?'on':''}" data-tab="orders">Мои заявки <span class="num">${orders_n}</span></button>
+    <button class="${tab==='chat'?'on':''}" data-tab="chat">Сообщения ${unread?`<span class="tg-badge num">${unread}</span>`:`<span class="num">${orders_n}</span>`}</button>
     <button class="${tab==='fav'?'on':''}" data-tab="fav">Избранное <span class="num">${favs.length}</span></button>
     <button class="${tab==='promo'?'on':''}" data-tab="promo">Промокод <span class="num">${myPromo()?'−'+myPromo().pct+'%':''}</span></button>
     <button class="${tab==='profile'?'on':''}" data-tab="profile">Профиль</button>
@@ -4129,12 +4245,22 @@ document.addEventListener('click',e=>{
   const o=e.target.closest&&e.target.closest('[data-prjopen]');
   if(o){location.hash=prjTarget(PRJ[+o.dataset.prjopen]);return}
   const a=e.target.closest&&e.target.closest('[data-prjadd]');
-  if(a){const p=PRJ[+a.dataset.prjadd];
-    if(p.house){const m=byId(p.house+'@'+p.size),cfg=JSON.parse(JSON.stringify(getCfg(m)));
-      cart.push({id:m.id,cfg,total:computeCalc(m,cfg).total});saveCart();toast(`«${m.name}» ${fmtD(m.w)}×${fmtD(m.d)} — в корзине, можно менять комплектацию`)}
-    else{const c={...modState,size:p.mod},s=modSize(c);
-      cart.push({module:true,cfg:JSON.parse(JSON.stringify(c)),total:computeModule(c).total});saveCart();toast(`Модуль ${fmtD(s.w)}×${fmtD(s.d)} — в корзине`)}
-    location.hash=prjTarget(p)}});
+  if(a){const p=PRJ[+a.dataset.prjadd],img=PRJ_IMG[p.img]||p.img;
+    if(p.house){const s=parseSize(p.size)||{w:6,d:6};
+      customState.w=s.w;customState.d=s.d;customState.refs=[img];
+      try{delete calcState['custom'];delete calcState['custom#2']}catch(ex){}
+      location.hash='#/custom';toast('Открыли дом своего размера — фото проекта прикрепили, дальше настраивайте под себя')}
+    else{modState.size=p.mod;modState.refs=[img];
+      location.hash='#/modules/'+p.mod;toast('Открыли конструктор модуля — фото проекта прикрепили, дальше настраивайте под себя')}
+    return}});
+/* фото проекта, который повторяем: видно в конструкторе и уходит менеджеру */
+function prjRefBlock(st,who){const rs=st.refs||[];if(!rs.length)return '';
+  return `<div class="cg prj-ref"><div class="cg-h"><h3>Строим как на фото</h3><span>фото уйдёт менеджеру вместе с заявкой</span></div>
+    <div class="ref-list">${rs.map((r,j)=>`<figure><button type="button" data-refview><img src="${r}" alt="Фото проекта"></button><button type="button" class="ref-x" data-prjrefdel="${who}|${j}" aria-label="Убрать фото">✕</button></figure>`).join('')}</div>
+    <small class="note">Это фотография с нашего объекта. Задайте свой размер и комплектацию — посчитаем именно ваш дом, а менеджер будет видеть, на что ориентироваться.</small></div>`}
+document.addEventListener('click',e=>{const d=e.target.closest&&e.target.closest('[data-prjrefdel]');if(!d)return;
+  const [who,j]=d.dataset.prjrefdel.split('|'),st=who==='module'?modState:customState;
+  st.refs=(st.refs||[]).filter((_,i)=>i!==+j);render();toast('Фото убрано')});
 function aboutView(){
   const P=[['01','Прозрачно','Каждая позиция сметы видна на сайте ещё до звонка: фундамент, окна, двери, отделка, доставка. Цену фиксируем в договоре, этапы стройки и документы — в личном кабинете. Никаких «а это оплачивается отдельно» в середине стройки.'],
     ['02','Гибко','Дом собирается как конструктор: любой размер с шагом полметра, своя планировка, окна и двери куда захотите, от холодного контура до «под ключ». Вы решаете, какой дом строить, — мы подсказываем и строим.'],
@@ -4645,7 +4771,7 @@ function allOrders(){if(SB.on)return SB.orders.slice();const out=[];
     if(k&&k.indexOf('kontur.orders.')===0){const owner=k.slice(14);
       (JSON.parse(localStorage.getItem(k))||[]).forEach((o,idx)=>out.push({...o,_key:k.slice(7),_idx:idx,_owner:owner}))}}}catch(e){}
   return out.sort((a,b)=>b.at-a.at)}
-const adminState={q:'',st:'all',err:'',tab:'orders'};
+const adminState={q:'',st:'all',err:'',tab:'orders',chat:null};
 const MGR_TTL=8*3600*1000;
 const mgrAccounts=()=>store.get('mgr.accounts',{});
 function mgrSession(){if(SB.on)return (user&&(SB.role==='manager'||SB.role==='admin'))?{login:user.email,at:Date.now(),sb:1}:null;
@@ -4719,9 +4845,20 @@ function adminView(){
   const s=mgrSession(),me=SB.on?{name:user?user.name:'',role:SB.role}:mgrAccounts()[s.login];
   const bar=`<div class="mgr-bar"><span>Вы вошли как <b>${esc(me.name)}</b> · ${me.role==='admin'?'администратор':'менеджер'}</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки</button>
+    <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения${(()=>{const u=list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0);return u?` <span class="tg-badge num">${u}</span>`:''})()}</button>
     <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
     <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
   if(adminState.tab==='staff')return `<div class="wrap">${bar}<div class="page-h"><h1>Сотрудники</h1></div>${mgrStaffView(s)}</div>`;
+  if(adminState.tab==='chats'){
+    const cur=adminState.chat&&list.find(o=>String(o.no)===String(adminState.chat));
+    if(cur)return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Переписка</span><h1>${esc(cur.fio||'Клиент')}</h1></div>
+      <p style="color:var(--muted);max-width:44ch">${esc(cur.phone||'')}${cur.email?' · '+esc(cur.email):''}</p></div>
+      <div style="margin-bottom:90px">${chatRoomHTML(cur.no,'manager',`${esc(cur.fio||'Клиент')} · заявка № ${cur.no}`,orderTitleOf(cur),'data-mgrchat=""')}</div></div>`;
+    const rows=list.slice().sort((a,b)=>{const la=chatLastMsg(a.no),lb=chatLastMsg(b.no);return (lb?lb.at:b.at)-(la?la.at:a.at)})
+      .map(o=>({no:o.no,title:o.fio||'Без имени',sub:`Заявка № ${o.no} · ${orderTitleOf(o)}`,ava:String(o.fio||'К').trim().charAt(0).toUpperCase()}));
+    return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Переписка</span><h1>Сообщения</h1></div>
+      <p style="color:var(--muted);max-width:44ch">Каждая заявка — отдельный диалог. Откройте клиента, чтобы написать ему, приложить фото или отправить собранный в калькуляторе дом.</p></div>
+      <div style="margin-bottom:90px">${rows.length?chatListHTML(rows,'manager',r=>`data-mgrchat="${r.no}"`):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Как только клиент оформит заказ, здесь появится диалог.</p></div>`}</div></div>`}
   return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера${SB.on?'':' · прототип'}</span><h1>Заявки клиентов</h1></div>
     <p style="color:var(--muted);max-width:48ch">Все заявки собраны по клиентам: контакты, состав заказа, спецификация и нарисованная планировка для бригады и договора. ${SB.on?'Заявки приходят с сервера — их видят все менеджеры, на любом устройстве.':'Сейчас данные берутся из этого браузера — в рабочей версии сюда же придут заявки с сервера.'}</p></div>
     <div class="adm-stats">${[['Заявок',list.length],['Клиентов',new Set(list.map(o=>o.email||o.phone||o._owner)).size],['В работе',list.filter(o=>!['new','done'].includes(o.status||'new')).length],['Сумма',rub(sum)]].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
@@ -4741,8 +4878,8 @@ function adminView(){
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
             return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
               <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-              ${!it.custom&&!it.module&&it.cfg?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>${it.cfg.floor2&&it.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(it.id)),it.cfg.floor2)}</div>`:''}`:''}</details>`}).join('')}
-          ${chatBlock(o.no,'manager')}
+              ${orderPlansHTML(it)}</details>`}).join('')}
+          ${chatLink(o.no,'manager',`data-mgrchat="${o.no}"`)}
           ${docsBlock(o.no,'manager')}
         </div>`).join('')}</div>`}).join(''):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Оформите заказ из корзины — он появится здесь.</p></div>`}</div></div>`}
 
@@ -4759,7 +4896,7 @@ function syncNav(a){
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#/"]');
   if(a&&a.getAttribute('href')===location.hash){e.preventDefault();window.scrollTo({top:0,behavior:'smooth'})}});
 function render(){
-  const h=location.hash.replace(/^#\/?/,'');const [a,b]=h.split('/');
+  const h=location.hash.replace(/^#\/?/,'');const hp=h.split('/'),[a,b]=hp;
   setMenu(false);syncNav(a);
   cancelAnimationFrame(heroRAF);window.__heroResize=null;
   let html,scrollTo=null;
@@ -4774,13 +4911,13 @@ function render(){
   else if(a==='admin'){const s=mgrSession();html=s?adminView():mgrLoginView()}
   else if(a==='house'){if(b&&migId(b)!==b)history.replaceState(null,'','#/house/'+migId(b));html=modelView(b)}
   else if(a==='cart')html=cartView();
-  else if(a==='account')html=accountView(b);
+  else if(a==='account')html=accountView(b,hp[2]);
   else html=notFound();
   // keep home mounted when jumping to an anchor on it
   if(scrollTo&&document.getElementById('heroFront')){document.getElementById(scrollTo)?.scrollIntoView({behavior:'smooth'});return}
   document.body.classList.toggle('at-home',!a||!!scrollTo);
   app.innerHTML=html+footer();
-  paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);setTimeout(()=>typeof docsSync==='function'&&docsSync(),80);setTimeout(()=>typeof chatSync==='function'&&chatSync(),90);
+  paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);setTimeout(()=>typeof docsSync==='function'&&docsSync(),80);setTimeout(()=>{typeof chatSync==='function'&&chatSync();typeof chatListSync==='function'&&chatListSync();typeof chatScroll==='function'&&chatScroll()},90);
   if(scrollTo)requestAnimationFrame(()=>document.getElementById(scrollTo)?.scrollIntoView());else window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 function paint(){
@@ -4836,8 +4973,10 @@ function bind(){
       try{await sbSaveOrder(order);await sbLoadOrders()}
       catch(ex){if(btn){btn.disabled=false;btn.textContent='Отправить заявку'}toast('Не удалось отправить заявку: '+(ex.message||'ошибка связи'));return}}
     else{const key='orders.'+(user?user.email:'guest'),orders=store.get(key,[]);orders.push(order);store.set(key,orders)}
+    if(user)store.set('contact.'+user.email,{fio:order.fio,phone:order.phone,region:order.region});
     cart=[];saveCart();toast('Заявка отправлена');location.hash=user?'#/account/orders':'#/'});
-  document.getElementById('profile')?.addEventListener('submit',async e=>{e.preventDefault();user.name=new FormData(e.target).get('name').trim()||user.name;store.set('user',user);
+  document.getElementById('profile')?.addEventListener('submit',async e=>{e.preventDefault();const pf=new FormData(e.target);user.name=String(pf.get('name')||'').trim()||user.name;store.set('user',user);
+    store.set('contact.'+user.email,{fio:user.name,phone:String(pf.get('phone')||'').trim(),region:String(pf.get('region')||'').trim()});
     if(SB.kind==='api'){try{await apiReq('profile',{json:{name:user.name}})}catch(ex){}}
     else if(SB.on&&user.id){try{await SB.c.from('profiles').update({name:user.name}).eq('id',user.id)}catch(ex){}}
     updateHeader();toast('Профиль сохранён');render()});
@@ -4850,7 +4989,9 @@ document.addEventListener('click',e=>{
     if(f.classList.contains('fav-inline')){f.style.color=on?'var(--lamp)':'';f.style.borderColor=on?'var(--lamp)':'';f.querySelector('svg').setAttribute('fill',on?'currentColor':'none')}
     if(/account/.test(location.hash))render();else document.querySelectorAll(`.fav[data-fav="${id}"]`).forEach(b=>b.classList.toggle('on',on));return}
   if(e.target.closest('[data-mgrout]')){if(SB.on){signOut();return}mgrLogout();adminState.tab='orders';toast('Вы вышли из панели');render();return}
-  const mt=e.target.closest('[data-mgrtab]');if(mt){adminState.tab=mt.dataset.mgrtab;render();return}
+  const mt=e.target.closest('[data-mgrtab]');if(mt){adminState.tab=mt.dataset.mgrtab;adminState.chat=null;render();return}
+  const mc=e.target.closest('[data-mgrchat]');
+  if(mc){adminState.tab='chats';adminState.chat=mc.dataset.mgrchat||null;render();return}
   const md=e.target.closest('[data-mgrdel]');
   if(md){const acc=mgrAccounts();delete acc[md.dataset.mgrdel];store.set('mgr.accounts',acc);toast('Сотрудник удалён');render();return}
   const ads=e.target.closest('[data-adst]');
@@ -4888,7 +5029,9 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-cadd]')){const cfg=JSON.parse(JSON.stringify(customState));
     {let c1=null;try{c1=calcState['custom']}catch(ex){}
      if(c1)cfg.plan1=JSON.parse(JSON.stringify({rooms:c1.rooms||null,openings:c1.openings||null,idoors:c1.idoors||null,walls:c1.walls||null,draw:c1.draw||0,parts:c1.parts||{}}))}
-    if(cUp(cfg)){let c2=null;try{c2=calcState['custom#2']}catch(ex){}if(c2)cfg.floor2=JSON.parse(JSON.stringify({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}}))}cart.push({id:'custom',custom:true,cfg,total:computeCustom(cfg).total});saveCart();toast(`Дом ${fmtM(cfg.w)}×${fmtM(cfg.d)} добавлен в корзину`);return}
+    if(cUp(cfg)){let c2=null;try{c2=calcState['custom#2']}catch(ex){}if(c2)cfg.floor2=JSON.parse(JSON.stringify({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}}))}
+    const cRefs=(customState.refs||[]).slice();delete cfg.refs;
+    cart.push({id:'custom',custom:true,cfg,refs:cRefs,total:computeCustom(cfg).total});saveCart();toast(`Дом ${fmtM(cfg.w)}×${fmtM(cfg.d)} добавлен в корзину`);return}
   const o=e.target.closest('[data-opt]');if(o){const [k,v]=o.dataset.opt.split(':');const m=curModel();if(m){getCfg(m)[k]=v;refreshAny(m,true)}return}
   const pr2=e.target.closest('[data-planready]');
   if(pr2){const m=curModel();
@@ -4905,7 +5048,7 @@ document.addEventListener('click',e=>{
       else toast('На стенах нет места — передвиньте проёмы')}return}
   const ida=e.target.closest('[data-idooradd]');
   if(ida){const m=curModel();
-    if(m){const cfg=getCfg(m);cfg.idoors=cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w}));
+    if(m){const cfg=getCfg(m);cfg.idoors=cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w,e:s.e}));
       const edges=innerEdgesBox(m,cfg).filter(e=>Math.hypot(e[2]-e[0],e[3]-e[1])>=1);
       /* ставим на перегородку, где дверей меньше всего */
       const cnt=edges.map(e=>cfg.idoors.filter(p=>{const s=snapDoor([e],p.x,p.y);return s&&s.d<.05}).length);
@@ -4921,7 +5064,7 @@ document.addEventListener('click',e=>{
       cfg.parts={...(cfg.parts||{}),edoor:cfg.openings.filter(o=>o.t==='door').length};refreshAny(m,true)}return}
   const ids=e.target.closest('[data-idoorsub]');
   if(ids){const m=curModel();
-    if(m){const cfg=getCfg(m);const list=cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w}));
+    if(m){const cfg=getCfg(m);const list=cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w,e:s.e}));
       if(!list.length){toast('Межкомнатных дверей нет');return}
       cfg.idoors=list.slice(0,-1);cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.length};refreshAny(m,true)}return}
   const rl=e.target.closest('[data-ral]');
@@ -4933,7 +5076,7 @@ document.addEventListener('click',e=>{
   if(pn){const m=curHouse();if(m){const cfg=getCfg(m);cfg.paint=+pn.dataset.paint;refreshCalc(m,true)}return}
   const idd=e.target.closest('[data-idoordel]');
   if(idd){const m=curModel();
-    if(m){const cfg=getCfg(m);cfg.idoors=(cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w}))).slice(0,-1);cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.length};refreshAny(m,true)}return}
+    if(m){const cfg=getCfg(m);cfg.idoors=(cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w,e:s.e}))).slice(0,-1);cfg.parts={...(cfg.parts||{}),idoor:cfg.idoors.length};refreshAny(m,true)}return}
   const od=e.target.closest('[data-opendel]');
   if(od){const m=curModel();
     if(m){const cfg=getCfg(m);cfg.openings=(cfg.openings||autoOpenings(m,cfg)).slice(0,-1);refreshAny(m,true)}return}
@@ -4956,12 +5099,12 @@ document.addEventListener('click',e=>{
       cfg.rooms=rooms.concat([{n:'Комната',x:sp.x,y:sp.y,w,d}]);cfg.parts={};refreshAny(m,true)}return}
   const rd=e.target.closest('[data-roomdel]');
   if(rd){const m=curModel();
-    if(m){const cfg=getCfg(m);cfg.rooms=(cfg.rooms||[]).filter((_,i)=>i!==+rd.dataset.roomdel);if(!cfg.rooms.length)cfg.rooms=null;cfg.parts={};refreshAny(m,true)}return}
+    if(m){const cfg=getCfg(m);cfg.rooms=(cfg.rooms||defaultRooms(m)).filter((_,i)=>i!==+rd.dataset.roomdel);if(!cfg.rooms.length)cfg.rooms=null;cfg.parts={};refreshAny(m,true)}return}
   const pq=e.target.closest('[data-part]');
   if(pq){const a=pq.dataset.part.split(':'),m=curModel();
     if(m){const cfg=getCfg(m),cur=partsOf(m,cfg),next=Math.max(0,Math.min(60,(cur[a[0]]||0)+ +a[1]));
       cfg.parts={...cur,[a[0]]:next};
-      if(a[0]==='idoor'){const list=cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w}));
+      if(a[0]==='idoor'){const list=cfg.idoors||idoorsOf(m,cfg).map(s=>({x:s.x,y:s.y,w:s.w,e:s.e}));
         if(next<list.length)cfg.idoors=list.slice(0,next);
         else if(next>list.length){const edges=innerEdgesBox(m,cfg).filter(e=>Math.hypot(e[2]-e[0],e[3]-e[1])>=1);
           const add=[];for(let j=list.length;j<next&&edges.length;j++){const e2=edges[j%edges.length];add.push({x:(e2[0]+e2[2])/2,y:(e2[1]+e2[3])/2})}
@@ -5030,7 +5173,7 @@ document.addEventListener('input',e=>{
       const v=k==='n'?rr.value:Math.max(.5,Math.min(24,parseFloat(String(rr.value).replace(',','.'))||1));
       cfg.rooms[+i]={...cfg.rooms[+i],[k]:v};
       const es=document.getElementById('estimate');if(es)es.innerHTML=estAny(m);
-      const c0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(m,c0),terrace:c0.terrace,plan:planOf(m,c0),mdl:m,ver:m.ver,idoors:idoorsOf(m,c0),parts:partsOf(m,c0),winSides:m.winSides,roofShape:m.roofShape,openings:openingsOf(mm,c0),walls:drawnWalls(c0)})}
+      const c0=getCfg(m);mount3D({w:m.w,d:m.d,floors:m.floors,facade:c0.facade,roof:c0.roof,wins:winsOf(m,c0),terrace:c0.terrace,plan:planOf(m,c0),mdl:m,ver:m.ver,idoors:idoorsOf(m,c0),parts:partsOf(m,c0),winSides:m.winSides,roofShape:m.roofShape,openings:openingsOf(m,c0),walls:drawnWalls(c0)})}
     return}
   if(customNum(e,false))return;
   const cr=e.target.closest('[data-crange]');

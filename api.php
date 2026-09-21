@@ -14,9 +14,40 @@ const UP_DIR    = __DIR__ . '/uploads';
 const MAX_FILE  = 20 * 1024 * 1024;   // 20 МБ на файл
 const TOKEN_TTL = 60 * 60 * 24 * 30;  // вход помнится 30 дней
 
+/* На обычном хостинге (Apache: reg.ru, Timeweb и подобные) база и документы лежат в той же папке,
+   что и сайт, поэтому их надо закрыть от прямого скачивания. Если своего .htaccess нет — создаём его.
+   На сервере с nginx эти файлы просто не используются. */
+function guardFiles(): void {
+  $ht = __DIR__ . '/.htaccess';
+  if (!file_exists($ht)) @file_put_contents($ht, <<<'HT'
+# Контур Дома — защита базы и документов, адреса одностраничного сайта.
+<IfModule mod_authz_core.c>
+  <FilesMatch "^kontur\.sqlite">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+  <FilesMatch "^kontur\.sqlite">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^uploads/ - [R=404,L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+HT);
+  $ui = __DIR__ . '/.user.ini';
+  if (!file_exists($ui)) @file_put_contents($ui, "upload_max_filesize = 25M\npost_max_size = 26M\n");
+}
+
 function db(): PDO {
   static $pdo = null;
   if ($pdo) return $pdo;
+  guardFiles();
   $pdo = new PDO('sqlite:' . DB_FILE, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
   $pdo->exec('PRAGMA journal_mode=WAL');
   $pdo->exec('CREATE TABLE IF NOT EXISTS users(
@@ -192,7 +223,9 @@ if ($a === 'doc') {
   if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) fail('Файл не получен');
   if ($_FILES['file']['size'] > MAX_FILE) fail('Файл больше 20 МБ');
   if (!is_dir(UP_DIR)) mkdir(UP_DIR, 0775, true);
-  if (!file_exists(UP_DIR . '/.htaccess')) @file_put_contents(UP_DIR . '/.htaccess', "Deny from all\n");
+  if (!file_exists(UP_DIR . '/.htaccess')) @file_put_contents(UP_DIR . '/.htaccess',
+    "<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n" .
+    "<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n");
   $safe = preg_replace('/[^\w.\-]+/u', '_', (string)$_FILES['file']['name']);
   $path = UP_DIR . '/' . $orderId . '-' . bin2hex(random_bytes(6)) . '-' . $safe;
   if (!move_uploaded_file($_FILES['file']['tmp_name'], $path)) fail('Не удалось сохранить файл', 500);

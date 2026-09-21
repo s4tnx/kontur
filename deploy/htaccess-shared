@@ -1,0 +1,32 @@
+# Контур Дома — для обычного хостинга с Apache (reg.ru, Timeweb, Beget и подобные).
+# Положите этот файл рядом с index.html под именем  .htaccess
+# (api.php создаёт такой же сам, если своего файла ещё нет).
+
+# 1. База с аккаунтами наружу не отдаётся — ни сама, ни служебные файлы SQLite
+<IfModule mod_authz_core.c>
+  <FilesMatch "^kontur\.sqlite">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+  <FilesMatch "^kontur\.sqlite">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 2. Документы клиентов — только через api.php, напрямую нельзя
+  RewriteRule ^uploads/ - [R=404,L]
+
+  # 3. Всегда HTTPS (раскомментируйте, когда выпустите сертификат в панели хостинга)
+  # RewriteCond %{HTTPS} !=on
+  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # 4. Одностраничный сайт: неизвестный адрес отдаём как index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>

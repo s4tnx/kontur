@@ -31,6 +31,9 @@ function db(): PDO {
   $pdo->exec('CREATE TABLE IF NOT EXISTS docs(
       id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER, name TEXT, cat TEXT, size INTEGER,
       by_role TEXT, who TEXT, path TEXT, uploader INTEGER, created INTEGER)');
+  $pdo->exec('CREATE TABLE IF NOT EXISTS msgs(
+      id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER, user_id INTEGER, role TEXT, who TEXT,
+      text TEXT, files TEXT, created INTEGER)');
   /* промокод заявки — колонка появилась позже, добавляем в старые базы */
   $cols = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(PDO::FETCH_ASSOC), 'name');
   if (!in_array('promo', $cols, true)) $pdo->exec('ALTER TABLE orders ADD COLUMN promo TEXT');
@@ -222,6 +225,28 @@ if ($a === 'docdel') {
   out(['ok' => true]);
 }
 
+/* переписка по заявке: менеджер и клиент, с фото во вложении */
+if ($a === 'msgs') {
+  $u = need(); $orderId = (int)($_GET['order'] ?? 0);
+  if (!canOrder($u, $orderId)) fail('Нет доступа к этой заявке', 403);
+  $st = db()->prepare('SELECT * FROM msgs WHERE order_id=? ORDER BY created ASC'); $st->execute([$orderId]);
+  out(['msgs' => array_map(fn($m) => ['id' => (int)$m['id'], 'role' => $m['role'], 'who' => $m['who'],
+    'text' => $m['text'], 'files' => json_decode($m['files'] ?: '[]', true), 'at' => (int)$m['created'] * 1000], $st->fetchAll(PDO::FETCH_ASSOC))]);
+}
+
+if ($a === 'msg') {
+  $u = need(); $b = body(); $orderId = (int)($b['order'] ?? 0);
+  if (!canOrder($u, $orderId)) fail('Нет доступа к этой заявке', 403);
+  $text = trim((string)($b['text'] ?? ''));
+  $files = array_slice(array_filter((array)($b['files'] ?? []), fn($f) => is_string($f) && strlen($f) < 1200000), 0, 3);
+  if ($text === '' && !count($files)) fail('Пустое сообщение');
+  $st = db()->prepare('INSERT INTO msgs(order_id,user_id,role,who,text,files,created) VALUES(?,?,?,?,?,?,?)');
+  $st->execute([$orderId, (int)$u['id'], staff($u) ? 'manager' : 'client', (string)$u['name'],
+    mb_substr($text, 0, 4000), json_encode($files, JSON_UNESCAPED_UNICODE), time()]);
+  out(['id' => (int)db()->lastInsertId()]);
+}
+
+/* вместе с заявкой удаляем и переписку */
 /* удалить заявку: сотрудник — любую, клиент — свою, пока она не дошла до договора */
 if ($a === 'orderdel') {
   $u = need(); $b = body(); $id = (int)($b['id'] ?? 0);
@@ -235,6 +260,7 @@ if ($a === 'orderdel') {
   $st = db()->prepare('SELECT path FROM docs WHERE order_id=?'); $st->execute([$id]);
   foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $path) @unlink(UP_DIR . '/' . basename((string)$path));
   db()->prepare('DELETE FROM docs WHERE order_id=?')->execute([$id]);
+  db()->prepare('DELETE FROM msgs WHERE order_id=?')->execute([$id]);
   db()->prepare('DELETE FROM orders WHERE id=?')->execute([$id]);
   out(['ok' => true]);
 }

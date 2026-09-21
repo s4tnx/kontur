@@ -85,6 +85,25 @@ drop policy if exists "docs delete" on public.docs;
 create policy "docs delete" on public.docs for delete
   using (public.is_staff() or uploader = auth.uid());
 
+-- 3.1. Переписка по заявке: менеджер и клиент, фото хранятся прямо в сообщении
+create table if not exists public.messages(
+  id bigint generated always as identity primary key,
+  order_id bigint references public.orders on delete cascade,
+  role text, who text, text text,
+  files jsonb not null default '[]'::jsonb,
+  author uuid default auth.uid(),
+  created_at timestamptz default now()
+);
+alter table public.messages enable row level security;
+
+drop policy if exists "messages read" on public.messages;
+create policy "messages read" on public.messages for select
+  using (public.is_staff() or exists(select 1 from public.orders o where o.id = order_id and o.user_id = auth.uid()));
+
+drop policy if exists "messages insert" on public.messages;
+create policy "messages insert" on public.messages for insert
+  with check (public.is_staff() or exists(select 1 from public.orders o where o.id = order_id and o.user_id = auth.uid()));
+
 -- 4. Хранилище файлов (закрытое, ссылки выдаются на 2 минуты)
 insert into storage.buckets(id, name, public) values ('docs','docs',false)
   on conflict (id) do nothing;

@@ -917,6 +917,22 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 }
 
 /* документы по заявке */
+.chat{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--panel2);display:grid;gap:10px}
+.chat>summary{cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;align-items:center;gap:6px}
+.chat>summary::-webkit-details-marker{display:none}
+.chat>summary::before{content:"✉ ";color:var(--lamp)}
+.chat-list{display:grid;gap:10px;max-height:320px;overflow:auto;padding-right:4px}
+.msg{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--panel);display:grid;gap:6px}
+.msg.mine{border-color:rgba(231,163,92,.45);background:rgba(231,163,92,.07)}
+.msg-h{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
+.msg-h b{color:var(--text);font-weight:500}
+.msg p{font-size:14px;line-height:1.5}
+.chat-form{display:grid;gap:8px}
+.chat-form textarea{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:12px;color:var(--text);font:inherit;font-size:14px;padding:10px 12px;resize:vertical}
+.chat-form textarea:focus{outline:none;border-color:var(--lamp)}
+.chat-act{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.chat-act .btn{height:38px;padding:0 18px;margin-left:auto}
+.chat-files{font-size:12px;color:var(--lamp2)}
 .docs{border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:10px;background:var(--panel)}
 .docs-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .docs-h b{font-weight:500;font-size:15px}
@@ -1061,7 +1077,12 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 <script>
 /* ---------- data ---------- */
 const MODELS=[
- {id:'ladoga',from:'6x5',size:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w180180:2,w120100:1},base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома: два панорамных окна 180×180, окно 100×120, две перегородки и две межкомнатные двери',plan:[['Душевая',0,0,3.3,1.4],['Кухня-гостиная',0,1.4,3.3,2.6],['Спальня',3.3,0,2.7,2.4]]},
+ {id:'ladoga',from:'6x5',size:'6x4',winSides:[3,.5,.8,.2],roofShape:'broken',ver:{w:2.7,d:1.6,pos:'front-right',inset:1},photo:'h6x4.jpg',w:6,d:4,name:'Ладога',floors:1,area:24,beds:1,baths:1,price:1740000,weeks:6,days:3,wins:{w180180:2,w120100:1},
+  proj:{size:'6x8',ver:{w:2.77,d:3.2},
+    rooms:[{n:'Спальня',x:0,y:0,w:3.23,d:2.55},{n:'Кухня-гостиная',x:0,y:2.55,w:3.23,d:5.45},{n:'Гостиная',x:3.23,y:0,w:2.77,d:4.8}],
+    openings:[{t:'w120100',wall:1,u:1.8},{t:'w180180',wall:0,u:1.6},{t:'w180180',wall:0,u:-1.5},{t:'door',wall:0,u:2.6}],
+    idoors:[{x:1.6,y:2.55,w:.9},{x:3.23,y:4,w:.8},{x:3.23,y:6.55,w:.8}]},
+  base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома: два панорамных окна 180×180, окно 100×120, две перегородки и две межкомнатные двери',plan:[['Душевая',0,0,3.3,1.4],['Кухня-гостиная',0,1.4,3.3,2.6],['Спальня',3.3,0,2.7,2.4]]},
  {id:'onega',from:'6x4',size:'6x5',winSides:[1,2,1,.2],ver:null,door:{wall:1,f:.15},porch:{wall:1,f:.15,w:2,d:1},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих: прямоугольный, без террасы, вход через небольшое боковое крыльцо',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,2.1],['С/у',3.6,2.1,2.4,1.4],['Прихожая',3.6,3.5,2.4,1.5]]},
  {id:'seliger',from:'6x5',size:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w120150:2,w100100:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
  {id:'valdai',from:'6x5',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:3},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
@@ -1093,6 +1114,7 @@ const HOUSE_PAINT=500;
 const paintLayers=cfg=>Math.max(0,Math.min(3,+cfg.paint||0));
 const paintPaid=(m,cfg)=>Math.max(0,paintLayers(cfg)-(cfg.pkg==='key'?2:0))*HOUSE_PAINT*wallA(m);
 const STAGES=['Заявка','Проект','Договор','Стройка','Сдача'];
+/* «проект как на фото»: у Ладоги планировка задана по чертежу, у остальных — базовый размер проекта */
 /* размеры — отдельный справочник: любой дом строится в любом из них */
 const SIZES=[{id:'6x4',w:6,d:4,days:3},{id:'6x5',w:6,d:5,days:3},{id:'6x6',w:6,d:6,days:4},{id:'6x7',w:6,d:7,days:5},
   {id:'6x8',w:6,d:8,days:5},{id:'8x8',w:8,d:8,days:8},{id:'10x10',w:10,d:10,days:12},{id:'12x10',w:12,d:10,days:14}];
@@ -1180,6 +1202,7 @@ function sizeUp(m){m.living=heatA(m);m.area=Math.round((m.living+verA(m))*10)/10
 /* Карелия нарисована по чертежу в метрах; на сайте — обычный проект размерного ряда, базовый размер 12×10 */
 (()=>{const i=MODELS.findIndex(x=>x.id==='karelia');if(i<0)return;const v=variant(MODELS[i],'12x10');delete v.native;v.id='karelia';v.size='12x10';MODELS[i]=v})();
 MODELS.forEach((m,i)=>{if(!sizeOK(m,m.size)&&SIZES.some(s=>s.id===m.size)){const v=variant(m,m.from);delete v.native;v.id=m.id;v.size=m.from;MODELS[i]=v}});
+MODELS.forEach(m=>{if(!m.proj)m.proj={size:m.size}});
 MODELS.forEach(sizeUp);
 const nicheOf=(o,w,d)=>{if(!(o.ver&&o.ver.inset)||o.ver.pos==='L')return null;
   const x=w/2,z=d/2,side=o.ver.pos==='side-right'||o.ver.pos==='side-left';
@@ -1210,6 +1233,17 @@ function setVerPos(pos){const m=curHouse();if(!m)return;const cfg=getCfg(m),raw=
   const old=effModel(raw,cfg);cfg.verPos=pos===raw.ver.pos?null:pos;const nw=effModel(raw,cfg);
   if(cfg.rooms&&cfg.rooms.length)cfg.rooms=defaultRooms({...nw,plan:fitRoomsBox(nw,planOf(old,cfg))});
   cfg.openings=null;cfg.idoors=null;refreshAny(curModel(),true);toast('Терраса перенесена')}
+/* планировка «как на фото»: размер, терраса, комнаты, окна и двери проекта */
+function applyProj(m){const raw=byIdRaw(nativeOf(m));if(!raw||!raw.proj)return;const pr=raw.proj;
+  const id=nativeOf(m)+(pr.size&&pr.size!==raw.size?'@'+pr.size:''),mm=byId(id);if(!mm)return;
+  const c=getCfg(mm);
+  c.draw=0;c.proj=1;c.verW=pr.ver?pr.ver.w:null;c.verD=pr.ver?pr.ver.d:null;
+  c.rooms=pr.rooms?pr.rooms.map(r=>({...r})):null;
+  c.openings=pr.openings?pr.openings.map(o=>({...o})):null;
+  c.idoors=pr.idoors?pr.idoors.map(d=>({...d})):null;
+  c.parts={};c.walls=[];
+  if(location.hash!=='#/house/'+id)location.hash='#/house/'+id;else refreshAny(byId(id),true);
+  toast(`Планировка проекта «${raw.name}» — как на фото`)}
 /* вход по умолчанию — в середину выреза террасы на фасаде */
 const doorAim=(m,wall,len)=>{const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;return wall===0&&N&&!N.side?(N.nl+N.nr)/2:len*.22};
 const deckCorner=(pr,wall)=>wall===3?[pr.x+pr.w,pr.y]:wall===2?[pr.x,pr.y+pr.h]:[pr.x+pr.w,pr.y+pr.h];
@@ -1241,7 +1275,8 @@ function moveTerr(m,pos){const A=verA(m),old=m.ver.pos,side=p=>p.indexOf('side')
   e.door=mir&&m.door?(m.door.wall===0||m.door.wall===3?{...m.door,f:+(1-m.door.f).toFixed(3)}:{...m.door,wall:m.door.wall===1?2:1}):null;
   return e}
 function effModel(m,cfg){if(!m||!cfg||m.module)return m;let e=m;
-  if(cfg.verPos&&m.ver&&m.ver.inset&&!isL(m)&&cfg.verPos!==m.ver.pos)e=moveTerr(m,cfg.verPos);
+  if(cfg.verW&&cfg.verD&&m.ver&&m.ver.inset&&!isL(m)){e=sizeUp({...m,ver:{...m.ver,w:+cfg.verW,d:+cfg.verD}})}
+  if(cfg.verPos&&e.ver&&e.ver.inset&&!isL(e)&&cfg.verPos!==e.ver.pos)e=moveTerr(e,cfg.verPos);
   if('porch' in cfg)e={...e,porch:porchOf(m,cfg)};
   return e}
 /* настройки террасы и крыльца в калькуляторе дома */
@@ -2938,6 +2973,9 @@ function roomsGroup(m,cfg){
     auto=basePartsOf({plan:planOf(m,{rooms})}),fit=roomsArea(rooms)<=b.w*b.d+.01;
   return `<div class="cg"><div class="cg-h"><h3>Планировка</h3><span class="num">${fmtD(b.w)} × ${fmtD(b.d)} м под комнаты · ${roomsArea(rooms)} м²</span></div>
   ${m.plan2||m.upperFloor?`<div class="tabs floor-tabs"><button type="button" class="pill ${m.upperFloor?'':'on'}" data-planfloor="1">1 этаж</button><button type="button" class="pill ${m.upperFloor?'on':''}" data-planfloor="2">2 этаж · ${fmtD(m.upperFloor?m.w:m.upper.w)}×${fmtD(m.d)} м</button></div>`:''}
+  ${(()=>{const raw=!m.module&&m.id!=='custom'&&!m.upperFloor?byIdRaw(nativeOf(m)):null,pr=raw&&raw.proj;if(!pr)return '';
+    const ps=parseSize(pr.size)||{w:raw.w,d:raw.d},on=cfg.proj&&m.size===pr.size;
+    return `<div class="tabs"><button type="button" class="pill ${on?'on':''}" data-plansrc="photo">Проект как на фото · ${fmtD(ps.w)}×${fmtD(ps.d)} м</button></div>`})()}
   <div class="tabs"><button type="button" class="pill ${own||cfg.draw?'':'on'}" data-plansrc="project">Проектная</button><button type="button" class="pill ${own&&!cfg.draw?'on':''}" data-plansrc="own">Своя планировка</button><button type="button" class="pill ${cfg.draw?'on':''}" data-plansrc="draw">Свой чертёж</button></div>
   ${cfg.draw?`${plannerSVG(m,cfg)}
     <small class="note" style="margin-top:8px">Зажмите мышь (или палец) и проведите линию — получится перегородка. Линии прилипают к сетке 25 см и к стенам дома. Нажмите на перегородку, чтобы убрать её. Двери и окна тащите как обычно: межкомнатные двери встают на нарисованные стены.</small>
@@ -3743,7 +3781,7 @@ function cartView(){
     <div style="display:grid;gap:4px"><h3>${l.m.name} <span class="num" style="color:var(--muted);font-weight:400">${fmtD(+l.m.w||l.m.w)}×${fmtD(+l.m.d||l.m.d)}</span></h3><p>${itemDesc(l)}</p>
       <details class="spec-det"><summary>Полное описание и планировка</summary>
         <div class="spec-list">${itemSpec(l).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-        ${!l.custom&&!l.module&&l.cfg&&(l.cfg.rooms||l.cfg.draw||(l.cfg.floor2&&l.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(l.id),l.cfg)}</div>${l.cfg.floor2&&l.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(l.id)),l.cfg.floor2)}</div>`:''}`:''}</details>
+        ${l.custom&&l.cfg.plan1&&(l.cfg.plan1.rooms||l.cfg.plan1.draw)?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(customModelOf(l.cfg),l.cfg.plan1)}</div>`:''}${!l.custom&&!l.module&&l.cfg&&(l.cfg.rooms||l.cfg.draw||(l.cfg.floor2&&l.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(l.id),l.cfg)}</div>${l.cfg.floor2&&l.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(l.id)),l.cfg.floor2)}</div>`:''}`:''}</details>
       ${refsBlock(l,i)}
       <a class="link" href="${l.module?'#/modules/'+l.cfg.size:l.custom?'#/custom':'#/house/'+l.m.id}" style="justify-self:start">${l.module?'Открыть конструктор модулей':l.custom?'Открыть калькулятор':'Открыть модель'}</a></div>
     <div class="r"><b class="num" style="font-size:18px">${rub(itemTotal(l))}</b><button class="link" data-remove="${i}">Удалить</button></div></div>`).join('')}</div>
@@ -3773,6 +3811,9 @@ document.addEventListener('submit',e=>{const f=e.target;if(!f.matches||!f.matche
   if(!ownOK(base,s)){toast(`«${base.name}» строится от ${ownMinA(base)} м² — увеличьте размер`);return}
   const std=SIZES.find(x=>x.w===w&&x.d===d);
   location.hash='#/house/'+base.id+'@'+(std&&sizeOK(base,std.id)?std.id:s.id)});
+/* «модель» своего проекта из сохранённой сметы — чтобы нарисовать его планировку в заявке */
+const customModelOf=c=>({id:'custom',custom:1,name:'Свой проект',w:c.w,d:c.d,floors:c.floors==='2'?2:c.floors==='1.5'?1.5:1,
+  area:cArea(c),ver:cVer(c),plan:cPlan(c),wins:cWinsBase(c),winSides:[2,1,1,.6]});
 /* свой проект: калькулятор «Свой размер» или дом из каталога в нестандартном размере */
 const isOwnProject=it=>!it.module&&(it.custom||(()=>{const m=byId(it.id);return !!(m&&m.native&&!SIZES.some(s=>s.id===m.size))})());
 const REF_MAX=4;
@@ -3854,6 +3895,62 @@ const DOC_MAX=3*1024*1024;
 const docsOf=no=>SB.on?(SB.docs[no]||[]):store.get('docs.'+no,[]);
 const docExt=n=>{const e=(String(n).split('.').pop()||'').toUpperCase();return e.length<=4?e:'ФАЙЛ'};
 const docSize=b=>b>1048576?(b/1048576).toFixed(1).replace('.',',')+' МБ':Math.max(1,Math.round(b/1024))+' КБ';
+/* ---------- переписка по заявке: менеджер и клиент, с фото ---------- */
+const CHAT={},CHAT_DRAFT={};
+const chatKey=no=>'chat.'+no;
+const chatOrder=no=>SB.orders.find(o=>o.no===String(no));
+async function chatLoad(no){
+  if(SB.on&&SB.kind==='api'){const o=chatOrder(no);if(!o)return CHAT[no]||[];
+    try{const d=await apiReq('msgs',{q:'&order='+o._id});CHAT[no]=d.msgs||[]}catch(e){}
+    return CHAT[no]||[]}
+  if(SB.on&&SB.kind==='sb'){const o=chatOrder(no);if(!o)return CHAT[no]||[];
+    try{const {data}=await SB.c.from('messages').select('*').eq('order_id',o._id).order('created_at');
+      CHAT[no]=(data||[]).map(x=>({id:x.id,role:x.role,who:x.who,text:x.text,files:x.files||[],at:new Date(x.created_at).getTime()}))}catch(e){}
+    return CHAT[no]||[]}
+  CHAT[no]=store.get(chatKey(no),[]);return CHAT[no]}
+async function chatSend(no,text,files,role){
+  const mgr=(()=>{try{const s=mgrSession();return s&&mgrAccounts()[s.login]?mgrAccounts()[s.login].name:''}catch(e){return ''}})();
+  const who=role==='manager'?(mgr||(user?user.name:'Менеджер')):(user?user.name:'Клиент');
+  if(SB.on&&SB.kind==='api'){const o=chatOrder(no);if(!o)throw new Error('Заявка не найдена');
+    await apiReq('msg',{json:{order:o._id,text,files}});return chatLoad(no)}
+  if(SB.on&&SB.kind==='sb'){const o=chatOrder(no);if(!o)throw new Error('Заявка не найдена');
+    const {error}=await SB.c.from('messages').insert({order_id:o._id,role,who,text,files});if(error)throw error;return chatLoad(no)}
+  const list=store.get(chatKey(no),[]);
+  list.push({id:Date.now().toString(36),role,who,text,files,at:Date.now()});
+  try{localStorage.setItem('kontur.'+chatKey(no),JSON.stringify(list))}catch(e){throw new Error('Не хватило места в браузере — уменьшите фото')}
+  CHAT[no]=list;return list}
+const chatTime=at=>new Date(at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const msgHTML=(msg,role)=>`<div class="msg ${msg.role===role?'mine':''}">
+  <div class="msg-h"><b>${msg.role==='manager'?'Менеджер'+(msg.who?' · '+esc(msg.who):''):'Клиент'+(msg.who?' · '+esc(msg.who):'')}</b><span>${chatTime(msg.at)}</span></div>
+  ${msg.text?`<p>${esc(msg.text).replace(/\n/g,'<br>')}</p>`:''}
+  ${(msg.files||[]).length?`<div class="ref-list ro">${msg.files.map(f=>`<button type="button" data-refview><img src="${f}" alt="Вложение"></button>`).join('')}</div>`:''}</div>`;
+function chatBlock(no,role){const ms=CHAT[no]||[],d=(CHAT_DRAFT[no]||[]).length;
+  return `<details class="chat" data-chat="${no}" data-role="${role}"${ms.length?' open':''}>
+    <summary>Переписка с ${role==='manager'?'клиентом':'менеджером'}${ms.length?` · ${ms.length}`:''}</summary>
+    <div class="chat-list">${ms.length?ms.map(m=>msgHTML(m,role)).join(''):`<p class="note">${role==='manager'?'Отправьте клиенту варианты домов: планировку, спецификацию и фото — он увидит их в личном кабинете.':'Здесь менеджер пришлёт варианты домов, планировки и фотографии. Можно ответить и приложить свои фото.'}</p>`}</div>
+    <form class="chat-form" data-chatsend="${no}">
+      <textarea name="text" rows="2" placeholder="${role==='manager'?'Например: предлагаю Ладогу 6×8 с террасой — планировка и спецификация во вложении':'Напишите менеджеру'}"></textarea>
+      <div class="chat-act"><label class="link">Прикрепить фото<input type="file" accept="image/*" multiple hidden data-chatfile="${no}"></label>
+        <span class="chat-files num">${d?`${d} ${plural(d,['фото','фото','фото'])} готово к отправке`:''}</span>
+        <button class="btn" type="submit">Отправить</button></div></form></details>`}
+function chatSync(){document.querySelectorAll('[data-chat]').forEach(async el=>{const no=el.dataset.chat;
+  if(el.dataset.sync)return;el.dataset.sync='1';await chatLoad(no);refreshChat(no)})}
+function refreshChat(no){document.querySelectorAll(`[data-chat="${no}"]`).forEach(el=>{
+  const role=el.dataset.role,open=el.open;el.outerHTML=chatBlock(no,role).replace('<details class="chat"',`<details class="chat"${open?' open':''}`)})}
+document.addEventListener('change',async e=>{const f=e.target.closest&&e.target.closest('[data-chatfile]');if(!f)return;
+  const no=f.dataset.chatfile,files=[...f.files].filter(x=>/^image\//.test(x.type));f.value='';
+  if(!files.length)return;const cur=CHAT_DRAFT[no]||[];
+  for(const file of files){if(cur.length>=3)break;try{cur.push(await refShrink(file))}catch(ex){}}
+  CHAT_DRAFT[no]=cur;const box=f.closest('.chat-act')?.querySelector('.chat-files');
+  if(box)box.textContent=`${cur.length} ${plural(cur.length,['фото','фото','фото'])} готово к отправке`;
+  if(files.length>cur.length)toast('К одному сообщению — до 3 фото')});
+document.addEventListener('submit',async e=>{const f=e.target;if(!f.matches||!f.matches('[data-chatsend]'))return;e.preventDefault();
+  const no=f.dataset.chatsend,el=f.closest('[data-chat]'),role=el?el.dataset.role:'client';
+  const text=String(new FormData(f).get('text')||'').trim(),files=CHAT_DRAFT[no]||[];
+  if(!text&&!files.length){toast('Напишите сообщение или приложите фото');return}
+  const btn=f.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
+  try{await chatSend(no,text,files,role);CHAT_DRAFT[no]=[];refreshChat(no);toast('Сообщение отправлено')}
+  catch(ex){toast(ex.message||'Не удалось отправить');if(btn){btn.disabled=false;btn.textContent='Отправить'}}});
 function docsBlock(no,role){const list=docsOf(no);
   return `<div class="docs" data-docs="${no}" data-role="${role}">
     <div class="docs-h"><b>Документы по дому <span class="num" style="color:var(--muted)">· ${list.length}</span></b><small>${role==='manager'?'клиент видит все файлы':'загружает менеджер и вы'}</small></div>
@@ -3916,8 +4013,8 @@ function accountView(tab){
         return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
         ${refsView(it)}<details class="spec-det"><summary>Спецификация и планировка</summary>
           <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
-          ${!it.custom&&!it.module&&it.cfg&&(it.cfg.rooms||it.cfg.draw||(it.cfg.floor2&&it.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>${it.cfg.floor2&&it.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(it.id)),it.cfg.floor2)}</div>`:''}`:''}</details></div>`}).join('')}</div>
-      ${promoLine(o)}${docsBlock(o.no,'client')}
+          ${it.custom&&it.cfg.plan1&&(it.cfg.plan1.rooms||it.cfg.plan1.draw)?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(customModelOf(it.cfg),it.cfg.plan1)}</div>`:''}${!it.custom&&!it.module&&it.cfg&&(it.cfg.rooms||it.cfg.draw||(it.cfg.floor2&&it.cfg.floor2.rooms))?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>${it.cfg.floor2&&it.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(it.id)),it.cfg.floor2)}</div>`:''}`:''}</details></div>`}).join('')}</div>
+      ${promoLine(o)}${chatBlock(o.no,'client')}${docsBlock(o.no,'client')}
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
   const orders_n=orders.length;
@@ -4550,6 +4647,7 @@ function adminView(){
             return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
               <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
               ${!it.custom&&!it.module&&it.cfg?`<div class="pc-plan" style="margin-top:12px">${orderPlanSVG(byId(it.id),it.cfg)}</div>${it.cfg.floor2&&it.cfg.floor2.rooms?`<div class="pc-plan" style="margin-top:8px"><span class="label" style="font-size:10.5px">2 этаж</span>${orderPlanSVG(upperModel(byId(it.id)),it.cfg.floor2)}</div>`:''}`:''}</details>`}).join('')}
+          ${chatBlock(o.no,'manager')}
           ${docsBlock(o.no,'manager')}
         </div>`).join('')}</div>`}).join(''):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Оформите заказ из корзины — он появится здесь.</p></div>`}</div></div>`}
 
@@ -4586,7 +4684,7 @@ function render(){
   if(scrollTo&&document.getElementById('heroFront')){document.getElementById(scrollTo)?.scrollIntoView({behavior:'smooth'});return}
   document.body.classList.toggle('at-home',!a||!!scrollTo);
   app.innerHTML=html+footer();
-  paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);setTimeout(()=>typeof docsSync==='function'&&docsSync(),80);
+  paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);setTimeout(()=>typeof docsSync==='function'&&docsSync(),80);setTimeout(()=>typeof chatSync==='function'&&chatSync(),90);
   if(scrollTo)requestAnimationFrame(()=>document.getElementById(scrollTo)?.scrollIntoView());else window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 function paint(){
@@ -4692,6 +4790,8 @@ document.addEventListener('click',e=>{
     if(k==='floors'){customState.upW=null;customState.upD=null;try{delete calcState['custom#2']}catch(ex){}if(v==='1')planFloor=1}
     refreshCustom(true);return}
   if(e.target.closest('[data-cadd]')){const cfg=JSON.parse(JSON.stringify(customState));
+    {let c1=null;try{c1=calcState['custom']}catch(ex){}
+     if(c1)cfg.plan1=JSON.parse(JSON.stringify({rooms:c1.rooms||null,openings:c1.openings||null,idoors:c1.idoors||null,walls:c1.walls||null,draw:c1.draw||0,parts:c1.parts||{}}))}
     if(cUp(cfg)){let c2=null;try{c2=calcState['custom#2']}catch(ex){}if(c2)cfg.floor2=JSON.parse(JSON.stringify({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}}))}cart.push({id:'custom',custom:true,cfg,total:computeCustom(cfg).total});saveCart();toast(`Дом ${fmtM(cfg.w)}×${fmtM(cfg.d)} добавлен в корзину`);return}
   const o=e.target.closest('[data-opt]');if(o){const [k,v]=o.dataset.opt.split(':');const m=curModel();if(m){getCfg(m)[k]=v;refreshAny(m,true)}return}
   const pr2=e.target.closest('[data-planready]');
@@ -4739,9 +4839,10 @@ document.addEventListener('click',e=>{
   const ps=e.target.closest('[data-plansrc]');
   if(ps){const m=curModel();
     if(m){const cfg=getCfg(m),v=ps.dataset.plansrc;
+      if(v==='photo'){applyProj(m);return}
       if(v==='draw'){cfg.draw=1;cfg.rooms=null;cfg.walls=cfg.walls||[];cfg.idoors=[];cfg.openings=autoOpenings(m,{...cfg,draw:0})}
-      else if(v==='own'){cfg.draw=0;cfg.rooms=defaultRooms(m);cfg.openings=autoOpenings(m,cfg);cfg.idoors=null}
-      else{cfg.draw=0;cfg.rooms=null;cfg.openings=null;cfg.idoors=null}
+      else if(v==='own'){cfg.draw=0;cfg.proj=0;cfg.rooms=defaultRooms(m);cfg.openings=autoOpenings(m,cfg);cfg.idoors=null}
+      else{cfg.draw=0;cfg.proj=0;cfg.verW=null;cfg.verD=null;cfg.rooms=null;cfg.openings=null;cfg.idoors=null}
       cfg.parts={};refreshAny(m,true)}return}
   const wdl=e.target.closest('[data-walldel]');
   if(wdl){const m=curModel();if(m){const cfg=getCfg(m);cfg.walls=(cfg.walls||[]).slice(0,-1);refreshAny(m,true)}return}

@@ -4859,8 +4859,10 @@ const mgrLock=()=>store.get('mgr.lock',{n:0,until:0});
 function mgrLoginView(){
   if(SB.on)return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера</span><h1>Вход для сотрудников</h1></div></div>
     <div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">${user?'У этого аккаунта нет доступа к панели':'Войдите в свой аккаунт'}</p>
-    <p>${user?`Вы вошли как ${esc(user.email)}. Доступ выдаёт администратор — он ставит роль «менеджер» вашему аккаунту.`:'Панель открывается тем же входом, что и личный кабинет: у аккаунта должна быть роль «менеджер» или «администратор».'}</p>
-    <button class="btn solid" data-login>${user?'Войти другим аккаунтом':'Войти'}</button></div></div>`;
+    <p>${user?`Вы вошли как ${esc(user.email)}. Доступ выдаёт администратор — он ставит роль «менеджер» вашему аккаунту.`
+      :'Отдельной регистрации для сотрудников нет: панель открывается тем же аккаунтом, что и личный кабинет, — у него должна быть роль «менеджер» или «администратор».'}</p>
+    ${user?'':`<p class="note" style="max-width:46ch;margin:0 auto">Запускаете сайт впервые? Нажмите «Войти или зарегистрироваться» и создайте аккаунт: <b style="color:var(--text);font-weight:500">самый первый аккаунт на сайте автоматически становится администратором</b>. Дальше он выдаёт роли остальным во вкладке «Сотрудники».</p>`}
+    <button class="btn solid" data-login>${user?'Войти другим аккаунтом':'Войти или зарегистрироваться'}</button></div></div>`;
   return mgrLoginLocal()}
 function mgrLoginLocal(){
   const first=!Object.keys(mgrAccounts()).length,lock=mgrLock(),locked=lock.until>Date.now();

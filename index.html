@@ -1133,7 +1133,12 @@ const MODELS=[
     openings:[{t:'w120100',wall:1,u:1.8},{t:'w180180',wall:0,u:1.9},{t:'w180180',wall:0,u:-1.9},{t:'door',wall:0,u:-.4}],
     idoors:[{x:1.6,y:2.55,w:.9},{x:3.23,y:4,w:.8},{x:3.23,y:6.55,w:.8}]},
   base:'Бетонные блоки 400×200×200',lead:'Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома: два панорамных окна 180×180, окно 100×120, две перегородки и две межкомнатные двери',plan:[['Душевая',0,0,3.3,1.4],['Кухня-гостиная',0,1.4,3.3,2.6],['Спальня',3.3,0,2.7,2.4]]},
- {id:'onega',from:'6x4',size:'6x5',winSides:[1,2,1,.2],ver:null,door:{wall:1,f:.15},porch:{wall:1,f:.15,w:2,d:1},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих: прямоугольный, без террасы, вход через небольшое боковое крыльцо',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,2.1],['С/у',3.6,2.1,2.4,1.4],['Прихожая',3.6,3.5,2.4,1.5]]},
+ {id:'onega',from:'6x4',size:'6x5',winSides:[1,2,1,.2],ver:null,door:{wall:1,f:.15},porch:{wall:1,f:.15,w:2,d:1},photo:'h6x5.jpg',w:6,d:5,name:'Онега',floors:1,area:30,beds:1,baths:1,price:2110000,weeks:7,days:3,wins:{w120100:2},
+  proj:{size:'6x5',
+    rooms:[{n:'Спальня',x:0,y:0,w:3,d:2},{n:'Кухня-гостиная',x:0,y:2,w:3,d:3},{n:'Гостиная',x:3,y:0,w:3,d:5}],
+    openings:[{t:'w5050',wall:3,u:1.5},{t:'w120100',wall:0,u:-1.5},{t:'w120100',wall:0,u:1.5},{t:'door',wall:1,u:-1.5}],
+    idoors:[{x:3,y:1,w:.8},{x:3,y:4,w:.8}]},
+  base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих: прямоугольный, без террасы, вход через небольшое боковое крыльцо',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,2.1],['С/у',3.6,2.1,2.4,1.4],['Прихожая',3.6,3.5,2.4,1.5]]},
  {id:'seliger',from:'6x5',size:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w120150:2,w100100:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
  {id:'valdai',from:'6x5',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:3},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
  {id:'vuoksa',from:'6x5',size:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right',inset:1},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w180180:1,w100100:2,w120100:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,3.4],['Спальня',0,3.4,2.4,4.6],['Спальня',2.4,3.4,2.2,2.6],['С/у',4.6,3.4,1.4,2.6]]},
@@ -2500,7 +2505,7 @@ const PILES=[['p76x2','Свая Ø76 × 2,0 м',4000,'лёгкий дом на �
  ['p76x25','Свая Ø76 × 2,5 м',4500,'ниже глубины промерзания'],['p89x25','Свая Ø89 × 2,5 м',5000,'пучинистый грунт'],
  ['p108x2','Свая Ø108 × 2,0 м',5500,'мансарда и два этажа'],['p108x25','Свая Ø108 × 2,5 м',6000,'слабый грунт под двумя этажами']];
 /* Окна ПВХ двухкамерные с монтажом, розничные цены 2026 г. */
-const WIN_TYPES=[['w5050','Окно 50 × 50','кладовая, котельная',6500,[.5,.5]],['w6090','Окно 60 × 90','санузел, техническое',9500,[.6,.9]],['w100100','Окно 100 × 100','спальня',14500,[1,1]],
+const WIN_TYPES=[['w5050','Окно 50 × 50','кладовая, котельная',6500,[.5,.5]],['w6090','Окно 60 × 90','санузел, техническое',9500,[.6,.9]],['w57166','Окно 57 × 166','узкое высокое: лестница, прихожая, торец',14000,[.57,1.66]],['w100100','Окно 100 × 100','спальня',14500,[1,1]],
  ['w120100','Окно 120 × 100','кухня, спальня',16500,[1.2,1]],['w120150','Окно 120 × 150','гостиная',22000,[1.2,1.5]],
  ['w180180','Панорамное 180 × 180','второй свет, гостиная',39000,[1.8,1.8]],['portal','Портал 180 × 210','выход на террасу',68000,[1.8,2.1]]];
 const winK={wood:.8,pvc1:.88,pvc:1,alu:1.45};
@@ -2527,14 +2532,26 @@ function openQuad(m,p,h,grow){const c=openCenter(m,p),s=openSz(p.t)[0]/2+(grow||
   const dx=c.horiz?s:0,dz=c.horiz?0:s,ox=c.horiz?0:n[0]*o,oz=c.horiz?n[2]*o:0;
   return{p:[[c.x-dx+ox,.06,c.z-dz+oz],[c.x+dx+ox,.06,c.z+dz+oz],[c.x+dx+ox,h,c.z+dz+oz],[c.x-dx+ox,h,c.z-dz+oz]],n}}
 /* свободная позиция на стене: не ближе 15 см к соседнему проёму и не за краем стены */
+/* фасад с вырезом террасы — это несколько отдельных стен: слева от выреза, в самом вырезе и справа */
+function wallSegs(m,wall){const len=wallLen(m,wall),N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
+  if(wall!==0||!N||N.side)return [[-len/2,len/2]];
+  return [[-len/2,N.nl],[N.nl,N.nr],[N.nr,len/2]].filter(s=>s[1]-s[0]>.6)}
+const segIdx=(segs,u)=>{let bi=0,bd=1e9;segs.forEach((s,i)=>{const d=u<s[0]?s[0]-u:u>s[1]?u-s[1]:0;if(d<bd){bd=d;bi=i}});return bi};
+/* не даём проёму встать одной половиной на фасад, другой — на стену террасы */
+function segClamp(m,wall,u,sz){const segs=wallSegs(m,wall);if(segs.length<2)return u;
+  const s=segs[segIdx(segs,u)];return Math.max(s[0]+sz/2+.05,Math.min(s[1]-sz/2-.05,u))}
 function freeU(m,ops,skip,wall,u,sz,radius){const len=wallLen(m,wall);
   let lo=-len/2+sz/2+.2,hi=len/2-sz/2-.2;
   const N=m.ver&&m.ver.inset?nicheOf(m,m.w,m.d):null;
   if(N&&!N.side&&((wall===1&&N.openRight)||(wall===2&&N.openLeft))){
     /* боковая стена обрывается у террасы: разрешена только часть до выреза */
     const houseLen=N.z2+m.d/2;lo=Math.max(lo,len/2-houseLen+sz/2+.2)}
+  const segs=wallSegs(m,wall),multi=segs.length>1,si=multi?segIdx(segs,u):0;
+  if(multi){const s=segs[si];
+    lo=Math.max(lo,s[0]+sz/2+(si===0?0:.05));
+    hi=Math.min(hi,s[1]-sz/2-(si===segs.length-1?0:.05))}
   if(hi<lo)return null;
-  const others=ops.filter((o,i)=>i!==skip&&o.wall===wall).map(o=>[o.u,openSz(o.t)[0]/2]);
+  const others=ops.filter((o,i)=>i!==skip&&o.wall===wall&&(!multi||segIdx(segs,o.u)===si)).map(o=>[o.u,openSz(o.t)[0]/2]);
   const gap=radius!=null?.05:.15;
   const clash=v=>others.some(([ou,oh])=>Math.abs(v-ou)<oh+sz/2+gap);
   u=Math.max(lo,Math.min(hi,u));if(!clash(u))return +u.toFixed(2);
@@ -2571,7 +2588,9 @@ function autoOpenings(m,cfg){
   return ops}
 /* если на стене тесно — раздвигаем соседние проёмы, а не отказываем */
 function pushOpenings(m,cfg,i){const o=cfg.openings[i],sz=openSz(o.t)[0];
+  const segs=wallSegs(m,o.wall),si=segs.length>1?segIdx(segs,o.u):0;
   cfg.openings.forEach((p,j)=>{if(j===i||p.wall!==o.wall)return;
+    if(segs.length>1&&segIdx(segs,p.u)!==si)return;   /* соседний участок стены — не мешает */
     const half=openSz(p.t)[0]/2;
     if(Math.abs(p.u-o.u)>=half+sz/2+.05)return;
     const u2=freeU(m,cfg.openings,j,p.wall,p.u,openSz(p.t)[0],wallLen(m,p.wall));
@@ -2579,7 +2598,7 @@ function pushOpenings(m,cfg,i){const o=cfg.openings[i],sz=openSz(o.t)[0];
     /* на этой стене места не осталось — переносим на самую свободную соседнюю */
     for(const w of [0,1,2,3].filter(w=>w!==p.wall).sort((a,b)=>wallLen(m,b)-wallLen(m,a))){
       const u3=freeU(m,cfg.openings,j,w,0,openSz(p.t)[0],wallLen(m,w));
-      if(u3!=null){p.wall=w;p.u=u3;return}}})}
+      if(u3!=null){p.wall=w;p.u=u3;toast(`${openName(p.t)} — не помещалось рядом, перенесли на ${['фасад','правую стену','левую стену','тыльную стену'][w]}`);return}}})}
 function tidyOpenings(m,ops){const out=[];ops.forEach(o=>{const u=freeU(m,out,-1,o.wall,o.u,openSz(o.t)[0]);out.push(u==null?o:{...o,u})});return out}
 const openingsOf=(m,cfg)=>{if(cfg&&cfg.openings){const t2=tidyOpenings(m,cfg.openings);cfg.openings=t2;return t2}return autoOpenings(m,cfg)};
 /* свободное место на стене: ставим новый проём туда, где больше всего пустого */
@@ -2992,7 +3011,7 @@ function bindPlanner(){
       if(fu!=null){o.wall=wall;o.u=fu}
       else{/* тесно: ставим туда, куда ведут; соседние расступятся, когда отпустите */
         const len=wallLen(m,wall),lim=len/2-sz/2-.2;
-        if(lim>0){o.wall=wall;o.u=Math.max(-lim,Math.min(lim,snap(u)))}}
+        if(lim>0){o.wall=wall;o.u=segClamp(m,wall,Math.max(-lim,Math.min(lim,snap(u))),sz)}}
       const g2=svg.querySelector(`[data-oid="${drag.i}"]`),lns=g2.querySelectorAll('line'),ci=g2.querySelector('circle'),tx=g2.querySelector('text');
       const szk=sz*k,P0=+svg.dataset.pad,PW2=b.w*k,PD2=b.d*k;let x1,y1,x2,y2;
       if(o.wall===0){const cx=P0+(o.u+b.w/2)*k;x1=cx-szk/2;x2=cx+szk/2;y1=y2=P0+wall0Y(m,b,o.u)*k}

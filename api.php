@@ -317,6 +317,28 @@ if ($a === 'orderdel') {
   out(['ok' => true]);
 }
 
+/* непрочитанные: времена сообщений «другой стороны» по каждой заявке.
+   Клиент получает сообщения менеджеров по своим заявкам, сотрудник — сообщения клиентов по всем. */
+if ($a === 'unread') {
+  $u = me();
+  if (!$u) out(['orders' => []]);
+  $from = staff($u) ? 'client' : 'manager';
+  if (staff($u)) {
+    $st = db()->prepare('SELECT o.no AS no, m.created AS c FROM msgs m JOIN orders o ON o.id = m.order_id
+                         WHERE m.role = ? ORDER BY m.created');
+    $st->execute([$from]);
+  } else {
+    $st = db()->prepare('SELECT o.no AS no, m.created AS c FROM msgs m JOIN orders o ON o.id = m.order_id
+                         WHERE m.role = ? AND o.user_id = ? ORDER BY m.created');
+    $st->execute([$from, (int)$u['id']]);
+  }
+  $by = [];
+  foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $by[(string)$r['no']][] = ((int)$r['c']) * 1000;
+  $res = [];
+  foreach ($by as $no => $times) $res[] = ['no' => (string)$no, 't' => array_slice($times, -100)];
+  out(['orders' => $res]);
+}
+
 /* короткая сводка о состоянии: сколько аккаунтов и заявок в базе.
    Нужна, чтобы понять, работает ли кабинет на сервере. Личных данных не отдаёт. */
 if ($a === 'ping') {

@@ -315,6 +315,7 @@ header.top{position:sticky}
 .icon-btn{position:relative;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;transition:.25s}
 .icon-btn:hover{border-color:var(--text)}
 .icon-btn svg{width:18px;height:18px}
+.acct .badge{top:-4px;right:-4px}
 .badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--lamp);color:#1a120a;font-size:11px;font-weight:600;display:grid;place-items:center;padding:0 5px}
 .acct{height:42px;padding:0 16px 0 6px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;gap:10px;font-size:14px}
 .acct:hover{border-color:var(--text)}
@@ -1080,7 +1081,7 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
       <button class="btn contact-btn" data-contact style="height:42px">Связаться</button>
       <a class="icon-btn" href="#/account/fav" aria-label="Избранное"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg><span class="badge" id="favCount" hidden></span></a>
       <a class="icon-btn" href="#/cart" aria-label="Корзина"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16l-1.4 12.2a1 1 0 0 1-1 .8H6.4a1 1 0 0 1-1-.8z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg><span class="badge" id="cartCount" hidden></span></a>
-      <button class="acct" id="acctBtn"><span class="ava" id="ava"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><span id="acctName">Войти</span></button>
+      <button class="acct" id="acctBtn"><span class="ava" id="ava"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><span id="acctName">Войти</span><span class="badge" id="hdrUnread" hidden></span></button>
       <button class="theme-btn" data-theme-toggle aria-label="Светлая или тёмная тема" title="Светлая или тёмная тема">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg></button>
       <a class="icon-btn m-call" href="tel:+79998886099" aria-label="Позвонить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></a>
@@ -1119,7 +1120,7 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
   <a href="#/catalog" data-tab="catalog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Дома</span></a>
   <a href="#/custom" data-tab="custom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 12h7V3.5M14 20.5V14h6.5"/></svg><span>Свой размер</span></a>
   <a href="#/cart" data-tab="cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16l-1.4 12.2a1 1 0 0 1-1 .8H6.4a1 1 0 0 1-1-.8z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg><span>Корзина</span><span class="badge" id="tabCart" hidden></span></a>
-  <a href="#/account" data-tab="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Кабинет</span></a>
+  <a href="#/account" data-tab="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Кабинет</span><span class="badge" id="tabAcct" hidden></span></a>
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -4112,9 +4113,57 @@ async function chatSend(no,text,files,role,item){
 const chatTime=at=>new Date(at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 /* непрочитанные и превью последнего сообщения — как в мессенджере */
 const chatOf=no=>CHAT[no]!==undefined?CHAT[no]:(SB.on?[]:store.get(chatKey(no),[]));
+/* непрочитанные сообщения: один запрос на все заявки — значок виден на любой странице */
+const UNREAD={};
+const unreadRole=()=>{try{return mgrSession()?'manager':'client'}catch(e){return 'client'}};
+let unreadRoleWas=null;
+async function unreadLoad(){
+  const mgr=(()=>{try{return !!mgrSession()}catch(e){return false}})();
+  const role=unreadRole();
+  if(unreadRoleWas!==role){unreadRoleWas=role;Object.keys(UNREAD).forEach(k=>delete UNREAD[k]);unreadWas=-1}
+  if(!user&&!mgr){Object.keys(UNREAD).forEach(k=>delete UNREAD[k]);return}
+  if(SB.on&&SB.kind==='api'){
+    try{const d=await apiReq('unread');Object.keys(UNREAD).forEach(k=>delete UNREAD[k]);
+      (d.orders||[]).forEach(o=>{UNREAD[o.no]=o.t||[]})}catch(e){}
+    return}
+  Object.keys(UNREAD).forEach(k=>delete UNREAD[k]);
+  try{allOrders().forEach(o=>{const ms=chatOf(o.no).filter(m=>m.role!==role);if(ms.length)UNREAD[o.no]=ms.map(m=>m.at)})}catch(e){}}
+function unreadTotal(){const s=chatSeenMap(unreadRole());
+  return Object.keys(UNREAD).reduce((n,no)=>n+(UNREAD[no]||[]).filter(x=>x>(s[no]||0)).length,0)}
+function paintUnread(){const n=unreadTotal(),txt=n>99?'99+':String(n);
+  const b=document.getElementById('hdrUnread');if(b){b.hidden=!n;b.textContent=txt}
+  const m=document.getElementById('tabAcct');if(m){m.hidden=!n;m.textContent=txt}
+  const g=document.getElementById('mgrUnread');if(g){g.hidden=!n;g.textContent=n||''}
+  const a1=document.getElementById('accUnread'),a2=document.getElementById('accTotal');
+  if(a1){a1.hidden=!n;a1.textContent=n||''}if(a2)a2.hidden=!!n;
+  document.title=(n?`(${n}) `:'')+'Контур Дома';}
+let unreadWas=-1;
+function unreadTick(fresh){const n=unreadTotal();
+  if(fresh&&unreadWas>=0&&n>unreadWas)notifyMsg(n-unreadWas);
+  unreadWas=n;paintUnread()}
+function notifyMsg(k){
+  try{if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+    const mgr=unreadRole()==='manager';
+    const nt=new Notification('Контур Дома',{tag:'kontur-msg',
+      body:k>1?`${k} новых сообщения от ${mgr?'клиентов':'менеджера'}`:`Новое сообщение от ${mgr?'клиента':'менеджера'}`});
+    nt.onclick=()=>{window.focus();location.hash=mgr?'#/admin':'#/account/chat';nt.close()}}catch(e){}}
+const notifBtn=()=>{if(typeof Notification==='undefined')return '';
+  if(Notification.permission==='default')return `<button type="button" class="btn" data-notif style="margin-bottom:14px">Включить уведомления о новых сообщениях</button>`;
+  if(Notification.permission==='denied')return `<p class="note" style="margin:0 0 14px">Уведомления о новых сообщениях заблокированы в браузере. Разрешить их можно в настройках сайта — значок слева от адреса.</p>`;
+  return ''};
+document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('[data-notif]'))return;
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){toast('Уведомления включены');notifyMsg(0);render()}
+    else toast('Уведомления не разрешены — включить можно в настройках браузера')})});
+async function unreadSync(fresh){await unreadLoad();unreadTick(!!fresh)}
+setInterval(()=>{if(document.visibilityState==='visible'&&(user||(()=>{try{return !!mgrSession()}catch(e){return false}})()))unreadSync(true)},45000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')unreadSync(true)});
 const chatSeenMap=role=>store.get('chatseen.'+role,{});
 function chatMarkSeen(no,role){const s=chatSeenMap(role);s[no]=Date.now();store.set('chatseen.'+role,s)}
-const chatUnread=(no,role)=>{const t0=chatSeenMap(role)[no]||0;return chatOf(no).filter(m=>m.role!==role&&m.at>t0).length};
+const chatUnread=(no,role)=>{const t0=chatSeenMap(role)[no]||0;
+  if(CHAT[no])return CHAT[no].filter(m=>m.role!==role&&m.at>t0).length;
+  if(UNREAD[no]&&role===unreadRole())return UNREAD[no].filter(x=>x>t0).length;
+  return chatOf(no).filter(m=>m.role!==role&&m.at>t0).length};
 const chatLastMsg=no=>{const l=chatOf(no);return l.length?l[l.length-1]:null};
 const chatShort=at=>{const d=new Date(at),n=new Date();
   return d.toDateString()===n.toDateString()?d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})};
@@ -4136,7 +4185,7 @@ function chatListSync(){const el=document.querySelector('[data-chatlist]');if(!e
     const cur=document.querySelector('[data-chatlist]'),L=CHAT_LIST;
     if(cur&&L){cur.outerHTML=chatListHTML(L.rows,L.role,L.attrOf);const n2=document.querySelector('[data-chatlist]');if(n2)n2.dataset.sync='1'}})()}
 /* окно переписки */
-function chatRoomHTML(no,role,title,sub,back){chatMarkSeen(no,role);const ms=chatOf(no);
+function chatRoomHTML(no,role,title,sub,back){chatMarkSeen(no,role);setTimeout(paintUnread,0);const ms=chatOf(no);
   return `<div class="tg-room" data-chat="${no}" data-role="${role}" data-room="1" data-title="${esc(title)}" data-sub="${esc(sub||'')}" data-back="${esc(back)}">
     <div class="tg-head"><a class="tg-back" ${/^#/.test(back)?`href="${back}"`:`${back} tabindex="0"`} aria-label="Назад к списку">←</a>
       <div><b>${esc(title)}</b><span>${esc(sub||'')}</span></div></div>
@@ -4234,7 +4283,7 @@ function chatTabView(orders,sub){
   if(!rows.length)return `<div class="empty"><p style="color:var(--text);font-size:18px">Переписки пока нет</p><p>Отправьте заявку — и здесь появится чат с менеджером: планировки, варианты домов и фотографии.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`;
   const cur=rows.find(r=>String(r.no)===String(sub));
   if(cur)return chatRoomHTML(cur.no,'client',`Менеджер · заявка № ${cur.no}`,cur.sub,'#/account/chat');
-  return chatListHTML(rows,'client',r=>`href="#/account/chat/${r.no}"`)}
+  return notifBtn()+chatListHTML(rows,'client',r=>`href="#/account/chat/${r.no}"`)}
 function accountView(tab,sub){
   if(!user)return `<div class="wrap"><div class="page-h"><h1>Личный кабинет</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">Войдите, чтобы увидеть заявки и избранное</p><p>Здесь хранятся ваши дома, этапы стройки и контакты.</p><button class="btn solid" data-login>Войти или зарегистрироваться</button>
     <a class="btn staff-in" href="#/admin">Вход для сотрудников</a></div>
@@ -4264,11 +4313,11 @@ function accountView(tab,sub){
       ${promoLine(o)}${chatLink(o.no,'client',`href="#/account/chat/${o.no}"`)}${docsBlock(o.no,'client')}
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
-  const orders_n=orders.length,unread=orders.reduce((s,o)=>s+chatUnread(o.no,'client'),0);
+  const orders_n=orders.length,unread=Math.max(unreadTotal(),orders.reduce((s,o)=>s+chatUnread(o.no,'client'),0));
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Личный кабинет</span><h1>Здравствуйте, ${esc(user.name.split(' ')[0])}</h1></div></div>
   <div class="acc"><div class="acc-nav">
     <button class="${tab==='orders'?'on':''}" data-tab="orders">Мои заявки <span class="num">${orders_n}</span></button>
-    <button class="${tab==='chat'?'on':''}" data-tab="chat">Сообщения ${unread?`<span class="tg-badge num">${unread}</span>`:`<span class="num">${orders_n}</span>`}</button>
+    <button class="${tab==='chat'?'on':''}" data-tab="chat">Сообщения <span class="tg-badge num" id="accUnread"${unread?'':' hidden'}>${unread||''}</span><span class="num" id="accTotal"${unread?' hidden':''}>${unread?'':orders_n}</span></button>
     <button class="${tab==='fav'?'on':''}" data-tab="fav">Избранное <span class="num">${favs.length}</span></button>
     <button class="${tab==='promo'?'on':''}" data-tab="promo">Промокод <span class="num">${myPromo()?'−'+myPromo().pct+'%':''}</span></button>
     <button class="${tab==='profile'?'on':''}" data-tab="profile">Профиль</button>
@@ -4928,7 +4977,7 @@ function adminView(){
   const s=mgrSession(),me=SB.on?{name:user?user.name:'',role:SB.role}:mgrAccounts()[s.login];
   const bar=`<div class="mgr-bar"><span>Вы вошли как <b>${esc(me.name)}</b> · ${me.role==='admin'?'администратор':'менеджер'}</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки</button>
-    <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения${(()=>{const u=list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0);return u?` <span class="tg-badge num">${u}</span>`:''})()}</button>
+    <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения ${(()=>{const u=Math.max(unreadTotal(),list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0));return `<span class="tg-badge num" id="mgrUnread"${u?'':' hidden'}>${u||''}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
     <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
   if(adminState.tab==='staff')return `<div class="wrap">${bar}<div class="page-h"><h1>Сотрудники</h1></div>${mgrStaffView(s)}</div>`;
@@ -4941,7 +4990,7 @@ function adminView(){
       .map(o=>({no:o.no,title:o.fio||'Без имени',sub:`Заявка № ${o.no} · ${orderTitleOf(o)}`,ava:String(o.fio||'К').trim().charAt(0).toUpperCase()}));
     return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Переписка</span><h1>Сообщения</h1></div>
       <p style="color:var(--muted);max-width:44ch">Каждая заявка — отдельный диалог. Откройте клиента, чтобы написать ему, приложить фото или отправить собранный в калькуляторе дом.</p></div>
-      <div style="margin-bottom:90px">${rows.length?chatListHTML(rows,'manager',r=>`data-mgrchat="${r.no}"`):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Как только клиент оформит заказ, здесь появится диалог.</p></div>`}</div></div>`}
+      <div style="margin-bottom:90px">${notifBtn()}${rows.length?chatListHTML(rows,'manager',r=>`data-mgrchat="${r.no}"`):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Как только клиент оформит заказ, здесь появится диалог.</p></div>`}</div></div>`}
   return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера${SB.on?'':' · прототип'}</span><h1>Заявки клиентов</h1></div>
     <p style="color:var(--muted);max-width:48ch">Все заявки собраны по клиентам: контакты, состав заказа, спецификация и нарисованная планировка для бригады и договора. ${SB.on?'Заявки приходят с сервера — их видят все менеджеры, на любом устройстве.':'Сейчас данные берутся из этого браузера — в рабочей версии сюда же придут заявки с сервера.'}</p></div>
     <div class="adm-stats">${[['Заявок',list.length],['Клиентов',new Set(list.map(o=>o.email||o.phone||o._owner)).size],['В работе',list.filter(o=>!['new','done'].includes(o.status||'new')).length],['Сумма',rub(sum)]].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
@@ -5001,6 +5050,7 @@ function render(){
   document.body.classList.toggle('at-home',!a||!!scrollTo);
   app.innerHTML=html+footer();
   paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);setTimeout(()=>typeof docsSync==='function'&&docsSync(),80);setTimeout(()=>{typeof chatSync==='function'&&chatSync();typeof chatListSync==='function'&&chatListSync();typeof chatScroll==='function'&&chatScroll()},90);
+  setTimeout(()=>{typeof unreadSync==='function'&&unreadSync(false)},140);
   if(scrollTo)requestAnimationFrame(()=>document.getElementById(scrollTo)?.scrollIntoView());else window.scrollTo({top:0,left:0,behavior:'instant'});
   ymHit();
 }

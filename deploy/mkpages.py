@@ -754,12 +754,33 @@ def article_pages(houses):
     return [(s, page(s, ti, de, bo, nav)) for s, ti, de, bo in arts]
 
 
+def err404_page():
+    slug = '404.html'
+    body = """<h1 style="margin-top:60px">Такой страницы нет</h1>
+<p class="lead">Возможно, адрес набран с опечаткой или страница переехала. Вот что есть на сайте:</p>
+<div class="nav-all" style="margin:26px 0 40px">
+  <a href="/">Калькулятор и каталог</a>
+  <a href="karkasnye-doma.html">Каркасные дома</a>
+  <a href="moduli-dlya-prozhivaniya.html">Модули</a>
+  <a href="tseny.html">Цены</a>
+  <a href="nashi-proekty.html">Наши проекты</a>
+  <a href="dostavka-i-sborka.html">Доставка</a>
+  <a href="voprosy.html">Вопросы</a>
+  <a href="o-kompanii.html">О компании</a>
+</div>
+<p><a class="btn" href="/">На главную</a>
+<a class="btn ghost" href="tel:%(phref)s">Позвонить %(phone)s</a></p>""" % {'phref': PHONE_HREF, 'phone': PHONE}
+    return slug, page(slug, 'Страница не найдена | Контур Дома',
+                      'Такой страницы на сайте нет. Каталог каркасных домов, модули, цены и калькулятор — по ссылкам ниже.',
+                      body, '')
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else 'seo.json'
     dst = sys.argv[2] if len(sys.argv) > 2 else '.'
     d = json.load(io.open(src, encoding='utf-8'))
     pages = [houses_hub(d['houses']), mods_page(d['mods']), prices_page(d['houses'], d['mods']),
-             projects_page(d['prj']), about_page(), delivery_page(), faq_page()]
+             projects_page(d['prj']), about_page(), delivery_page(), faq_page(), err404_page()]
     pages += [house_page(h, d['houses']) for h in d['houses']]
     pages += size_pages(d['houses'])
     pages += mod_pages(d['mods'])
@@ -769,6 +790,8 @@ def main():
     today = datetime.date.today().isoformat()
     urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priority><lastmod>%s</lastmod></url>' % (DOMAIN, today)]
     for slug, _ in pages:
+        if slug == '404.html':
+            continue
         pr = '0.9' if slug.startswith(('karkasnye', 'moduli-dlya', 'tseny', 'karkasnyy-dom')) else '0.8'
         urls.append('<url><loc>%s/%s</loc><changefreq>monthly</changefreq><priority>%s</priority><lastmod>%s</lastmod></url>' % (DOMAIN, slug, pr, today))
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  ' + \

@@ -29,13 +29,17 @@
   # RewriteCond %{HTTPS} !=on
   # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
-  # 5. Одностраничный сайт: неизвестный адрес отдаём как index.html
+  # 5. Короткие адреса: /dom-ladoga открывает dom-ladoga.html
   RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.html [L]
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
 </IfModule>
 
-# 6. Страница сайта не кешируется браузером — обновления видны сразу.
+# 6. Несуществующий адрес — честная ошибка 404 со своей страницей.
+#    Раньше любой мусорный адрес отдавал сайт с кодом 200, и поисковик считал это страницей.
+ErrorDocument 404 /404.html
+
+# 7. Страница сайта не кешируется браузером — обновления видны сразу.
 #    Картинки, наоборот, кешируются на неделю.
 <IfModule mod_headers.c>
   <FilesMatch "\.html$">

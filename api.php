@@ -38,9 +38,10 @@ function guardFiles(): void {
   RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
   RewriteRule ^uploads/ - [R=404,L]
   RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.html [L]
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
 </IfModule>
+ErrorDocument 404 /404.html
 <IfModule mod_headers.c>
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache, must-revalidate"

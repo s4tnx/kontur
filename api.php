@@ -42,6 +42,7 @@ function guardFiles(): void {
   RewriteRule ^(.+)$ $1.html [L]
 </IfModule>
 ErrorDocument 404 /404.html
+AddType application/manifest+json .webmanifest
 <IfModule mod_headers.c>
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache, must-revalidate"

@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://konturhouse.ru/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
+  <url><loc>https://konturhouse.ru/</loc><changefreq>weekly</changefreq><priority>1.0</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/karkasnye-doma.html</loc><changefreq>monthly</changefreq><priority>0.9</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/moduli-dlya-prozhivaniya.html</loc><changefreq>monthly</changefreq><priority>0.9</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/tseny.html</loc><changefreq>monthly</changefreq><priority>0.9</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/nashi-proekty.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/o-kompanii.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-ladoga.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-onega.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-seliger.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-valdai.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-vuoksa.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-karelia.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-altai.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
+  <url><loc>https://konturhouse.ru/dom-baikal.html</loc><changefreq>monthly</changefreq><priority>0.8</priority><lastmod>2026-09-21</lastmod></url>
 </urlset>

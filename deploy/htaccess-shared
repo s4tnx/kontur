@@ -18,20 +18,24 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # 2. Документы клиентов — только через api.php, напрямую нельзя
+  # 2. Один адрес вместо двух: www.сайт.ру → сайт.ру (иначе поисковик видит два сайта)
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+  # 3. Документы клиентов — только через api.php, напрямую нельзя
   RewriteRule ^uploads/ - [R=404,L]
 
-  # 3. Всегда HTTPS (раскомментируйте, когда выпустите сертификат в панели хостинга)
+  # 4. Всегда HTTPS (раскомментируйте, когда выпустите сертификат в панели хостинга)
   # RewriteCond %{HTTPS} !=on
   # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
-  # 4. Одностраничный сайт: неизвестный адрес отдаём как index.html
+  # 5. Одностраничный сайт: неизвестный адрес отдаём как index.html
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]
 </IfModule>
 
-# 5. Страница сайта не кешируется браузером — обновления видны сразу.
+# 6. Страница сайта не кешируется браузером — обновления видны сразу.
 #    Картинки, наоборот, кешируются на неделю.
 <IfModule mod_headers.c>
   <FilesMatch "\.html$">

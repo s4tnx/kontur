@@ -1019,6 +1019,10 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
 .tg-side{display:grid;gap:6px;justify-items:end;align-content:center}
 .tg-side em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--dim)}
 .tg-badge{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--lamp);color:#1a120a;font-size:12px;font-weight:600;display:inline-grid;place-items:center}
+/* скрытый значок не должен оставлять пустой кружок */
+.tg-badge[hidden]{display:none!important}
+/* ноль показываем спокойно: контур вместо заливки */
+.tg-badge.zero{background:transparent;color:var(--dim);border:1px solid var(--line2);font-weight:500}
 .tg-room{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;display:grid}
 .tg-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel2)}
 .tg-back{width:34px;height:34px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;flex:none;cursor:pointer}
@@ -4214,11 +4218,10 @@ let unreadShown=-1;
 function paintUnread(){const n=unreadTotal(),txt=n>99?'99+':String(n),grew=unreadShown>=0&&n>unreadShown;unreadShown=n;
   const b=document.getElementById('hdrUnread');if(b){b.hidden=!n;b.textContent=txt;if(grew)pulse(b)}
   const m=document.getElementById('tabAcct');if(m){m.hidden=!n;m.textContent=txt;if(grew)pulse(m)}
-  const nz=newOrders(),msgs=n-nz;
-  const g=document.getElementById('mgrUnread');if(g){g.hidden=!msgs;g.textContent=msgs||''}
-  const go=document.getElementById('mgrNewOrders');if(go){go.hidden=!nz;go.textContent=nz||''}
-  const a1=document.getElementById('accUnread'),a2=document.getElementById('accTotal');
-  if(a1){a1.hidden=!n;a1.textContent=n||''}if(a2)a2.hidden=!!n;
+  const nz=newOrders(),msgs=Math.max(0,n-nz),setB=(el,v)=>{if(!el)return;el.textContent=v;el.classList.toggle('zero',!v)};
+  setB(document.getElementById('mgrUnread'),msgs);
+  setB(document.getElementById('mgrNewOrders'),nz);
+  setB(document.getElementById('accUnread'),n);
   document.title=(n?`(${n}) `:'')+'Контур Дома';}
 const pulse=el=>{el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse')};
 let unreadWas=-1;
@@ -4402,7 +4405,7 @@ function accountView(tab,sub){
   return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Личный кабинет</span><h1>Здравствуйте, ${esc(user.name.split(' ')[0])}</h1></div></div>
   <div class="acc"><div class="acc-nav">
     <button class="${tab==='orders'?'on':''}" data-tab="orders">Мои заявки <span class="num">${orders_n}</span></button>
-    <button class="${tab==='chat'?'on':''}" data-tab="chat">Сообщения <span class="tg-badge num" id="accUnread"${unread?'':' hidden'}>${unread||''}</span><span class="num" id="accTotal"${unread?' hidden':''}>${unread?'':orders_n}</span></button>
+    <button class="${tab==='chat'?'on':''}" data-tab="chat">Сообщения <span class="tg-badge num${unread?'':' zero'}" id="accUnread" title="непрочитанных сообщений от менеджера">${unread||0}</span></button>
     <button class="${tab==='fav'?'on':''}" data-tab="fav">Избранное <span class="num">${favs.length}</span></button>
     <button class="${tab==='promo'?'on':''}" data-tab="promo">Промокод <span class="num">${myPromo()?'−'+myPromo().pct+'%':''}</span></button>
     <button class="${tab==='profile'?'on':''}" data-tab="profile">Профиль</button>
@@ -5061,8 +5064,8 @@ function adminView(){
   const byClient={};rows.forEach(o=>{const key=o.email||o.phone||o._owner;(byClient[key]=byClient[key]||[]).push(o)});
   const s=mgrSession(),me=SB.on?{name:user?user.name:'',role:SB.role}:mgrAccounts()[s.login];
   const bar=`<div class="mgr-bar"><span>Вы вошли как <b>${esc(me.name)}</b> · ${me.role==='admin'?'администратор':'менеджер'}</span>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки ${(()=>{const u=newOrders();return `<span class="tg-badge num" id="mgrNewOrders"${u?'':' hidden'}>${u||''}</span>`})()}</button>
-    <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения ${(()=>{const u=Math.max(unreadTotal(),list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0));return `<span class="tg-badge num" id="mgrUnread"${u?'':' hidden'}>${u||''}</span>`})()}</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки ${(()=>{const u=newOrders();return `<span class="tg-badge num${u?'':' zero'}" id="mgrNewOrders" title="новых заявок, которые вы ещё не открывали">${u||0}</span>`})()}</button>
+    <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения ${(()=>{const u=Math.max(0,Math.max(unreadTotal(),list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0))-newOrders());return `<span class="tg-badge num${u?'':' zero'}" id="mgrUnread" title="непрочитанных сообщений от клиентов">${u||0}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
     <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
   if(adminState.tab==='staff')return `<div class="wrap">${bar}<div class="page-h"><h1>Сотрудники</h1></div>${mgrStaffView(s)}</div>`;

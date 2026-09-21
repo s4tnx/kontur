@@ -172,6 +172,9 @@ p{margin:0}
 .pc-plan text.lab-w,.pc-plan text.lab-d{font-family:var(--mono);font-size:9.5px;font-weight:600;paint-order:stroke;stroke:var(--panel2);stroke-width:3px}
 .pc-plan text.lab-w{fill:var(--text)}
 .pc-plan text.lab-d{fill:#4FA3C4}
+.staff-in{font-size:13px;color:var(--muted)}
+a.btn.staff-in{height:40px;padding:0 18px;font-size:13.5px;justify-content:center;margin-top:10px}
+a.btn.staff-in:hover,.staff-in:hover{color:var(--lamp);border-color:var(--lamp);background:transparent}
 .mgr-auth{max-width:440px;margin:60px auto 100px;display:grid;gap:14px;border:1px solid var(--line);border-radius:22px;padding:30px;background:var(--panel)}
 .mgr-auth h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,3vw,32px);line-height:1.15}
 .mgr-auth form{display:grid;gap:12px;margin-top:6px}
@@ -4168,7 +4171,8 @@ function chatTabView(orders,sub){
   if(cur)return chatRoomHTML(cur.no,'client',`Менеджер · заявка № ${cur.no}`,cur.sub,'#/account/chat');
   return chatListHTML(rows,'client',r=>`href="#/account/chat/${r.no}"`)}
 function accountView(tab,sub){
-  if(!user)return `<div class="wrap"><div class="page-h"><h1>Личный кабинет</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">Войдите, чтобы увидеть заявки и избранное</p><p>Здесь хранятся ваши дома, этапы стройки и контакты.</p><button class="btn solid" data-login>Войти или зарегистрироваться</button></div>
+  if(!user)return `<div class="wrap"><div class="page-h"><h1>Личный кабинет</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">Войдите, чтобы увидеть заявки и избранное</p><p>Здесь хранятся ваши дома, этапы стройки и контакты.</p><button class="btn solid" data-login>Войти или зарегистрироваться</button>
+    <a class="btn staff-in" href="#/admin">Вход для сотрудников</a></div>
     ${favs.length?`<div class="sec-head"><h2>Избранное на этом устройстве</h2></div><div class="grid" style="margin-bottom:80px">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:''}</div>`;
   const orders=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
   tab=tab||'orders';
@@ -4204,6 +4208,7 @@ function accountView(tab,sub){
     <button class="${tab==='promo'?'on':''}" data-tab="promo">Промокод <span class="num">${myPromo()?'−'+myPromo().pct+'%':''}</span></button>
     <button class="${tab==='profile'?'on':''}" data-tab="profile">Профиль</button>
     <a class="btn" href="#/cart" style="margin-top:8px;justify-content:center">Корзина · <span class="num">${cart.length}</span></a>
+    <a class="link staff-in" href="#/admin" style="justify-self:center;margin-top:4px">Вход для сотрудников</a>
   </div><div>${body}</div></div></div>`;
 }
 let catSize=null;
@@ -4773,7 +4778,10 @@ function allOrders(){if(SB.on)return SB.orders.slice();const out=[];
   return out.sort((a,b)=>b.at-a.at)}
 const adminState={q:'',st:'all',err:'',tab:'orders',chat:null};
 const MGR_TTL=8*3600*1000;
-const mgrAccounts=()=>store.get('mgr.accounts',{});
+/* главный администратор: логин admin, пароль можно сменить во вкладке «Сотрудники».
+   В коде лежит только SHA-256 от «mgr:логин:пароль» — самого пароля здесь нет. */
+const ROOT_ADMIN={login:'admin',name:'Главный администратор',ph:'1ee077fb02ba147ec0ff2e43e394296d7c27ac93ae4f8e286a6e246cfec6d5c9',role:'admin',root:1,at:0};
+const mgrAccounts=()=>({[ROOT_ADMIN.login]:{...ROOT_ADMIN},...store.get('mgr.accounts',{})});
 function mgrSession(){if(SB.on)return (user&&(SB.role==='manager'||SB.role==='admin'))?{login:user.email,at:Date.now(),sb:1}:null;
   try{const s=JSON.parse(sessionStorage.getItem('kontur.mgr.session')||'null');
     if(!s||Date.now()-s.at>MGR_TTL||!mgrAccounts()[s.login])return null;return s}catch(e){return null}}
@@ -4834,6 +4842,12 @@ function mgrStaffView(s){if(SB.kind==='api'){setTimeout(staffSync,50);return mgr
       <div class="field"><label>Логин</label><input name="login" required minlength="3" autocomplete="off"></div>
       <div class="field"><label>Пароль</label><input name="pass" type="password" required minlength="8" autocomplete="new-password"></div>
       <button class="btn" type="submit" style="justify-content:center">Добавить менеджера</button></form>`:''}
+    <form id="mgrPass" class="adm-order" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end">
+      <div class="field"><label>Текущий пароль</label><input name="old" type="password" required autocomplete="current-password"></div>
+      <div class="field"><label>Новый пароль</label><input name="pass" type="password" required minlength="8" autocomplete="new-password"></div>
+      <div class="field"><label>Ещё раз</label><input name="pass2" type="password" required minlength="8" autocomplete="new-password"></div>
+      <button class="btn" type="submit" style="justify-content:center">Сменить свой пароль</button></form>
+    ${acc[ROOT_ADMIN.login]&&acc[ROOT_ADMIN.login].ph===ROOT_ADMIN.ph?`<div class="adm-order"><small class="note" style="margin:0">У главного администратора (логин <b class="num">admin</b>) стоит пароль по умолчанию. Смените его — и запишите новый: восстановить его никто не сможет.</small></div>`:''}
   </div>`}
 function adminView(){
   const users=SB.on?{}:store.get('users',{}),list=allOrders();
@@ -4960,6 +4974,14 @@ function bind(){
       const n=lock.n+1;store.set('mgr.lock',n>=5?{n:0,until:Date.now()+5*60000}:{n,until:0});
       return fail(n>=5?'Слишком много попыток. Вход заблокирован на 5 минут.':'Неверный логин или пароль.')}
     store.set('mgr.lock',{n:0,until:0});adminState.err='';mgrSetSession(login);render()});
+  document.getElementById('mgrPass')?.addEventListener('submit',async e=>{e.preventDefault();
+    const s=mgrSession();if(!s)return;const f=new FormData(e.target),login=s.login,cur=mgrAccounts()[login];
+    if(!cur||cur.ph!==await hash('mgr:'+login+':'+String(f.get('old')||'')))return toast('Текущий пароль не подошёл');
+    const p=String(f.get('pass')||'');
+    if(p.length<8)return toast('Пароль не короче 8 символов');
+    if(p!==String(f.get('pass2')||''))return toast('Пароли не совпадают');
+    const st=store.get('mgr.accounts',{});st[login]={...cur,ph:await hash('mgr:'+login+':'+p)};store.set('mgr.accounts',st);
+    toast('Пароль изменён');render()});
   document.getElementById('mgrAdd')?.addEventListener('submit',async e=>{e.preventDefault();
     const f=new FormData(e.target),login=String(f.get('login')).trim().toLowerCase(),pass=String(f.get('pass'));
     const acc=mgrAccounts();if(acc[login])return toast('Такой логин уже есть');
@@ -4993,7 +5015,9 @@ document.addEventListener('click',e=>{
   const mc=e.target.closest('[data-mgrchat]');
   if(mc){adminState.tab='chats';adminState.chat=mc.dataset.mgrchat||null;render();return}
   const md=e.target.closest('[data-mgrdel]');
-  if(md){const acc=mgrAccounts();delete acc[md.dataset.mgrdel];store.set('mgr.accounts',acc);toast('Сотрудник удалён');render();return}
+  if(md){const l=md.dataset.mgrdel,acc=mgrAccounts();
+    if(acc[l]&&acc[l].root){toast('Главного администратора удалить нельзя — можно сменить ему пароль');return}
+    const st=store.get('mgr.accounts',{});delete st[l];store.set('mgr.accounts',st);toast('Сотрудник удалён');render();return}
   const ads=e.target.closest('[data-adst]');
   if(ads){adminState.st=ads.dataset.adst;app.innerHTML=adminView()+footer();paint();bind();return}
   const tg=e.target.closest('[data-theme-toggle]');
@@ -5259,8 +5283,10 @@ function openAuth(mode='in'){
     <div class="field"><label for="ap">Пароль</label><input id="ap" name="pass" type="password" autocomplete="${mode==='in'?'current-password':'new-password'}" minlength="6" required></div>
     <p class="err" id="aerr"></p>
     <button class="btn lamp" type="submit" style="justify-content:center">${mode==='in'?'Войти':'Создать аккаунт'}</button>
-    <p class="note">${SB.on?'Аккаунт общий для всех ваших устройств: заявки и документы хранятся у нас, а не в браузере.':'Пока аккаунт и заявки сохраняются только в этом браузере — для общего кабинета нужно подключить базу.'}</p></form>`;
+    <p class="note">${SB.on?'Аккаунт общий для всех ваших устройств: заявки и документы хранятся у нас, а не в браузере.':'Пока аккаунт и заявки сохраняются только в этом браузере — для общего кабинета нужно подключить базу.'}</p>
+    <button type="button" class="link staff-in" data-mgrgo style="justify-self:center">Вход для сотрудников</button></form>`;
     el.querySelector('.x').onclick=()=>el.remove();
+    const sg=el.querySelector('[data-mgrgo]');if(sg)sg.onclick=()=>{el.remove();location.hash='#/admin'};
     el.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;draw()});
     el.querySelector('form').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target),err=el.querySelector('#aerr');
       const email=String(fd.get('email')||'').trim().toLowerCase(),pass=String(fd.get('pass')||''),name=String(fd.get('name')||'').trim();

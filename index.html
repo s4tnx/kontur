@@ -4878,7 +4878,9 @@ function mgrLoginLocal(){
         <small class="note">Не короче 8 символов.</small>`:''}
       <p class="mgr-err" role="alert">${locked?`Слишком много попыток. Попробуйте через ${Math.ceil((lock.until-Date.now())/60000)} мин.`:esc(adminState.err||'')}</p>
       <button class="btn lamp" type="submit" style="justify-content:center" ${locked?'disabled':''}>${first?'Создать и войти':'Войти'}</button>
-    </form></div></div>`}
+    </form>
+    ${first?'':`<small class="note">Логин главного администратора — <b class="num" style="color:var(--text)">admin</b>, пароль выдан вместе с сайтом. Сменить его можно здесь же, во вкладке «Сотрудники». Эта страница — для сотрудников; клиенты входят в личный кабинет по почте.</small>`}
+    </div></div>`}
 /* сотрудники: администратор добавляет и удаляет менеджеров */
 let staffList=[];
 function mgrStaffApi(){

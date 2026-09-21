@@ -210,14 +210,29 @@ a.btn.staff-in:hover,.staff-in:hover{color:var(--lamp);border-color:var(--lamp);
 .adm-stats b{font-family:var(--display);font-size:24px;font-weight:600}
 .adm-bar{display:grid;gap:12px;margin-bottom:20px}
 .adm-bar input{height:46px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:0 14px;font-size:15px}
-.adm-list{display:grid;gap:16px}
-.adm-client{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden}
+.adm-list{display:grid;gap:26px}
+.adm-client{border:1px solid var(--line2);border-radius:20px;background:var(--panel);overflow:hidden}
 .adm-client header{display:flex;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .adm-client header b{font-size:16px;margin-right:10px}
 .adm-client header span{font-size:13px;color:var(--muted)}
-.adm-order{padding:14px 18px;border-bottom:1px solid var(--line);display:grid;gap:8px}
-.adm-order:last-child{border-bottom:0}
-.adm-row{display:grid;grid-template-columns:80px 100px 1fr auto 170px auto;gap:12px;align-items:center;font-size:14px}
+.adm-order{position:relative;margin:14px;padding:16px 18px 16px 24px;border:1px solid var(--line);border-radius:16px;
+  background:var(--panel2);display:grid;gap:10px}
+.adm-order::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:5px;border-radius:0 5px 5px 0;background:var(--line2)}
+.adm-order.st-new{border-color:rgba(226,85,61,.5);background:linear-gradient(90deg,rgba(226,85,61,.10),transparent 260px),var(--panel2)}
+.adm-order.st-new::before{background:#E2553D}
+.adm-order.st-call::before{background:#E7A35C}
+.adm-order.st-visit::before{background:#D8C26A}
+.adm-order.st-contract::before{background:#7FB3D5}
+.adm-order.st-build::before{background:#6FA9A0}
+.adm-order.st-done::before{background:#5E646B}
+.adm-order + .adm-order{margin-top:0}
+.adm-order .adm-no{font-family:var(--display);font-weight:600;font-size:17px}
+.adm-order .adm-when{color:var(--muted);font-size:13px}
+.adm-order .adm-sum{font-family:var(--display);font-weight:600;font-size:17px}
+.adm-mark{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:#E2553D;border:1px solid rgba(226,85,61,.5);border-radius:999px;padding:3px 10px}
+.adm-order:not(.st-new) .adm-mark{display:none}
+.adm-row{display:grid;grid-template-columns:auto auto 1fr auto 170px auto;gap:14px;align-items:center;font-size:14px}
 .adm-row select{height:36px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--text);padding:0 8px}
 @media (max-width:760px){.adm-row{grid-template-columns:1fr 1fr}}
 .spec-det{margin-top:2px}
@@ -340,7 +355,15 @@ header.top{position:sticky}
 .icon-btn svg{width:18px;height:18px}
 .acct .badge{top:-4px;right:-4px}
 .badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--lamp);color:#1a120a;font-size:11px;font-weight:600;display:grid;place-items:center;padding:0 5px}
-.acct{height:42px;padding:0 16px 0 6px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;gap:10px;font-size:14px}
+/* счётчик новых сообщений и заявок — красный, чтобы не путался с корзиной, и с обводкой по фону */
+#hdrUnread,#tabAcct{background:#E2553D;color:#fff;min-width:21px;height:21px;border-radius:11px;font-size:12px;font-weight:700;
+  box-shadow:0 0 0 2px var(--bg),0 2px 8px rgba(0,0,0,.45);letter-spacing:-.01em}
+#hdrUnread{top:-7px;right:-7px}
+#tabAcct{top:2px;right:14px}
+body.at-home:not(.scrolled) #hdrUnread{box-shadow:0 0 0 2px rgba(20,23,30,.55),0 2px 8px rgba(0,0,0,.45)}
+@keyframes bpulse{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
+.badge.pulse{animation:bpulse .55s cubic-bezier(.3,1.4,.4,1) 2}
+.acct{position:relative;height:42px;padding:0 16px 0 6px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;gap:10px;font-size:14px}
 .acct:hover{border-color:var(--text)}
 .ava{width:30px;height:30px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-family:var(--display);font-size:12px}
 @media (max-width:1400px){nav.main{gap:clamp(8px,1.4vw,22px);font-size:13.5px}}
@@ -4188,15 +4211,17 @@ async function unreadLoad(){
     NEWORD=unreadRole()==='manager'?allOrders().filter(o=>(o.status||'new')==='new').map(o=>o.at):[]}catch(e){}}
 function unreadTotal(){const s=chatSeenMap(unreadRole());
   return Object.keys(UNREAD).reduce((n,no)=>n+(UNREAD[no]||[]).filter(x=>x>(s[no]||0)).length,0)+newOrders()}
-function paintUnread(){const n=unreadTotal(),txt=n>99?'99+':String(n);
-  const b=document.getElementById('hdrUnread');if(b){b.hidden=!n;b.textContent=txt}
-  const m=document.getElementById('tabAcct');if(m){m.hidden=!n;m.textContent=txt}
+let unreadShown=-1;
+function paintUnread(){const n=unreadTotal(),txt=n>99?'99+':String(n),grew=unreadShown>=0&&n>unreadShown;unreadShown=n;
+  const b=document.getElementById('hdrUnread');if(b){b.hidden=!n;b.textContent=txt;if(grew)pulse(b)}
+  const m=document.getElementById('tabAcct');if(m){m.hidden=!n;m.textContent=txt;if(grew)pulse(m)}
   const nz=newOrders(),msgs=n-nz;
   const g=document.getElementById('mgrUnread');if(g){g.hidden=!msgs;g.textContent=msgs||''}
   const go=document.getElementById('mgrNewOrders');if(go){go.hidden=!nz;go.textContent=nz||''}
   const a1=document.getElementById('accUnread'),a2=document.getElementById('accTotal');
   if(a1){a1.hidden=!n;a1.textContent=n||''}if(a2)a2.hidden=!!n;
   document.title=(n?`(${n}) `:'')+'Контур Дома';}
+const pulse=el=>{el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse')};
 let unreadWas=-1;
 function unreadTick(fresh){const n=unreadTotal();
   if(fresh&&unreadWas>=0&&n>unreadWas)notifyMsg(n-unreadWas);
@@ -5062,10 +5087,10 @@ function adminView(){
       return `<div class="adm-client"><header><div><b>${esc(o0.fio||u.name||'Без имени')}</b>
           <span class="num">${esc(o0.phone||'')}${o0.email?' · '+esc(o0.email):' · гость'}</span></div>
           <span class="num" style="color:var(--muted)">${os.length} ${plural(os.length,['заявка','заявки','заявок'])}</span></header>
-        ${os.map(o=>`<div class="adm-order"><div class="adm-row">
-            <b class="num">№ ${o.no}</b><span class="num">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
-            <span>${esc(o.region||'участок не указан')}</span>
-            <b class="num">${rub(orderPay(o))}</b>
+        ${os.map(o=>`<div class="adm-order st-${esc(o.status||'new')}"><div class="adm-row">
+            <b class="num adm-no">№ ${o.no}</b><span class="num adm-when">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
+            <span>${esc(o.region||'участок не указан')} <span class="adm-mark">новая</span></span>
+            <b class="num adm-sum">${rub(orderPay(o))}</b>
             <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select>
             <button type="button" class="link" data-adorderdel="${SB.on?o._id:o._key+'|'+o._idx}" data-no="${esc(o.no)}">Удалить</button></div>
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}${promoLine(o)}

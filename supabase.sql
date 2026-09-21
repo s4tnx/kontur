@@ -91,6 +91,7 @@ create table if not exists public.messages(
   order_id bigint references public.orders on delete cascade,
   role text, who text, text text,
   files jsonb not null default '[]'::jsonb,
+  item jsonb,
   author uuid default auth.uid(),
   created_at timestamptz default now()
 );

@@ -303,4 +303,14 @@ if ($a === 'orderdel') {
   out(['ok' => true]);
 }
 
+/* короткая сводка о состоянии: сколько аккаунтов и заявок в базе.
+   Нужна, чтобы понять, работает ли кабинет на сервере. Личных данных не отдаёт. */
+if ($a === 'ping') {
+  $n = function (string $tbl): int {
+    try { return (int)db()->query('SELECT COUNT(*) FROM ' . $tbl)->fetchColumn(); } catch (Throwable $e) { return -1; }
+  };
+  out(['ok' => true, 'php' => PHP_VERSION, 'users' => $n('users'), 'orders' => $n('orders'),
+       'msgs' => $n('msgs'), 'docs' => $n('docs'), 'write' => is_writable(__DIR__), 'db' => file_exists(DB_FILE)]);
+}
+
 fail('Неизвестный запрос', 404);

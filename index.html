@@ -724,7 +724,9 @@ footer{padding:50px 0 34px}
 
 /* cart & account */
 .page-h{padding:46px 0 30px;display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
-.page-h h1{font-size:clamp(34px,5vw,64px);font-weight:800;letter-spacing:-.03em}
+.page-h h1{font-size:clamp(30px,5vw,64px);font-weight:800;letter-spacing:-.03em;max-width:100%;overflow-wrap:anywhere}
+.page-h > div{min-width:0}
+.acct span{max-width:clamp(90px,13vw,200px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cart{display:grid;grid-template-columns:1.5fr 1fr;gap:30px;padding-bottom:80px;align-items:start}
 .line{display:grid;grid-template-columns:150px 1fr auto;gap:20px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
 .line + .line{margin-top:12px}
@@ -1460,6 +1462,10 @@ const migId=id=>{if(typeof id!=='string')return id;const p=id.split('@');return 
   const fix=x=>typeof x==='string'?migId(x):(x&&typeof x==='object'?{...x,...(x.id?{id:migId(x.id)}:{}),...(Array.isArray(x.items)?{items:x.items.map(fix)}:{})}:x);
   localStorage.setItem(k,JSON.stringify([...new Set(v.map(fix).map(JSON.stringify))].map(JSON.parse)))}}catch(e){}})();
 let user=store.get('user',null), cart=store.get('cart',[]), favs=store.get('favs',[]);
+/* короткое имя для приветствия и шапки: первое слово, а у почты — часть до @ */
+function shortName(u){const n=String((u&&u.name)||'').trim();if(!n)return '';
+  const s=(n.includes('@')?n.split('@')[0]:n.split(' ')[0]).replace(/[._-]+/g,' ').trim();
+  const w=s.split(' ')[0]||s;return w.length>18?w.slice(0,18)+'…':w}
 const userKey=()=>user?user.email:'guest';
 function loadUserData(){favs=store.get('favs.'+userKey(),store.get('favs',[]));}
 loadUserData();
@@ -4427,7 +4433,7 @@ function accountView(tab,sub){
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
   const orders_n=orders.length,unread=Math.max(unreadTotal(),orders.reduce((s,o)=>s+chatUnread(o.no,'client'),0));
-  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Личный кабинет</span><h1>Здравствуйте, ${esc(user.name.split(' ')[0])}</h1></div></div>
+  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Личный кабинет</span><h1>Здравствуйте, ${esc(shortName(user)||'друзья')}</h1></div></div>
   <div class="acc"><div class="acc-nav">
     <button class="${tab==='orders'?'on':''}" data-tab="orders">Мои заявки <span class="num">${orders_n}</span></button>
     <button class="${tab==='chat'?'on':''}" data-tab="chat">Сообщения <span class="tg-badge num${unread?'':' zero'}" id="accUnread" title="непрочитанных сообщений от менеджера">${unread||0}</span></button>
@@ -5578,8 +5584,8 @@ function updateHeader(){
   const tc=document.getElementById('tabCart'),mf=document.getElementById('mFavCount'),ma=document.getElementById('mAcctName');
   if(tc){tc.hidden=!cart.length;tc.textContent=cart.length}
   if(mf){mf.hidden=!favs.length;mf.textContent=favs.length}
-  if(ma)ma.textContent=user?user.name.split(' ')[0]:'Кабинет';
-  document.getElementById('acctName').textContent=user?user.name.split(' ')[0]:'Войти';
+  if(ma)ma.textContent=user?shortName(user)||'Кабинет':'Кабинет';
+  document.getElementById('acctName').textContent=user?shortName(user)||'Кабинет':'Войти';
   document.getElementById('ava').innerHTML=user?esc(user.name[0].toUpperCase()):'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
 }
 /* ---------- Яндекс Метрика ----------

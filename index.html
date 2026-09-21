@@ -4166,7 +4166,13 @@ const chatTime=at=>new Date(at).toLocaleString('ru-RU',{day:'2-digit',month:'2-d
 const chatOf=no=>CHAT[no]!==undefined?CHAT[no]:(SB.on?[]:store.get(chatKey(no),[]));
 /* непрочитанные сообщения: один запрос на все заявки — значок виден на любой странице */
 const UNREAD={};
+let NEWORD=[];
 const unreadRole=()=>{try{return mgrSession()?'manager':'client'}catch(e){return 'client'}};
+/* новые заявки, которые сотрудник ещё не открывал */
+function newOrders(){if(unreadRole()!=='manager')return 0;
+  const t0=chatSeenMap('manager').__orders||0;return NEWORD.filter(x=>x>t0).length}
+function markOrdersSeen(){const s=chatSeenMap('manager');s.__orders=Date.now();store.set('chatseen.manager',s);
+  setTimeout(paintUnread,0)}
 let unreadRoleWas=null;
 async function unreadLoad(){
   const mgr=(()=>{try{return !!mgrSession()}catch(e){return false}})();
@@ -4175,16 +4181,19 @@ async function unreadLoad(){
   if(!user&&!mgr){Object.keys(UNREAD).forEach(k=>delete UNREAD[k]);return}
   if(SB.on&&SB.kind==='api'){
     try{const d=await apiReq('unread');Object.keys(UNREAD).forEach(k=>delete UNREAD[k]);
-      (d.orders||[]).forEach(o=>{UNREAD[o.no]=o.t||[]})}catch(e){}
+      (d.orders||[]).forEach(o=>{UNREAD[o.no]=o.t||[]});NEWORD=d.neworders||[]}catch(e){}
     return}
   Object.keys(UNREAD).forEach(k=>delete UNREAD[k]);
-  try{allOrders().forEach(o=>{const ms=chatOf(o.no).filter(m=>m.role!==role);if(ms.length)UNREAD[o.no]=ms.map(m=>m.at)})}catch(e){}}
+  try{allOrders().forEach(o=>{const ms=chatOf(o.no).filter(m=>m.role!==role);if(ms.length)UNREAD[o.no]=ms.map(m=>m.at)});
+    NEWORD=unreadRole()==='manager'?allOrders().filter(o=>(o.status||'new')==='new').map(o=>o.at):[]}catch(e){}}
 function unreadTotal(){const s=chatSeenMap(unreadRole());
-  return Object.keys(UNREAD).reduce((n,no)=>n+(UNREAD[no]||[]).filter(x=>x>(s[no]||0)).length,0)}
+  return Object.keys(UNREAD).reduce((n,no)=>n+(UNREAD[no]||[]).filter(x=>x>(s[no]||0)).length,0)+newOrders()}
 function paintUnread(){const n=unreadTotal(),txt=n>99?'99+':String(n);
   const b=document.getElementById('hdrUnread');if(b){b.hidden=!n;b.textContent=txt}
   const m=document.getElementById('tabAcct');if(m){m.hidden=!n;m.textContent=txt}
-  const g=document.getElementById('mgrUnread');if(g){g.hidden=!n;g.textContent=n||''}
+  const nz=newOrders(),msgs=n-nz;
+  const g=document.getElementById('mgrUnread');if(g){g.hidden=!msgs;g.textContent=msgs||''}
+  const go=document.getElementById('mgrNewOrders');if(go){go.hidden=!nz;go.textContent=nz||''}
   const a1=document.getElementById('accUnread'),a2=document.getElementById('accTotal');
   if(a1){a1.hidden=!n;a1.textContent=n||''}if(a2)a2.hidden=!!n;
   document.title=(n?`(${n}) `:'')+'Контур Дома';}
@@ -4194,9 +4203,10 @@ function unreadTick(fresh){const n=unreadTotal();
   unreadWas=n;paintUnread()}
 function notifyMsg(k){
   try{if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
-    const mgr=unreadRole()==='manager';
-    const nt=new Notification('Контур Дома',{tag:'kontur-msg',
-      body:k>1?`${k} новых сообщения от ${mgr?'клиентов':'менеджера'}`:`Новое сообщение от ${mgr?'клиента':'менеджера'}`});
+    const mgr=unreadRole()==='manager',nz=newOrders();
+    const body=mgr&&nz?(nz>1?`${nz} новых заявки — посмотрите в панели`:'Новая заявка от клиента')
+      :k>1?`${k} новых сообщения от ${mgr?'клиентов':'менеджера'}`:`Новое сообщение от ${mgr?'клиента':'менеджера'}`;
+    const nt=new Notification('Контур Дома',{tag:'kontur-msg',body});
     nt.onclick=()=>{window.focus();location.hash=mgr?'#/admin':'#/account/chat';nt.close()}}catch(e){}}
 const notifBtn=()=>{if(typeof Notification==='undefined')return '';
   if(Notification.permission==='default')return `<button type="button" class="btn" data-notif style="margin-bottom:14px">Включить уведомления о новых сообщениях</button>`;
@@ -5027,7 +5037,7 @@ function adminView(){
   const byClient={};rows.forEach(o=>{const key=o.email||o.phone||o._owner;(byClient[key]=byClient[key]||[]).push(o)});
   const s=mgrSession(),me=SB.on?{name:user?user.name:'',role:SB.role}:mgrAccounts()[s.login];
   const bar=`<div class="mgr-bar"><span>Вы вошли как <b>${esc(me.name)}</b> · ${me.role==='admin'?'администратор':'менеджер'}</span>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки ${(()=>{const u=newOrders();return `<span class="tg-badge num" id="mgrNewOrders"${u?'':' hidden'}>${u||''}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения ${(()=>{const u=Math.max(unreadTotal(),list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0));return `<span class="tg-badge num" id="mgrUnread"${u?'':' hidden'}>${u||''}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
     <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
@@ -5042,6 +5052,7 @@ function adminView(){
     return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Переписка</span><h1>Сообщения</h1></div>
       <p style="color:var(--muted);max-width:44ch">Каждая заявка — отдельный диалог. Откройте клиента, чтобы написать ему, приложить фото или отправить собранный в калькуляторе дом.</p></div>
       <div style="margin-bottom:90px">${notifBtn()}${rows.length?chatListHTML(rows,'manager',r=>`data-mgrchat="${r.no}"`):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Как только клиент оформит заказ, здесь появится диалог.</p></div>`}</div></div>`}
+  setTimeout(markOrdersSeen,1200);
   return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Панель менеджера${SB.on?'':' · прототип'}</span><h1>Заявки клиентов</h1></div>
     <p style="color:var(--muted);max-width:48ch">Все заявки собраны по клиентам: контакты, состав заказа, спецификация и нарисованная планировка для бригады и договора. ${SB.on?'Заявки приходят с сервера — их видят все менеджеры, на любом устройстве.':'Сейчас данные берутся из этого браузера — в рабочей версии сюда же придут заявки с сервера.'}</p></div>
     <div class="adm-stats">${[['Заявок',list.length],['Клиентов',new Set(list.map(o=>o.email||o.phone||o._owner)).size],['В работе',list.filter(o=>!['new','done'].includes(o.status||'new')).length],['Сумма',rub(sum)]].map(s=>`<div><span>${s[0]}</span><b class="num">${s[1]}</b></div>`).join('')}</div>
@@ -5174,7 +5185,7 @@ function bind(){
     if(user){try{await chatSend(order.no,
       `Оставил заявку${nItems>1?` на ${nItems} ${plural(nItems,['дом','дома','домов'])}`:''}. Жду расчёт и сроки.`,
       [],'client',firstItem)}catch(ex){}}
-    toast(user?'Заявка отправлена — менеджер ответит в переписке':'Заявка отправлена');
+    toast(user?'Заявка отправлена — менеджер ответит в переписке':'Заявка принята — менеджер позвонит по указанному номеру');
     location.hash=user?'#/account/chat/'+order.no:'#/'});
   document.getElementById('profile')?.addEventListener('submit',async e=>{e.preventDefault();const pf=new FormData(e.target);user.name=String(pf.get('name')||'').trim()||user.name;store.set('user',user);
     store.set('contact.'+user.email,{fio:user.name,phone:String(pf.get('phone')||'').trim(),region:String(pf.get('region')||'').trim()});

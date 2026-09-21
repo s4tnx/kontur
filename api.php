@@ -338,7 +338,13 @@ if ($a === 'unread') {
   foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $by[(string)$r['no']][] = ((int)$r['c']) * 1000;
   $res = [];
   foreach ($by as $no => $times) $res[] = ['no' => (string)$no, 't' => array_slice($times, -100)];
-  out(['orders' => $res]);
+  /* сотруднику показываем ещё и новые заявки, на которые никто не отреагировал */
+  $fresh = [];
+  if (staff($u)) {
+    $q = db()->query('SELECT created FROM orders WHERE status = "new" ORDER BY created DESC LIMIT 100');
+    foreach ($q->fetchAll(PDO::FETCH_COLUMN) as $c) $fresh[] = ((int)$c) * 1000;
+  }
+  out(['orders' => $res, 'neworders' => $fresh]);
 }
 
 /* короткая сводка о состоянии: сколько аккаунтов и заявок в базе.

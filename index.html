@@ -3970,6 +3970,7 @@ function cartView(){
       <div class="tot"><span style="color:var(--muted)">Итого со скидкой</span><b class="num">${rub(total-dsc)}</b></div>`})()}
     ${user?`<button class="btn lamp" type="submit" style="justify-content:center">Отправить заявку</button>`:`<button class="btn lamp" type="submit" style="justify-content:center">Отправить заявку</button>
     <button class="link" type="button" data-login style="justify-self:center">Войти, чтобы следить за стройкой</button>`}
+    <p class="note">Отправляя заявку, вы соглашаетесь на обработку персональных данных: имя, телефон и адрес участка нужны, чтобы менеджер связался с вами и посчитал доставку.</p>
     <p class="note"><b style="color:var(--text);font-weight:500">Оплата — по окончании работ.</b> Цена фиксируется в договоре после выезда на участок. Вопросы по заявке — <a class="num" style="color:var(--lamp2)" href="tel:+79998886099">+7 999 888-60-99</a>.</p>
   </form></div></div>`;
 }
@@ -4182,7 +4183,7 @@ document.addEventListener('submit',async e=>{const f=e.target;if(!f.matches||!f.
   const item=idx>=0&&cart[idx]?JSON.parse(JSON.stringify(cart[idx])):null;
   if(!text&&!files.length&&!item){toast('Напишите сообщение, приложите фото или дом из корзины');return}
   const btn=f.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
-  try{await chatSend(no,text,files,role,item);CHAT_DRAFT[no]=[];refreshChat(no);toast(item?'Отправлено с домом из корзины':'Сообщение отправлено')}
+  try{await chatSend(no,text,files,role,item);if(role!=='manager')ymGoal('chat');CHAT_DRAFT[no]=[];refreshChat(no);toast(item?'Отправлено с домом из корзины':'Сообщение отправлено')}
   catch(ex){toast(ex.message||'Не удалось отправить');if(btn){btn.disabled=false;btn.textContent='Отправить'}}});
 function docsBlock(no,role){const list=docsOf(no);
   return `<div class="docs" data-docs="${no}" data-role="${role}">
@@ -4995,6 +4996,7 @@ function render(){
   app.innerHTML=html+footer();
   paint();bind();setTimeout(()=>typeof dock==='function'&&dock(),60);setTimeout(()=>typeof docsSync==='function'&&docsSync(),80);setTimeout(()=>{typeof chatSync==='function'&&chatSync();typeof chatListSync==='function'&&chatListSync();typeof chatScroll==='function'&&chatScroll()},90);
   if(scrollTo)requestAnimationFrame(()=>document.getElementById(scrollTo)?.scrollIntoView());else window.scrollTo({top:0,left:0,behavior:'instant'});
+  ymHit();
 }
 function paint(){
   heroScene();
@@ -5058,6 +5060,7 @@ function bind(){
       catch(ex){if(btn){btn.disabled=false;btn.textContent='Отправить заявку'}toast('Не удалось отправить заявку: '+(ex.message||'ошибка связи'));return}}
     else{const key='orders.'+(user?user.email:'guest'),orders=store.get(key,[]);orders.push(order);store.set(key,orders)}
     if(user)store.set('contact.'+user.email,{fio:order.fio,phone:order.phone,region:order.region});
+    ymGoal('order',{sum:Math.round(order.items.reduce((s,it)=>s+itemTotal(it),0))});
     cart=[];saveCart();toast('Заявка отправлена');location.hash=user?'#/account/orders':'#/'});
   document.getElementById('profile')?.addEventListener('submit',async e=>{e.preventDefault();const pf=new FormData(e.target);user.name=String(pf.get('name')||'').trim()||user.name;store.set('user',user);
     store.set('contact.'+user.email,{fio:user.name,phone:String(pf.get('phone')||'').trim(),region:String(pf.get('region')||'').trim()});
@@ -5235,7 +5238,7 @@ document.addEventListener('click',e=>{
     if(m.plan2){let c2=null;try{c2=calcState[m.id+'#2']}catch(ex){}if(c2)cfg.floor2=JSON.parse(JSON.stringify({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}}))}
     const key=JSON.stringify(cfg);
     if(cart.some(c=>c.id===m.id&&JSON.stringify(itemCfg(c))===key)){location.hash='#/cart';return}
-    cart.push({id:m.id,cfg,total:computeCalc(m,cfg).total});saveCart();toast(`«${m.name}» с вашей сметой добавлен в корзину`);return}
+    cart.push({id:m.id,cfg,total:computeCalc(m,cfg).total});saveCart();ymGoal('cart',{model:m.name});toast(`«${m.name}» с вашей сметой добавлен в корзину`);return}
   const r=e.target.closest('[data-remove]');if(r){cart.splice(+r.dataset.remove,1);saveCart();render();return}
   const t=e.target.closest('[data-tab]');if(t){location.hash='#/account/'+t.dataset.tab;return}
   if(e.target.closest('[data-login]')){openAuth();return}
@@ -5395,9 +5398,25 @@ function updateHeader(){
   document.getElementById('acctName').textContent=user?user.name.split(' ')[0]:'Войти';
   document.getElementById('ava').innerHTML=user?esc(user.name[0].toUpperCase()):'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
 }
+/* ---------- Яндекс Метрика ----------
+   Впишите номер счётчика в YM_ID — код подключится сам.
+   Одностраничный сайт: каждое переключение раздела отправляется как отдельный просмотр.
+   В предпросмотре (artifact, localhost, file://) счётчик не подключается, чтобы не портить статистику. */
+const YM_ID='';
+const ymOn=()=>/^\d{5,}$/.test(String(YM_ID))&&!/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname)
+  &&location.protocol!=='file:'&&!/claude\.ai|claudeusercontent|\.usercontent\./.test(location.hostname);
+function ymInit(){if(!ymOn())return;
+  (function(m,e,t2,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();
+    k=e.createElement(t2),a=e.getElementsByTagName(t2)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
+  ym(YM_ID,'init',{defer:true,clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});}
+const ymHit=()=>{try{if(ymOn()&&window.ym)ym(YM_ID,'hit',location.href,{title:document.title})}catch(e){}};
+const ymGoal=(g,p)=>{try{if(ymOn()&&window.ym)ym(YM_ID,'reachGoal',g,p||undefined)}catch(e){}};
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="tel:"]');if(a)ymGoal('call')});
 let toastT;function toast(msg){document.querySelector('.toast')?.remove();const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);clearTimeout(toastT);toastT=setTimeout(()=>t.remove(),2200)}
 let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{window.__heroResize?.();document.querySelectorAll('canvas[data-scene]').forEach(c=>{const m=byId(c.dataset.scene);scene(c,m,{fixed:!!c.dataset.fixed,hz:+c.dataset.hz||.64,gy:+c.dataset.gy||.84,fw:+c.dataset.fw||.6,fh:+c.dataset.fh||.6,stars:c.dataset.stars!=='0',seed:m.w*13+m.d*7})})},150)});
 addEventListener('hashchange',render);
+ymInit();
 updateHeader();
 modWarm();
 sbInit();

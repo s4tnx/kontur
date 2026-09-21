@@ -5519,7 +5519,7 @@ function updateHeader(){
    Впишите номер счётчика в YM_ID — код подключится сам.
    Одностраничный сайт: каждое переключение раздела отправляется как отдельный просмотр.
    В предпросмотре (artifact, localhost, file://) счётчик не подключается, чтобы не портить статистику. */
-const YM_ID='';
+const YM_ID='112882484';
 const ymOn=()=>/^\d{5,}$/.test(String(YM_ID))&&!/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname)
   &&location.protocol!=='file:'&&!/claude\.ai|claudeusercontent|\.usercontent\./.test(location.hostname);
 function ymInit(){if(!ymOn())return;

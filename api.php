@@ -39,6 +39,14 @@ function guardFiles(): void {
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]
 </IfModule>
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(jpg|jpeg|png|webp|svg|ico|woff2)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>
 HT);
   $ui = __DIR__ . '/.user.ini';
   if (!file_exists($ui)) @file_put_contents($ui, "upload_max_filesize = 25M\npost_max_size = 26M\n");

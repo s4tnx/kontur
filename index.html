@@ -2604,13 +2604,13 @@ const CALC=[
    ...PILES.map(p=>({id:p[0],name:p[1],txt:m=>`${p[3]} · ${pileCount(m)} шт × ${rub(p[2])}`,abs:m=>pileCount(m)*p[2]})),
    {id:'ushp',name:'УШП',txt:'Утеплённая шведская плита, готовое основание под тёплый пол',abs:m=>fp(m)*9200}]},
  {key:'facade',title:'Фасад',hint:m=>`${Math.round(wallA(m))} м² стен · ветро-влагозащита в цене`,items:[
-   {id:'siding',name:'Сайдинг виниловый',txt:'Не требует покраски и ухода, самый доступный фасад — дешевле имитации бруса',abs:m=>-wallA(m)*200},
-   {id:'proff',name:'Профлист',txt:'Оцинкованный лист с полимером, как у барнхауса — не требует покраски',abs:m=>-wallA(m)*150},
-   {id:'vagonka',name:'Вагонка сосна АВ',txt:'Профиль 12,5×96 мм с покраской — самый доступный фасад',abs:m=>-wallA(m)*250},
-   {id:'imit',name:'Имитация бруса',txt:'Сосна класса АВ 16 мм, покраска в графит — входит в цену',abs:m=>0},
-   {id:'shtil',name:'Вагонка «Штиль»',txt:'Профиль 14×147 мм без фасок, ровная плоскость стены',abs:m=>wallA(m)*450},
-   {id:'plank',name:'Планкен лиственница',txt:'Вертикальная рейка, масло-воск',abs:m=>wallA(m)*1400},
-   {id:'fibro',name:'Фиброцемент',txt:'Не горит, не требует покраски',abs:m=>wallA(m)*1900}]},
+   {id:'siding',name:'Сайдинг виниловый',txt:'Панель 3660 × 230 мм, толщина 1,1 мм. Не требует покраски и ухода — самый доступный фасад',abs:m=>-wallA(m)*200},
+   {id:'proff',name:'Профлист',txt:'С8, сталь 0,45 мм с полимером, рабочая ширина 1150 мм — как у барнхауса, без покраски',abs:m=>-wallA(m)*150},
+   {id:'vagonka',name:'Вагонка сосна',txt:'Профиль «софтлайн» 12,5 × 96 мм (рабочая 88 мм), длина 3 м. Класс древесины — ниже',abs:m=>-wallA(m)*250},
+   {id:'imit',name:'Имитация бруса',txt:'Сосна 16 × 146 мм (рабочая 135 мм), длина 3–6 м — входит в цену. Класс древесины — ниже',abs:m=>0},
+   {id:'shtil',name:'Вагонка «Штиль»',txt:'Сосна 14 × 147 мм (рабочая 135 мм), без фасок — ровная плоскость стены. Класс — ниже',abs:m=>wallA(m)*450},
+   {id:'plank',name:'Планкен лиственница',txt:'Скошенный 20 × 90 мм, длина 3–4 м, масло-воск — лиственница сорта АВ',abs:m=>wallA(m)*1400},
+   {id:'fibro',name:'Фиброцемент',txt:'Доска 8 × 190 мм, длина 3 м — не горит и не требует покраски',abs:m=>wallA(m)*1900}]},
  {key:'roof',title:'Кровля',hint:m=>`≈ ${Math.round(roofA(m))} м² скатов`,items:[
    {id:'prof',name:'Профлист',txt:'Оцинкованный С8, цвет на выбор, ветровые планки — входит в цену',abs:m=>0},
    {id:'ondulin',name:'Ондулин',txt:'Битумные листы: лёгкие, тихие в дождь, не ржавеют',abs:m=>roofA(m)*150},
@@ -2636,21 +2636,41 @@ const BATHS=[
  {id:'b64',name:'Баня 6×4 с террасой',txt:'24 м² + терраса 6 м², панорамное окно в парной',abs:()=>1340000},
  {id:'b66',name:'Банный дом 6×6',txt:'36 м²: парная, душевая, санузел, гостиная',abs:()=>1790000},
 ];
+/* класс древесины: тот же, что в модулях — ВС в базе, АВ дороже на 550 ₽/м² */
+const WOOD_GRADES=[['BC','ВС','Живые сучки и смоляные кармашки, без трещин и обзола — рабочий класс, в базе',0],
+ ['AB','АВ','Почти без сучков, ровный цвет — под прозрачное масло и лак',550]];
+const WOOD_FACADE=['vagonka','imit','shtil'],WOOD_INNER=['vag','imit','shtil'];
+const gradeOf=v=>WOOD_GRADES.find(g=>g[0]===v)||WOOD_GRADES.find(g=>g[0]===({C:'BC',B:'BC',A:'AB'})[v])||WOOD_GRADES[0];
+const gradeKeyOf=key=>key==='facade'?'facadeG':'innerG';
+const gradeAreaOf=(m,key)=>key==='facade'?wallA(m):wallA(m)+livingA(m);
+const gradeName=(cfg,key)=>gradeOf(cfg[gradeKeyOf(key)])[1];
+const hasGrade=(cfg,key)=>(key==='facade'?WOOD_FACADE.includes(cfg.facade):WOOD_INNER.includes(cfg.innerT));
+function gradeOpts(A,cur,attrKey){
+  return `<span class="label" style="font-size:10.5px;margin-top:6px">Класс древесины</span>
+    <div class="opts">${WOOD_GRADES.map(gr=>{const d=Math.round(gr[3]*A);
+      return `<button type="button" class="opt ${gradeOf(cur)[0]===gr[0]?'on':''}" data-wgrade="${attrKey}:${gr[0]}"><b>Класс ${gr[1]}</b><small>${gr[2]}</small><em class="num ${d?'':'z'}">${d?'+ '+rub(d):'в базе'}</em></button>`}).join('')}</div>
+    <small class="note">${Math.round(A)} м² · класс АВ дороже на ${rub(WOOD_GRADES[1][3])} за м². Цена материала и класса складываются.</small>`}
+const gradeUI=(m,cfg,key)=>(key!=='facade'&&key!=='innerT')||!hasGrade(cfg,key)?''
+  :gradeOpts(gradeAreaOf(m,key),cfg[gradeKeyOf(key)],gradeKeyOf(key));
+/* пол дома: в тёплом контуре и «под ключ» в цене уже есть OSB-3 15 мм поверх чернового пола */
+const FLOOR_INC=1300;
+const floorInc=cfg=>cfg&&cfg.pkg&&cfg.pkg!=='cold'?FLOOR_INC:0;
+const floorOver=rate=>(m,cfg)=>livingA(m)*Math.max(0,rate-floorInc(cfg));
 /* пол дома: базовый — как в комплектации; остальное по площади дома */
 CALC.push({key:'innerT',title:'Внутренняя отделка',hint:m=>`${Math.round(wallA(m)+livingA(m))} м² стен и потолка`,items:[
-  {id:'vag',name:'Вагонка сосна ВС',txt:'Входит в тёплый контур и выше',abs:m=>0},
-  {id:'shtil',name:'Вагонка «Штиль»',txt:'Гладкая, без фаски — ровная плоскость стены',abs:m=>(wallA(m)+livingA(m))*350},
-  {id:'imit',name:'Имитация бруса 16 мм',txt:'Класс АВ, выглядит как брус',abs:m=>(wallA(m)+livingA(m))*550},
-  {id:'gkl',name:'Гипсокартон под покраску',txt:'Ровные стены под обои, покраску и плитку',abs:m=>(wallA(m)+livingA(m))*450}]});
-CALC.push({key:'floorT',title:'Пол',hint:m=>`${String(livingA(m)).replace('.',',')} м² · сверх комплектации`,items:[
-  {id:'base',name:'Как в комплектации',txt:'Холодный контур — доска, тёплый и выше — по комплектации',abs:m=>0},
-  {id:'shp',name:'Шпунтованная доска 28 мм',txt:'Сосна АВ, шип-паз — плотный пол без щелей, можно сразу красить',abs:m=>livingA(m)*2400},
-  {id:'osb12',name:'OSB 12 мм',txt:'Плита OSB-3 — ровный пол под покрытие',abs:m=>livingA(m)*1100},
-  {id:'osb15',name:'OSB 15 мм',txt:'Меньше прогибается, под ламинат',abs:m=>livingA(m)*1300},
-  {id:'osb18',name:'OSB 18 мм',txt:'Жёсткий пол под ламинат и плитку',abs:m=>livingA(m)*1560},
-  {id:'osb22',name:'OSB 22 мм',txt:'Самый жёсткий, шпунтованный',abs:m=>livingA(m)*1900},
-  {id:'lino',name:'Линолеум',txt:'Бытовой, по основанию',abs:m=>livingA(m)*1100},
-  {id:'lam',name:'Ламинат',txt:'32 класс с подложкой',abs:m=>livingA(m)*2600}]});
+  {id:'vag',name:'Вагонка сосна',txt:'Профиль «софтлайн» 12,5 × 96 мм (рабочая 88 мм), длина 3 м — входит в тёплый контур и выше. Класс — ниже',abs:m=>0},
+  {id:'shtil',name:'Вагонка «Штиль»',txt:'Сосна 14 × 147 мм (рабочая 135 мм), без фаски — сплошная ровная стена. Класс — ниже',abs:m=>(wallA(m)+livingA(m))*350},
+  {id:'imit',name:'Имитация бруса',txt:'Сосна 16 × 146 мм (рабочая 135 мм) — стена выглядит как брус. Класс — ниже',abs:m=>(wallA(m)+livingA(m))*550},
+  {id:'gkl',name:'Гипсокартон под покраску',txt:'ГКЛ 12,5 мм по профилю, швы зашпаклёваны — под обои, покраску и плитку',abs:m=>(wallA(m)+livingA(m))*450}]});
+CALC.push({key:'floorT',title:'Пол',hint:m=>`${String(livingA(m)).replace('.',',')} м² · в тёплом контуре и «под ключ» OSB-3 15 мм уже в цене`,items:[
+  {id:'base',name:'Как в комплектации',txt:'Холодный контур — черновая доска 25 мм по лагам. Тёплый контур и «под ключ» — плита OSB-3 15 мм поверх доски',abs:(m,cfg)=>0},
+  {id:'shp',name:'Шпунтованная доска 28 мм',txt:'Сосна АВ, шип-паз 28 × 135 мм (рабочая 125) — плотный пол без щелей, можно сразу красить',abs:floorOver(2400)},
+  {id:'osb12',name:'OSB 12 мм',txt:'Плита OSB-3 2500 × 1250 × 12 мм — ровное основание под покрытие',abs:floorOver(1100)},
+  {id:'osb15',name:'OSB 15 мм',txt:'Плита OSB-3 2500 × 1250 × 15 мм — входит в тёплый контур и «под ключ»',abs:floorOver(1300)},
+  {id:'osb18',name:'OSB 18 мм',txt:'Плита OSB-3 2500 × 1250 × 18 мм — жёстче, под ламинат и плитку',abs:floorOver(1560)},
+  {id:'osb22',name:'OSB 22 мм',txt:'Плита OSB-3 шпунтованная 2500 × 1250 × 22 мм — самый жёсткий пол',abs:floorOver(1900)},
+  {id:'lino',name:'Линолеум',txt:'Бытовой 32 класса, толщина 3 мм — поверх плиты OSB',abs:m=>livingA(m)*1100},
+  {id:'lam',name:'Ламинат',txt:'32 класс, 8 мм с подложкой 3 мм — поверх плиты OSB',abs:m=>livingA(m)*2600}]});
 CALC.push({key:'edoorT',title:'Входная дверь',hint:()=>'одна входит в цену · убрать — в «Перегородках и дверях»',items:[
   {id:'metal',name:'Металлическая',txt:'Утеплённая, с терморазрывом — входит в цену',abs:m=>0},
   {id:'pvc',name:'ПВХ со стеклопакетом',txt:'Тёплый профиль, стекло — светлый вход или выход на террасу',abs:m=>26000},
@@ -2708,7 +2728,7 @@ const EXTRAS=[
  ['stove','Печь-камин с дымоходом',()=>214500],['kupel','Купель у бани, кедр Ø1,2 м',()=>145000],['solar','Солнечные панели 5 кВт',()=>390000],['smart','Умный дом: свет, отопление, датчики',()=>180000],
 ];
 const defFound=m=>'blocks';
-const defaultCfg=(m,pkg='cold')=>({pkg:PKGS.some(p=>p.id===pkg)?pkg:'warm',inc:[],found:'blocks',facade:(m&&m.facade)||'imit',roof:'prof',win:'pvc',ins:'100',bath:'none',edoorT:'metal',floorT:'base',innerT:'vag',paint:0,wins:{},parts:{},terrace:0,km:50,extras:[]});
+const defaultCfg=(m,pkg='cold')=>({pkg:PKGS.some(p=>p.id===pkg)?pkg:'warm',inc:[],found:'blocks',facade:(m&&m.facade)||'imit',roof:'prof',win:'pvc',ins:'100',bath:'none',edoorT:'metal',floorT:'base',innerT:'vag',facadeG:'BC',innerG:'BC',paint:0,wins:{},parts:{},terrace:0,km:50,extras:[]});
 const calcState={};
 const getCfg=m=>{if(calcState[m.id])return calcState[m.id];
   const sib=Object.keys(calcState).find(k=>k.split('@')[0]===nativeOf(m));
@@ -2717,7 +2737,7 @@ const getCfg=m=>{if(calcState[m.id])return calcState[m.id];
   return calcState[m.id]=c};
 const optTxt=(it,m)=>typeof it.txt==='function'?it.txt(m):it.txt;
 function optDelta(m,group,id,cfg){const g=CALC.find(x=>x.key===group);const def=defaultCfg(m)[group];
-  return g.items.find(i=>i.id===id).abs(m)-g.items.find(i=>i.id===def).abs(m)}
+  return g.items.find(i=>i.id===id).abs(m,cfg)-g.items.find(i=>i.id===def).abs(m,cfg)}
 /* «Деревянные» → «деревянные», но «ПВХ» остаётся «ПВХ» */
 const lcFirst=s=>String(s).replace(/^([А-ЯЁ])(?=[а-яё])/,ch=>ch.toLowerCase());
 function computeCalc(m,cfg){
@@ -2727,6 +2747,10 @@ function computeCalc(m,cfg){
   const lines=[[`«${m.name}» ${fmtD(m.w)}×${fmtD(m.d)}, холодный контур`,m.price*PKGS[0].k]];
   const noEdoor=!partsOf(m,cfg).edoor;
   CALC.forEach(g=>{if(g.key==='edoorT'&&noEdoor)return;if(g.key==='innerT'&&cfg.pkg==='cold')return;const it=g.items.find(i=>i.id===cfg[g.key]);const d=optDelta(m,g.key,cfg[g.key],cfg);if(Math.round(d))lines.push([`${g.title}: ${lcFirst(it.name)}`,d])});
+  if(hasGrade(cfg,'facade')){const A=wallA(m),gr=gradeOf(cfg.facadeG);
+    if(gr[3])lines.push([`Фасад: класс ${gr[1]} · ${Math.round(A)} м²`,A*gr[3]])}
+  if(cfg.pkg!=='cold'&&hasGrade(cfg,'innerT')){const A=wallA(m)+livingA(m),gr=gradeOf(cfg.innerG);
+    if(gr[3])lines.push([`Внутренняя отделка: класс ${gr[1]} · ${Math.round(A)} м²`,A*gr[3]])}
   const wd=winsDelta(m,cfg);if(Math.round(wd))lines.push(['Окна: изменение комплекта',wd]);
   if(m.plan2&&!m.upperFloor){let c2=cfg.floor2||null;if(!c2){try{c2=calcState[m.id+'#2']}catch(e){}}
     if(c2){const m2=upperModel(m),w2=winsDelta(m2,{...c2,win:cfg.win}),b2=basePartsOf(m2),p2=partsOf(m2,c2);
@@ -3090,7 +3114,7 @@ function partsGroup(base,cur,attr){
   <small class="note">Перегородки считаются погонными метрами, двери — штуками. То, что входит в базовую планировку, уже в цене дома.</small></div>`}
 function calcGroups(m){const cfg=getCfg(m);const cold=cfg.pkg==='cold';
   return CALC.filter(g=>!(cold&&(g.key==='ins'||g.key==='innerT'))).map(g=>`<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span class="num">${g.hint(m)}</span></div><div class="opts">${g.items.map(it=>{const d=optDelta(m,g.key,it.id,cfg);
-    return `<button type="button" class="opt ${cfg[g.key]===it.id?'on':''}" data-opt="${g.key}:${it.id}"><b>${it.name}</b><small>${optTxt(it,m)}</small><em class="num ${Math.round(d)?'':'z'}">${signRub(d)}</em></button>`}).join('')}</div></div>`).join('')+
+    return `<button type="button" class="opt ${cfg[g.key]===it.id?'on':''}" data-opt="${g.key}:${it.id}"><b>${it.name}</b><small>${optTxt(it,m)}</small><em class="num ${Math.round(d)?'':'z'}">${signRub(d)}</em></button>`}).join('')}</div>${gradeUI(m,cfg,g.key)}</div>`).join('')+
   (cfg.pkg==='cold'?`<div class="cg"><div class="cg-h"><h3>Утепление стен</h3><span>нет в холодном контуре</span></div>
     <small class="note">Холодный контур — это каркас, обшивка, ветро-влагозащита, кровля, окна и дверь. Утеплитель, пароизоляция и внутренняя отделка появляются в тёплом контуре: переключите комплектацию выше, и здесь можно будет выбрать толщину каменной ваты.</small></div>`:'')+
   winsGroup(m.wins,winsOf(m,cfg),winK[cfg.win],'win')+
@@ -3158,7 +3182,7 @@ const cPkgOf=c=>c.contour==='prem'||c.contour==='draft'?'key':PKGS.some(p=>p.id=
 const cFullPrice=c=>{const L=cArea(c);return Math.round((rateFor(L)*L+cVerA(c)*TERR_BASE)/10000)*10000};
 const cPkgPrice=(c,id)=>cFullPrice(c)*PKGS.find(p=>p.id===id).k;
 const PKG_ROWS=[['Каркас 50×100, наружная обшивка, ветро-влагозащита, кровля',1],['Окна и входная дверь',1],['Черновой пол, фундамент на блоках, сборка',1],
-  ['Утепление каменной ватой 100 мм: пол, стены, потолок',2],['Пароизоляция и внутренняя обшивка вагонкой',2],
+  ['Утепление каменной ватой 100 мм: пол, стены, потолок',2],['Пароизоляция и внутренняя обшивка вагонкой',2],['Пол: плита OSB-3 15 мм поверх чернового пола',2],
   ['Электрика: щит, кабель, розетки и выключатели',3],['Водопровод и канализация: разводка по дому',3],
   ['Чистовая отделка: покраска, плитка, напольное покрытие',3],['Сантехника: унитаз, раковина, душевая',3],
   ['Освещение: светильники и розеточные группы',3],['Покраска фасада в два слоя',3]];
@@ -3171,11 +3195,11 @@ const cWinF=c=>winK[cSel(c,'win')]/winK[cDef.win(c)];
 const cBaseWinCost=c=>{const b=cWinsBase(c);return WIN_TYPES.reduce((s,w)=>s+(b[w[0]]||0)*w[3],0)*cWinK(c)};
 function cOptDelta(c,key,id){const m=cMdl(c);id=id||cSel(c,key);
   if(key==='win')return cBaseWinCost(c)*(winK[id]/winK[cDef.win(c)]-1);
-  const g=cGrp(key),it=g.items.find(i=>i.id===id),df=g.items.find(i=>i.id===cDef[key](c));return it.abs(m)-df.abs(m)}
+  const g=cGrp(key),it=g.items.find(i=>i.id===id),df=g.items.find(i=>i.id===cDef[key](c)),cc={pkg:cPkgOf(c)};return it.abs(m,cc)-df.abs(m,cc)}
 const cExtraCost=(c,e)=>e[0]==='floor'&&c.pile==='ushp'?livingA(cMdl(c))*4200:e[2](cMdl(c));
 const signed=v=>Math.round(v)?(v>0?'+ ':'− ')+rub(Math.abs(v)):'включено';
 const customState={planBase:null,parts:{},w:6,d:8,floors:'1',veranda:12,contour:'warm',ins:'100',pile:'blocks',wins:{},opts:[],walls:0,doors:0,bath:'none',km:50,
-  facade:'imit',roof:null,win:null,edoorT:'metal',extras:[]};
+  facade:'imit',roof:null,win:null,edoorT:'metal',facadeG:'BC',extras:[]};
 const cVerA=c=>Math.max(0,Math.min(+c.veranda||0,Math.floor(c.w*c.d*.4)));
 /* площадь дома: габарит минус веранда, умноженный на этажность; веранда — внутри габарита */
 /* второй этаж / мансарда своего проекта: ширина и длина задаются, по умолчанию — весь дом или его половина */
@@ -3206,6 +3230,8 @@ function computeCustom(c){
   const pl=cPile(c);if(pl)lines.push([`${pl[1]} · ${pilesCount(c)} шт вместо блоков`,pilesCount(c)*pl[2]]);
   if(c.pile==='ushp')lines.push([`УШП вместо блоков · ${c.w*c.d} м²`,c.w*c.d*9200]);
   ['facade','roof','floorT','win'].forEach(key=>{const d=cOptDelta(c,key);if(Math.round(d))lines.push([`${cGrp(key).title}: ${lcFirst(cGrp(key).items.find(i=>i.id===cSel(c,key)).name)}`,d])});
+  if(WOOD_FACADE.includes(cSel(c,'facade'))){const A=wallA(cMdl(c)),gr=gradeOf(c.facadeG);
+    if(gr[3])lines.push([`Фасад: класс ${gr[1]} · ${Math.round(A)} м²`,A*gr[3]])}
   const wdc=cWinsDelta(c);if(Math.round(wdc))lines.push(['Окна: изменение комплекта',wdc]);
   const b0=basePartsOf({plan:cPlan(c)}),cp=cParts(c);
   const pdc=PARTS.reduce((s,p)=>s+((cp[p[0]]||0)-(b0[p[0]]||0))*p[3],0);
@@ -3254,7 +3280,7 @@ function customGroups(){const c=customState;
 
   ${['facade','roof','floorT'].map(key=>{const g=cGrp(key),m=cMdl(c);
     return `<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span class="num">${g.hint(m)}</span></div><div class="opts">${g.items.map(it=>{const d=cOptDelta(c,key,it.id);
-      return `<button type="button" class="opt ${cSel(c,key)===it.id?'on':''}" data-copt="${key}:${it.id}"><b>${it.name}</b><small>${typeof it.txt==='function'?it.txt(m):it.txt}</small><em class="num ${Math.round(d)?'':'z'}">${signed(d)}</em></button>`}).join('')}</div></div>`}).join('')}
+      return `<button type="button" class="opt ${cSel(c,key)===it.id?'on':''}" data-copt="${key}:${it.id}"><b>${it.name}</b><small>${typeof it.txt==='function'?it.txt(m):it.txt}</small><em class="num ${Math.round(d)?'':'z'}">${signed(d)}</em></button>`}).join('')}</div>${key==='facade'&&WOOD_FACADE.includes(cSel(c,'facade'))?gradeOpts(wallA(m),c.facadeG,'facadeG'):''}</div>`}).join('')}
   <div class="cg"><div class="cg-h"><h3>Профиль окон</h3><span>цена всех окон пересчитывается</span></div><div class="opts">${cGrp('win').items.map(it=>{const d=cOptDelta(c,'win',it.id);
     return `<button type="button" class="opt ${cSel(c,'win')===it.id?'on':''}" data-copt="win:${it.id}"><b>${it.name}</b><small>${it.txt}</small><em class="num ${Math.round(d)?'':'z'}">${signed(d)}</em></button>`}).join('')}</div></div>
   ${winsGroup(cWinsBase(c),cWins(c),cWinK(c)*cWinF(c),'cwin')}
@@ -3383,15 +3409,15 @@ const MOD_GROUPS=[
    {id:'100',name:'100 мм',txt:'Весна–осень, короткие выезды зимой',rate:650,per:'env'},
    {id:'150',name:'150 мм',txt:'Проживание круглый год',rate:1250,per:'env'}]},
  {key:'outer',grade:'outerGrade',title:'Наружная отделка',hint:'по площади стен',items:[
-   {id:'vag',name:'Вагонка',txt:'Сосна класса ВС, профиль «софтлайн» — в базе',rate:0,per:'wall'},
-   {id:'shtil',name:'Штиль',txt:'Гладкая, без фаски — сплошная ровная стена',rate:350,per:'wall'},
-   {id:'imit',name:'Имитация бруса',txt:'Сосна 16 мм, выглядит как брус',rate:500,per:'wall'},
-   {id:'reika',name:'Декоративные рейки',txt:'Вертикальные рейки 20×40 с зазором, на чёрной подложке',rate:900,per:'wall'},
-   {id:'siding',name:'Сайдинг виниловый',txt:'Не требует покраски и ухода',rate:320,per:'wall'}]},
+   {id:'vag',name:'Вагонка',txt:'Сосна, «софтлайн» 12,5 × 96 мм (рабочая 88), длина 3 м — в базе',rate:0,per:'wall'},
+   {id:'shtil',name:'Штиль',txt:'Сосна 14 × 147 мм (рабочая 135), без фаски — сплошная ровная стена',rate:350,per:'wall'},
+   {id:'imit',name:'Имитация бруса',txt:'Сосна 16 × 146 мм (рабочая 135), длина 3–6 м',rate:500,per:'wall'},
+   {id:'reika',name:'Декоративные рейки',txt:'Рейки 20 × 40 мм с зазором 20 мм, на чёрной подложке',rate:900,per:'wall'},
+   {id:'siding',name:'Сайдинг виниловый',txt:'Панель 3660 × 230 мм, 1,1 мм — не требует покраски',rate:320,per:'wall'}]},
  {key:'inner',grade:'innerGrade',title:'Внутренняя отделка',hint:'стены и потолок',items:[
-   {id:'vag',name:'Вагонка',txt:'Сосна класса ВС, профиль «софтлайн» — в базе',rate:0,per:'inner'},
-   {id:'shtil',name:'Штиль',txt:'Гладкая, без фаски',rate:350,per:'inner'},
-   {id:'imit',name:'Имитация бруса',txt:'Сосна 16 мм',rate:550,per:'inner'},
+   {id:'vag',name:'Вагонка',txt:'Сосна, «софтлайн» 12,5 × 96 мм (рабочая 88), длина 3 м — в базе',rate:0,per:'inner'},
+   {id:'shtil',name:'Штиль',txt:'Сосна 14 × 147 мм (рабочая 135), без фаски',rate:350,per:'inner'},
+   {id:'imit',name:'Имитация бруса',txt:'Сосна 16 × 146 мм (рабочая 135)',rate:550,per:'inner'},
    {id:'none',name:'Без внутренней отделки',txt:'Каркас изнутри открыт — отделаете сами',rate:-750,per:'inner'}]},
  {key:'floor',title:'Пол',hint:'по площади модуля',items:[
    {id:'board',name:'Доска 25 мм',txt:'Обрезная, в базе',rate:0,per:'floor'},
@@ -3418,7 +3444,7 @@ const MOD_GROUPS=[
 ];
 /* [id, размер, описание, цена ПВХ, цена дерева — null, если деревянных такого размера нет] */
 /* класс древесины для отделки: С — в базе, В и А — дороже; считается по той же площади */
-const MOD_GRADES=[['BC','Класс ВС','Допускаются сучки и смоляные кармашки — в базе',0],['AB','Класс АВ','Почти без сучков, отборная доска',550]];
+const MOD_GRADES=[['BC','Класс ВС','Живые сучки и смоляные кармашки, без трещин и обзола — в базе',0],['AB','Класс АВ','Почти без сучков, ровный цвет — под прозрачное масло и лак',550]];
 const modGrade=(c,key)=>MOD_GRADES.find(g=>g[0]===c[key])||MOD_GRADES.find(g=>g[0]===({C:'BC',B:'BC',A:'AB'})[c[key]])||MOD_GRADES[0];
 const modFinishName=(c,g)=>{const it=g.items.find(i=>i.id===c[g.key])||g.items[0];return it.id==='none'||it.id==='siding'?it.name.toLowerCase():`${it.name.toLowerCase()}, класс ${modGrade(c,g.grade)[1].replace('Класс ','')}`};
 /* [id, размер, материал, описание, цена]. Деревянные бывают только 50×50 и 60×90 */
@@ -3980,7 +4006,7 @@ function itemSpec(it){
     return [['Дом',`${fmtM(c.w)} × ${fmtM(c.d)} м · ${cArea(c)} м²`],['Комплектация',ct.name],
       ['Этажность',`${FLOORS.find(f=>f.id===c.floors).name}${cUp(c)?` · ${c.floors==='2'?'2 этаж':'мансарда'} ${fmtD(cUp(c).w)}×${fmtD(cUp(c).d)} м (${fmtD(cUpA(c))} м²)`:''}`],['Утепление',c.contour==='cold'?'без утепления':`каменная вата ${INS.find(i=>i.id===c.ins).mm} мм`],
       ['Веранда',c.veranda?`${c.veranda} м²`:'нет'],['Фундамент',c.pile==='blocks'?'бетонные блоки':c.pile==='ushp'?'УШП':`${cPile(c)[1]} · ${pilesCount(c)} шт`],
-      ['Фасад',cGrp('facade').items.find(i=>i.id===cSel(c,'facade')).name],['Пол',cGrp('floorT').items.find(i=>i.id===cSel(c,'floorT')).name],['Кровля',cGrp('roof').items.find(i=>i.id===cSel(c,'roof')).name],
+      ['Фасад',cGrp('facade').items.find(i=>i.id===cSel(c,'facade')).name+(WOOD_FACADE.includes(cSel(c,'facade'))?`, класс ${gradeOf(c.facadeG)[1]}`:'')],['Пол',cSel(c,'floorT')==='base'?(cPkgOf(c)==='cold'?'черновая доска 25 мм':'черновая доска + OSB-3 15 мм'):cGrp('floorT').items.find(i=>i.id===cSel(c,'floorT')).name],['Кровля',cGrp('roof').items.find(i=>i.id===cSel(c,'roof')).name],
       ['Окна',`${WIN_TYPES.reduce((s,w)=>s+(cWins(c)[w[0]]||0),0)} шт · ${cGrp('win').items.find(i=>i.id===cSel(c,'win')).name}`],
       ['Входная дверь',cParts(c).edoor?cGrp('edoorT').items.find(i=>i.id===cSel(c,'edoorT')).name:'нет'],
       ...(c.plan1?[['Планировка',c.plan1.draw?`свой чертёж · перегородки ${String(wallsLen(c.plan1)).replace('.',',')} м · межкомнатных дверей ${(c.plan1.idoors||[]).filter(d=>!d.e).length}`
@@ -3994,7 +4020,7 @@ function itemSpec(it){
   const rooms=(c.rooms&&c.rooms.length)?c.rooms:defaultRooms(m);
   const e=computeCalc(m,c);
   return [['Проект',`«${m.name}» ${fmtD(m.w)} × ${fmtD(m.d)} м`],['Площадь',`${livingA(m)} м² дом${verA(m)?` + ${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}`:''}`],
-    ['Комплектация',nm('pkg')],['Инженерия и отделка',c.pkg==='key'?'всё включено':c.pkg==='cold'?'нет — холодный контур':((c.inc||[]).length?WARM_OPTS.filter(o=>c.inc.includes(o[0])).map(o=>o[1].split(':')[0].toLowerCase()).join(', '):'не добавляли')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')],['Покраска фасада',paintLayers(c)?`${paintLayers(c)} ${plural(paintLayers(c),['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...(paintLayers(c)&&c.roof!=='soft'?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),['Кровля',nm('roof')],['Пол',nm('floorT')],['Внутри',c.pkg==='cold'?'нет — холодный контур':nm('innerT')],
+    ['Комплектация',nm('pkg')],['Инженерия и отделка',c.pkg==='key'?'всё включено':c.pkg==='cold'?'нет — холодный контур':((c.inc||[]).length?WARM_OPTS.filter(o=>c.inc.includes(o[0])).map(o=>o[1].split(':')[0].toLowerCase()).join(', '):'не добавляли')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`каменная вата ${nm('ins')}`],['Фасад',nm('facade')+(hasGrade(c,'facade')?`, класс ${gradeName(c,'facade')}`:'')],['Покраска фасада',paintLayers(c)?`${paintLayers(c)} ${plural(paintLayers(c),['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...(paintLayers(c)&&c.roof!=='soft'?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),['Кровля',nm('roof')],['Пол',c.floorT==='base'?(c.pkg==='cold'?'черновая доска 25 мм':'черновая доска + OSB-3 15 мм'):nm('floorT')],['Внутри',c.pkg==='cold'?'нет — холодный контур':nm('innerT')+(hasGrade(c,'innerT')?`, класс ${gradeName(c,'innerT')}`:'')],
     ['Фундамент',c.found==='blocks'?'бетонные блоки 400×200×200':`${nm('found')} · ${pileCount(m)} шт`],
     ['Крыльцо',(()=>{const pc=porchOf(m,c);return pc?`${fmtD(pc.w)}×${fmtD(pc.d)} м, ${PORCH_WALLS[pc.wall]}`:'нет'})()],
     ...(c.verPos?[['Терраса',(VER_POS.find(v=>v[0]===c.verPos)||['',''])[1].toLowerCase()]]:[]),
@@ -5096,6 +5122,10 @@ document.addEventListener('click',e=>{
     if(location.hash.indexOf('#/modules')===0){modState[k]=v;refreshModule(true)}
     else if(location.hash.indexOf('#/custom')===0){customState[k]=v;refreshCustom(true)}
     else{const m=curHouse();if(m){const cfg=getCfg(m);cfg[k]=v;refreshCalc(m,true)}}return}
+  const wgr=e.target.closest('[data-wgrade]');
+  if(wgr){const [k,v]=wgr.dataset.wgrade.split(':');
+    if(location.hash.indexOf('#/custom')===0){customState[k]=v;refreshCustom(true)}
+    else{const m=curHouse();if(m){getCfg(m)[k]=v;refreshCalc(m,true)}}return}
   const pn=e.target.closest('[data-paint]');
   if(pn){const m=curHouse();if(m){const cfg=getCfg(m);cfg.paint=+pn.dataset.paint;refreshCalc(m,true)}return}
   const idd=e.target.closest('[data-idoordel]');

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api.php
+Disallow: /uploads/
+Disallow: /check.php
+Disallow: /makeadmin.php
+Disallow: /resetpass.php
+
+Sitemap: https://konturhouse.ru/sitemap.xml

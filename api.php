@@ -95,6 +95,12 @@ function bearer(): ?string {
     foreach (apache_request_headers() as $k => $v) if (strtolower($k) === 'authorization') $h = $v;
   }
   if (preg_match('/Bearer\s+([A-Za-z0-9]+)/', $h, $m)) return $m[1];
+  /* запасной путь: свой заголовок — его хостинги не срезают */
+  $x = $_SERVER['HTTP_X_AUTH_TOKEN'] ?? '';
+  if (!$x && function_exists('apache_request_headers')) {
+    foreach (apache_request_headers() as $k => $v) if (strtolower($k) === 'x-auth-token') $x = $v;
+  }
+  if (preg_match('/^[A-Za-z0-9]+$/', (string)$x)) return (string)$x;
   return $_GET['token'] ?? null;
 }
 function me(): ?array {
@@ -318,7 +324,9 @@ if ($a === 'ping') {
     try { return (int)db()->query('SELECT COUNT(*) FROM ' . $tbl)->fetchColumn(); } catch (Throwable $e) { return -1; }
   };
   out(['ok' => true, 'php' => PHP_VERSION, 'users' => $n('users'), 'orders' => $n('orders'),
-       'msgs' => $n('msgs'), 'docs' => $n('docs'), 'write' => is_writable(__DIR__), 'db' => file_exists(DB_FILE)]);
+       'msgs' => $n('msgs'), 'docs' => $n('docs'), 'write' => is_writable(__DIR__), 'db' => file_exists(DB_FILE),
+       'hdrAuth' => !empty($_SERVER['HTTP_AUTHORIZATION']) || !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']),
+       'hdrX' => !empty($_SERVER['HTTP_X_AUTH_TOKEN']), 'token' => (bool)bearer()]);
 }
 
 fail('Неизвестный запрос', 404);

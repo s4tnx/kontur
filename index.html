@@ -3856,7 +3856,9 @@ try{apiToken=localStorage.getItem('kontur.token')||null}catch(e){}
 function apiSetToken(tk){apiToken=tk;try{tk?localStorage.setItem('kontur.token',tk):localStorage.removeItem('kontur.token')}catch(e){}}
 async function apiReq(a,opt){opt=opt||{};
   const url=API_URL+(API_URL.indexOf('?')<0?'?':'&')+'a='+a+(opt.q||'');
-  const h={};if(apiToken)h['Authorization']='Bearer '+apiToken;
+  /* Authorization на части хостингов (Apache + PHP-FPM) до PHP не доходит,
+     поэтому дублируем токен своим заголовком — он проходит всегда */
+  const h={};if(apiToken){h['Authorization']='Bearer '+apiToken;h['X-Auth-Token']=apiToken}
   let body=null;
   if(opt.form)body=opt.form; else if(opt.json){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
   const r=await fetch(url,{method:opt.form||opt.json?'POST':'GET',headers:h,body});

@@ -2894,8 +2894,9 @@ function plannerSVG(m,cfg){
       <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="11"/><line class="pl-oin" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="5"/>
       <text x="${(x1+x2)/2+(vert?12:0)}" y="${(y1+y2)/2+(vert?4:-10)}" text-anchor="${vert?'start':'middle'}" class="pl-lab">${s.e?'вход 90':`дверь ${dcm}`}</text>
       <circle cx="${(x1+x2)/2}" cy="${(y1+y2)/2}" r="12" class="pl-ohit"/></g>`});
-  /* проёмы: окна жёлтые, двери синие — на стенах пятна застройки */
-  (cfg.openings||[]).forEach((p,i)=>{const s0=openSz(p.t),sz=s0[0]*k;
+  /* проёмы: окна жёлтые, двери синие — на стенах пятна застройки.
+     Если свой набор ещё не задан, показываем проектный — иначе входная дверь и окна не видны */
+  openingsOf(m,cfg).forEach((p,i)=>{const s0=openSz(p.t),sz=s0[0]*k;
     let x1,y1,x2,y2;
     if(p.wall===0){const cxp=pad+(p.u+b.w/2)*k;x1=cxp-sz/2;x2=cxp+sz/2;y1=y2=pad+wall0Y(m,b,p.u)*k}
     else if(p.wall===3){const cxp=pad+(b.w/2-p.u)*k;x1=cxp-sz/2;x2=cxp+sz/2;y1=y2=pad}

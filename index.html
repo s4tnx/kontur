@@ -4044,7 +4044,7 @@ async function sbInit(){
   await apiDetect();
   if(API_URL){SB.on=true;SB.kind='api';
     try{if(apiToken){const d=await apiReq('me');srvUser(d.user)}}catch(e){apiSetToken(null)}
-    await sbLoadOrders();render();return}
+    await sbLoadOrders();revLoad();render();return}
   if(!SB_URL||!SB_ANON)return;
   SB.kind='sb';
   try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
@@ -4671,7 +4671,29 @@ async function revLoad(){
   if(SB.kind!=='api'){SRVREV=[];return SRVREV}
   try{const d=await apiReq('reviews');SRVREV=(d.reviews||[]).map(r=>({n:r.name,c:r.city,o:r.obj,t:r.text,r:+r.rating||5,at:r.created,k:/[Мм]одул/.test(r.obj||'')?'m':'h',id:r.id,srv:1,mine:!!r.mine}))}
   catch(e){SRVREV=[]}
+  paintLD();
   return SRVREV}
+/* Оценка для поисковиков (звёздочки в выдаче).
+   Считается ТОЛЬКО по отзывам из базы: это отзывы людей, которые оформили
+   у нас заказ, или перенесённые настоящие отзывы. Примеры для вёрстки
+   (DEMO_REVIEWS) в расчёт не идут: в поиске не должно быть оценки, которой
+   никто не ставил, за это Google снимает разметку целиком.
+   Звёздочки появляются, когда таких отзывов хотя бы три. */
+const REV_MIN=3;
+function ratingLD(kind){
+  const real=(SRVREV||[]).filter(r=>r.srv&&(!kind||r.k===kind));
+  if(real.length<REV_MIN)return null;
+  const avg=Math.round(real.reduce((s,r)=>s+(+r.r||5),0)/real.length*10)/10;
+  return{'@type':'AggregateRating',ratingValue:String(avg),reviewCount:String(real.length),bestRating:'5',worstRating:'1'}}
+function paintLD(){
+  const el=document.querySelector('script[type="application/ld+json"]');if(!el)return;
+  const all=ratingLD(),h=ratingLD('h')||all,m=ratingLD('m')||all;
+  if(!h&&!m)return;
+  try{const d=JSON.parse(el.textContent);
+    (d['@graph']||[]).forEach(n=>{
+      if(n['@id']&&n['@id'].indexOf('#dom')>0&&h)n.aggregateRating=h;
+      if(n['@id']&&n['@id'].indexOf('#modul')>0&&m)n.aggregateRating=m});
+    el.textContent=JSON.stringify(d)}catch(e){}}
 /* все отзывы: сначала настоящие, потом примеры — и те и другие по дате, новые сверху */
 function revAll(){
   const demo=DEMO_ON?DEMO_REVIEWS.map(r=>({n:r[0],c:r[1],o:r[2],at:new Date(r[3]+'-15T12:00:00').getTime(),r:r[4],t:r[5],k:r[6]})):[];

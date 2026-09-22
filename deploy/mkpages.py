@@ -663,17 +663,173 @@ REGIONS = [('Москва и Московская область', 50), ('Тве
            ('Костромская область', 340), ('Ивановская область', 290)]
 
 
-def delivery_page():
+def delivery_page(cities=None):
     slug = 'dostavka-i-sborka.html'
     title = 'Доставка и сборка каркасных домов по ЦФО — расчёт по километрам | Контур Дома'
     desc = ('Строим и доставляем по всему Центральному федеральному округу. Сборка на участке входит '
             'в цену, доставка — 300 ₽ за километр от производства. Таблица по областям.')
-    rows = ''.join('<tr><td>%s</td><td>≈ %d км</td><td>≈ %s</td></tr>'
-                   % (esc(n), km, rub(max(0, km - 50) * 300)) for n, km in REGIONS)
+    if cities:
+        rows = ''.join('<tr><td><a href="karkasnyy-dom-%s.html">%s</a></td><td>%d км</td><td>%s</td></tr>'
+                       % (c['slug'], esc(c['region']), c['km'], deliv_txt(c['km'])) for c in cities)
+    else:
+        rows = ''.join('<tr><td>%s</td><td>≈ %d км</td><td>≈ %s</td></tr>'
+                       % (esc(n), km, rub(max(0, km - 50) * 300)) for n, km in REGIONS)
     body = PAGE_DELIVERY % {'rows': rows, 'phone': PHONE, 'phref': PHONE_HREF}
     nav = ('<a href="karkasnye-doma.html">Каркасные дома</a> <a href="moduli-dlya-prozhivaniya.html">Модули</a> '
            '<a href="tseny.html">Цены</a> <a href="voprosy.html">Вопросы</a>')
     return slug, page(slug, title, desc, body, nav)
+
+
+# ---------- страницы городов ----------
+FREE_KM, RATE = 50, 300          # как на странице доставки: 300 ₽ за км сверх первых 50 км
+
+
+def deliv(km):
+    return int(round(max(0, km - FREE_KM) * RATE, -2))
+
+
+def deliv_txt(km):
+    d = deliv(km)
+    return rub(d) if d else 'бесплатно'
+
+
+def acc(n):
+    """Куда: в Калугу, в Тулу, в Тверь, в Иваново."""
+    return n[:-1] + 'у' if n.endswith('а') else n
+
+
+def rgen(region):
+    """Тверская область → Тверской области."""
+    return region.replace('ская область', 'ской области').replace('цкая область', 'цкой области')
+
+
+def hours_txt(h):
+    """2,5 часа · 5 часов · 1 час — половинами, как говорят про дорогу."""
+    v = max(0.5, round(h * 2) / 2)
+    if v != int(v):
+        return '%s часа' % fmt(v)
+    n = int(v)
+    return '%d %s' % (n, 'час' if n % 10 == 1 and n % 100 != 11 else
+                      'часа' if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else 'часов')
+
+
+CLIM = {
+    'north': ('Зима здесь длиннее и холоднее, чем в Подмосковье.',
+              'Для круглогодичной жизни советуем утеплитель 200 мм: дом держит тепло в сильные морозы и меньше тратит на отопление. '
+              '150 мм — минимум для зимы, 100 мм — только для летней дачи.'),
+    'center': ('Климат средней полосы, как в Подмосковье.',
+               'Для круглогодичной жизни хватает утеплителя 150 мм, 200 мм — с запасом на морозные зимы и экономию на отоплении. '
+               '100 мм — для летней дачи.'),
+    'south': ('Зима здесь мягче, чем в Подмосковье.',
+              'Для круглогодичной жизни достаточно утеплителя 150 мм, 200 мм берут, чтобы меньше платить за отопление. '
+              '100 мм подходит для дома, в который приезжают с весны до осени.'),
+}
+
+CITY_SIZES = ['6x5', '6x6', '6x8', '8x8', '10x10']
+
+
+def city_rows(c, houses):
+    """Для каждого размера — самый доступный проект, цена с доставкой именно в этот город."""
+    d = deliv(c['km'])
+    rows, lo = [], None
+    for sid in CITY_SIZES:
+        best = None
+        for h in houses:
+            for s in h['sizes']:
+                if s['id'] == sid and (best is None or s['price'] < best[1]['price']):
+                    best = (h, s)
+        if not best:
+            continue
+        h, s = best
+        lo = s['price'] if lo is None else min(lo, s['price'])
+        rows.append('<tr><td><a href="dom-%s.html">«%s» %s×%s м</a><br><small>%s м²</small></td>'
+                    '<td>%s</td><td>%s</td><td><b>%s</b></td></tr>'
+                    % (h['id'], esc(h['name']), fmt(s['w']), fmt(s['d']), fmt(s['area']),
+                       rub(s['price']), rub(s['warm']), rub(s['warm'] + d)))
+    return ''.join(rows), lo
+
+
+def city_pages(cities, houses, mods):
+    out = []
+    mod_lo = min(s['price'] for m in mods for s in m['sizes'])
+    nav_all = ' '.join('<a href="karkasnyy-dom-%s.html">%s</a>' % (x['slug'], esc(x['name'])) for x in cities)
+    for c in cities:
+        slug = 'karkasnyy-dom-%s.html' % c['slug']
+        msk = c['slug'] == 'moskva'
+        where = 'в Москве и Подмосковье' if msk else 'в %s' % c['prep']
+        area = 'Москве и Московской области' if msk else '%s и %s' % (c['prep'], rgen(c['region']))
+        to = 'по Москве и области' if msk else 'в ' + acc(c['name'])
+        d, dt = deliv(c['km']), deliv_txt(c['km'])
+        rows, lo = city_rows(c, houses)
+        clim_head, clim_txt = CLIM[c['clim']]
+        if msk:
+            road = ('По Москве и ближнему Подмосковью доставка бесплатная: первые 50 км от производства не оплачиваются. '
+                    'Дальше по области — 300 ₽ за каждый километр сверх 50: например, до участка в 120 км выйдет %s. '
+                    'Точную сумму калькулятор посчитает по адресу участка.' % rub(deliv(120)))
+        else:
+            road = ('От нашего производства до %s — %d км по дорогам, около %s на машине. '
+                    'Доставка материалов считается как 300 ₽ за километр сверх первых 50 км: до %s это %s. '
+                    'Если участок дальше или ближе центра города, сумма пересчитается по точному адресу.'
+                    % (c['gen'], c['km'], hours_txt(c['hours']), c['gen'], dt))
+        qa = [
+            ('Сколько стоит доставка %s?' % to,
+             ('Первые 50 км от производства бесплатно: это Москва и ближнее Подмосковье. Дальше 300 ₽ за километр, точную сумму называем по адресу.' if msk else
+              'До %s %d км по дорогам, доставка материалов — %s. Считаем 300 ₽ за километр сверх первых 50 км, '
+              'точную сумму называем по адресу участка.' % (c['gen'], c['km'], dt))),
+            ('Сколько времени займёт стройка %s?' % where,
+             'Сборка на участке занимает от 3 до 14 дней в зависимости от размера дома, модуль собирается за 1–3 дня. '
+             'Срок от расстояния не зависит: %s дом собирается так же быстро, как под Москвой.' % where),
+            ('Какое утепление нужно для %s?' % ('Подмосковья' if msk else rgen(c['region'])),
+             clim_head + ' ' + clim_txt),
+            ('Когда нужно платить?',
+             'После сборки и приёмки дома. Предоплату за работу мы не берём, оплата по окончании работ прописана в договоре.'),
+        ]
+        faq = ''.join('<h3>%s</h3>\n<p>%s</p>\n' % (esc(q), esc(a)) for q, a in qa)
+        ld = ('<script type="application/ld+json">\n{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[\n %s\n]}\n</script>'
+              % ',\n '.join('{"@type":"Question","name":"%s","acceptedAnswer":{"@type":"Answer","text":"%s"}}' % (esc(q), esc(a)) for q, a in qa))
+        facts = ''.join('<div><b>%s</b><span>%s</span></div>' % (a, b) for a, b in (
+            ('%d км' % c['km'], 'от производства по дорогам') if not msk else ('до 50 км', 'доставка бесплатно'),
+            (hours_txt(c['hours']), 'в пути на машине') if not msk else ('3–14 дней', 'сборка на участке'),
+            (dt, 'доставка материалов') if not msk else ('3 года', 'гарантия'),
+            ('после приёмки', 'оплата, без предоплаты')))
+        body = f"""<p class="crumbs"><a href="/">Главная</a> / <a href="dostavka-i-sborka.html">Доставка</a> / {esc('Москва и область' if msk else c['name'])}</p>
+<h1>Каркасный дом под ключ {esc(where)}</h1>
+<p class="lead">Строим каркасные дома и утеплённые модули в {esc(area)}. Сборка на вашем участке входит в цену,
+оплата после приёмки готового дома, гарантия 3 года.</p>
+<div class="facts">{facts}</div>
+<h2>Доставка {esc(to)}</h2>
+<p>{esc(road)}</p>
+<h2>Сколько стоит дом с доставкой {esc('по Москве' if msk else 'в ' + acc(c['name']))}</h2>
+<p>Самый доступный проект в каждом размере. В последней колонке тёплый контур вместе с доставкой {esc('в пределах 50 км' if msk else 'до ' + c['gen'])}:
+утеплитель, пароизоляция, вагонка внутри и пол под чистовое покрытие.</p>
+<div class="tw"><table>
+<thead><tr><th>Дом</th><th>Холодный контур</th><th>Тёплый контур</th><th>Тёплый + доставка</th></tr></thead>
+<tbody>{rows}</tbody></table></div>
+<p>Утеплённый модуль для жизни или гостей — от {rub(mod_lo)}, с доставкой {esc('по Москве' if msk else 'в ' + acc(c['name']))} от {rub(mod_lo + d)}.
+Точную смету со своими окнами, отделкой и планировкой можно собрать в <a href="/">калькуляторе</a> — адрес участка
+вписывается там же, доставка посчитается по дорогам.</p>
+<h2>Утепление под климат</h2>
+<p>{esc(clim_head)} {esc(clim_txt)} Подробнее — в статье <a href="uteplenie-karkasnogo-doma.html">«Сколько миллиметров утеплителя нужно»</a>.</p>
+<h2>Как проходит стройка</h2>
+<ul>
+  <li><b>Расчёт.</b> Собираете дом в калькуляторе или присылаете свой план — цена фиксируется в договоре.</li>
+  <li><b>Выезд инженера.</b> Смотрим грунт, рельеф и подъезд к участку.</li>
+  <li><b>Основание.</b> Бетонные блоки, винтовые сваи или утеплённая плита — по грунту.</li>
+  <li><b>Сборка.</b> 3–14 дней для дома, 1–3 дня для модуля. Срок от расстояния не зависит.</li>
+  <li><b>Приёмка и оплата.</b> Осматриваете дом, подписываете акт — и только после этого платите.</li>
+</ul>
+<h2>Частые вопросы</h2>
+{faq}
+<p><a class="btn" href="/#/catalog">Выбрать дом и посчитать</a>
+<a class="btn ghost" href="tel:{PHONE_HREF}">Позвонить {PHONE}</a></p>
+<h2>Где ещё строим</h2>"""
+        title = 'Каркасный дом под ключ %s — цены с доставкой%s' % (where, BRAND)
+        desc = ('Каркасные дома и модули %s: дом от %s, модуль от %s, %s. Сборка за 3–14 дней, оплата после приёмки.'
+                % (where, rub(lo), rub(mod_lo),
+                   'доставка в пределах 50 км бесплатно' if msk else 'доставка %s (%d км)' % (dt, c['km'])))
+        out.append((slug, page(slug, title, desc, body, nav_all +
+                               ' <a href="dostavka-i-sborka.html">Доставка</a> <a href="karkasnye-doma.html">Все дома</a>', ld)))
+    return out
 
 
 # ---------- вопросы и ответы с разметкой FAQPage ----------
@@ -779,12 +935,16 @@ def main():
     src = sys.argv[1] if len(sys.argv) > 1 else 'seo.json'
     dst = sys.argv[2] if len(sys.argv) > 2 else '.'
     d = json.load(io.open(src, encoding='utf-8'))
+    cpath = os.path.join(os.path.dirname(os.path.abspath(src)), 'cities.json')
+    cities = json.load(io.open(cpath, encoding='utf-8')) if os.path.exists(cpath) else []
     pages = [houses_hub(d['houses']), mods_page(d['mods']), prices_page(d['houses'], d['mods']),
-             projects_page(d['prj']), about_page(), delivery_page(), faq_page(), err404_page()]
+             projects_page(d['prj']), about_page(), delivery_page(cities), faq_page(), err404_page()]
     pages += [house_page(h, d['houses']) for h in d['houses']]
     pages += size_pages(d['houses'])
     pages += mod_pages(d['mods'])
     pages += article_pages(d['houses'])
+    if cities:
+        pages += city_pages(cities, d['houses'], d['mods'])
     for slug, html in pages:
         io.open(os.path.join(dst, slug), 'w', encoding='utf-8', newline='\n').write(html)
     today = datetime.date.today().isoformat()

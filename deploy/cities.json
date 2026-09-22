@@ -1,0 +1,172 @@
+[
+ {
+  "slug": "moskva",
+  "name": "Москва",
+  "prep": "Москве",
+  "gen": "Москвы",
+  "region": "Москва и Московская область",
+  "clim": "center",
+  "km": 21,
+  "hours": 0.5
+ },
+ {
+  "slug": "tver",
+  "name": "Тверь",
+  "prep": "Твери",
+  "gen": "Твери",
+  "region": "Тверская область",
+  "clim": "north",
+  "km": 203,
+  "hours": 2.6
+ },
+ {
+  "slug": "kaluga",
+  "name": "Калуга",
+  "prep": "Калуге",
+  "gen": "Калуги",
+  "region": "Калужская область",
+  "clim": "center",
+  "km": 163,
+  "hours": 2.5
+ },
+ {
+  "slug": "tula",
+  "name": "Тула",
+  "prep": "Туле",
+  "gen": "Тулы",
+  "region": "Тульская область",
+  "clim": "center",
+  "km": 177,
+  "hours": 2.3
+ },
+ {
+  "slug": "ryazan",
+  "name": "Рязань",
+  "prep": "Рязани",
+  "gen": "Рязани",
+  "region": "Рязанская область",
+  "clim": "center",
+  "km": 218,
+  "hours": 3.2
+ },
+ {
+  "slug": "vladimir",
+  "name": "Владимир",
+  "prep": "Владимире",
+  "gen": "Владимира",
+  "region": "Владимирская область",
+  "clim": "center",
+  "km": 220,
+  "hours": 3.2
+ },
+ {
+  "slug": "yaroslavl",
+  "name": "Ярославль",
+  "prep": "Ярославле",
+  "gen": "Ярославля",
+  "region": "Ярославская область",
+  "clim": "north",
+  "km": 302,
+  "hours": 4.6
+ },
+ {
+  "slug": "smolensk",
+  "name": "Смоленск",
+  "prep": "Смоленске",
+  "gen": "Смоленска",
+  "region": "Смоленская область",
+  "clim": "center",
+  "km": 386,
+  "hours": 5.8
+ },
+ {
+  "slug": "kostroma",
+  "name": "Кострома",
+  "prep": "Костроме",
+  "gen": "Костромы",
+  "region": "Костромская область",
+  "clim": "north",
+  "km": 373,
+  "hours": 5.7
+ },
+ {
+  "slug": "ivanovo",
+  "name": "Иваново",
+  "prep": "Иванове",
+  "gen": "Иванова",
+  "region": "Ивановская область",
+  "clim": "north",
+  "km": 333,
+  "hours": 4.9
+ },
+ {
+  "slug": "bryansk",
+  "name": "Брянск",
+  "prep": "Брянске",
+  "gen": "Брянска",
+  "region": "Брянская область",
+  "clim": "center",
+  "km": 365,
+  "hours": 5.4
+ },
+ {
+  "slug": "orel",
+  "name": "Орёл",
+  "prep": "Орле",
+  "gen": "Орла",
+  "region": "Орловская область",
+  "clim": "center",
+  "km": 361,
+  "hours": 5.0
+ },
+ {
+  "slug": "kursk",
+  "name": "Курск",
+  "prep": "Курске",
+  "gen": "Курска",
+  "region": "Курская область",
+  "clim": "south",
+  "km": 528,
+  "hours": 7.6
+ },
+ {
+  "slug": "belgorod",
+  "name": "Белгород",
+  "prep": "Белгороде",
+  "gen": "Белгорода",
+  "region": "Белгородская область",
+  "clim": "south",
+  "km": 667,
+  "hours": 9.7
+ },
+ {
+  "slug": "lipetsk",
+  "name": "Липецк",
+  "prep": "Липецке",
+  "gen": "Липецка",
+  "region": "Липецкая область",
+  "clim": "center",
+  "km": 462,
+  "hours": 6.2
+ },
+ {
+  "slug": "tambov",
+  "name": "Тамбов",
+  "prep": "Тамбове",
+  "gen": "Тамбова",
+  "region": "Тамбовская область",
+  "clim": "center",
+  "km": 458,
+  "hours": 6.5
+ },
+ {
+  "slug": "voronezh",
+  "name": "Воронеж",
+  "prep": "Воронеже",
+  "gen": "Воронежа",
+  "region": "Воронежская область",
+  "clim": "south",
+  "km": 513,
+  "hours": 6.8
+ }
+]

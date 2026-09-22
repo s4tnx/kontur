@@ -895,6 +895,10 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .bar .track2{position:relative;height:34px;display:flex;align-items:center}
 .bar i{display:block;height:100%;border-radius:6px;background:repeating-linear-gradient(135deg,rgba(236,232,225,.16) 0 6px,rgba(236,232,225,.08) 6px 12px);width:0;transition:width 1.4s cubic-bezier(.2,.8,.1,1)}
 .bar.us i{background:var(--lamp)}
+:root[data-theme="light"] .bar i{background:repeating-linear-gradient(135deg,rgba(28,26,24,.26) 0 6px,rgba(28,26,24,.12) 6px 12px)}
+:root[data-theme="light"] .bar.us i{background:var(--lamp)}
+:root[data-theme="light"] .scale-box rect.fp{stroke:rgba(28,26,24,.38)}
+:root[data-theme="light"] .scale-box rect.fp.hi{stroke:var(--lamp)}
 .bar.us span{color:var(--text)}
 .bar em{font-style:normal;font-family:var(--mono);font-size:13px;margin-left:12px;white-space:nowrap}
 @media (max-width:860px){.compare{grid-template-columns:1fr}.bar{grid-template-columns:1fr}}
@@ -4893,7 +4897,7 @@ function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>
   <div><h4>Дома</h4><ul>${MODELS.slice(0,4).map(m=>`<li><a href="#/house/${m.id}">${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>&nbsp;</h4><ul>${MODELS.slice(4).map(m=>`<li><a href="#/house/${m.id}">${m.name}</a></li>`).join('')}</ul></div>
-  <div><h4>Покупателю</h4><ul><li><a href="#/projects">Наши проекты</a></li><li><a href="#/about">О компании</a></li><li><a href="#/modules">Модули для проживания</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/reviews">Отзывы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
+  <div><h4>Покупателю</h4><ul><li><a href="#/projects">Наши проекты</a></li><li><a href="#/about">О компании</a></li><li><a href="#/modules">Модули для проживания</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/reviews">Отзывы</a></li><li><a href="dostavka-i-sborka.html">Доставка и города</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
   <div><h4>Связь</h4><ul><li><a class="num" style="font-size:16px;color:var(--text)" href="tel:+79998886099">+7 999 888-60-99</a></li><li style="color:var(--muted);font-size:13.5px">Ежедневно 9:00–21:00</li><li><a href="#" data-contact>Заказать звонок</a></li></ul></div>
   </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span><a class="credit" href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделан <b>Контур Студио</b></a></div>
   <div class="legal-links"><a href="#/privacy">Политика конфиденциальности</a><a href="#/consent">Согласие на обработку данных</a><button type="button" data-cksettings>Настройки cookie</button></div></footer>`}

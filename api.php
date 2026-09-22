@@ -80,6 +80,9 @@ function db(): PDO {
   $pdo->exec('CREATE TABLE IF NOT EXISTS reviews(
       id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT, city TEXT, obj TEXT,
       rating INTEGER DEFAULT 5, text TEXT, ok INTEGER DEFAULT 1, created INTEGER)');
+  /* время согласия на обработку персональных данных: доказательство согласия */
+  $uc = array_column($pdo->query('PRAGMA table_info(users)')->fetchAll(PDO::FETCH_ASSOC), 'name');
+  if (!in_array('pd_ok', $uc, true)) $pdo->exec('ALTER TABLE users ADD COLUMN pd_ok INTEGER');
   $mc = array_column($pdo->query('PRAGMA table_info(msgs)')->fetchAll(PDO::FETCH_ASSOC), 'name');
   if (!in_array('item', $mc, true)) $pdo->exec('ALTER TABLE msgs ADD COLUMN item TEXT');
   /* промокод заявки — колонка появилась позже, добавляем в старые базы */
@@ -121,7 +124,8 @@ function me(): ?array {
 }
 function need(): array { $u = me(); if (!$u) fail('Нужно войти в аккаунт', 401); return $u; }
 function staff(array $u): bool { return in_array($u['role'], ['manager', 'admin'], true); }
-function pub(array $u): array { return ['id' => (int)$u['id'], 'email' => $u['email'], 'name' => $u['name'], 'phone' => $u['phone'], 'role' => $u['role']]; }
+function pub(array $u): array { return ['id' => (int)$u['id'], 'email' => $u['email'], 'name' => $u['name'], 'phone' => $u['phone'], 'role' => $u['role'],
+  'pdok' => !empty($u['pd_ok']) ? (int)$u['pd_ok'] * 1000 : 0]; }
 function orderRow(array $o): array {
   return ['id' => (int)$o['id'], 'no' => $o['no'], 'fio' => $o['fio'], 'phone' => $o['phone'], 'email' => $o['email'],
     'region' => $o['region'], 'comment' => $o['comment'], 'items' => json_decode($o['items'] ?: '[]', true),
@@ -143,8 +147,9 @@ if ($a === 'register') {
   $st = db()->prepare('SELECT id FROM users WHERE email=?'); $st->execute([$email]);
   if ($st->fetch()) fail('Аккаунт с этой почтой уже есть — войдите');
   $first = (int)db()->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0; // первый аккаунт — администратор
-  $st = db()->prepare('INSERT INTO users(email,pass,name,role,created) VALUES(?,?,?,?,?)');
-  $st->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $name, $first ? 'admin' : 'client', time()]);
+  if (empty($b['pdok'])) fail('Нужно согласие на обработку персональных данных');
+  $st = db()->prepare('INSERT INTO users(email,pass,name,role,created,pd_ok) VALUES(?,?,?,?,?,?)');
+  $st->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $name, $first ? 'admin' : 'client', time(), time()]);
   $id = (int)db()->lastInsertId();
   $token = bin2hex(random_bytes(24));
   db()->prepare('INSERT INTO sessions(token,user_id,created) VALUES(?,?,?)')->execute([$token, $id, time()]);
@@ -166,6 +171,13 @@ if ($a === 'login') {
 
 if ($a === 'me')     { $u = need(); out(['user' => pub($u)]); }
 if ($a === 'logout') { $t = bearer(); if ($t) db()->prepare('DELETE FROM sessions WHERE token=?')->execute([$t]); out(['ok' => true]); }
+
+/* согласие на обработку данных, данное уже после регистрации (галочка в заявке или звонке) */
+if ($a === 'consent') {
+  $u = need();
+  db()->prepare('UPDATE users SET pd_ok=? WHERE id=? AND (pd_ok IS NULL OR pd_ok=0)')->execute([time(), (int)$u['id']]);
+  out(['ok' => true]);
+}
 
 if ($a === 'profile') {
   $u = need(); $b = body();

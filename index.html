@@ -4056,7 +4056,7 @@ const SB_ANON='';
 const SB={c:null,on:false,kind:'',orders:[],docs:{},role:'client',loading:false};
 /* пользователь пришёл с сервера — раскладываем по местам */
 function srvUser(u){if(!u){user=null;SB.role='client';SB.orders=[];store.set('user',null);loadUserData();updateHeader();return}
-  SB.role=u.role||'client';user={name:u.name||u.email,email:u.email,id:u.id,role:SB.role};store.set('user',user);loadUserData();updateHeader()}
+  SB.role=u.role||'client';user={name:u.name||u.email,email:u.email,id:u.id,role:SB.role,pdok:u.pdok||0};store.set('user',user);loadUserData();updateHeader()}
 const API_FIXED=API_URL;
 async function apiDetect(){
   if(API_FIXED)return true;
@@ -4802,7 +4802,8 @@ const legalContacts=()=>[LEGAL.email&&`электронная почта <a clas
   'телефон <a class="link num" href="tel:+79998886099">+7 999 888-60-99</a>','сообщение в чате личного кабинета на сайте',
   LEGAL.address&&`письмо по адресу: ${esc(LEGAL.address)}`].filter(Boolean);
 /* галочка согласия для форм: без неё форма не отправится */
-const pdConsent=id=>`<label class="pd-ok"><input type="checkbox" name="pdok" id="${id}" required><span>Даю <a href="#/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и подтверждаю, что ознакомлен(а) с <a href="#/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a></span></label>`;
+const pdKnown=()=>!!(user&&user.pdok);
+const pdConsent=id=>pdKnown()?`<p class="note" style="margin:0">Согласие на обработку персональных данных вы дали при регистрации. <a class="link" href="#/consent" target="_blank" rel="noopener">Текст согласия</a></p>`:`<label class="pd-ok"><input type="checkbox" name="pdok" id="${id}" required><span>Даю <a href="#/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и подтверждаю, что ознакомлен(а) с <a href="#/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a></span></label>`;
 function privacyView(){
   return `<div class="wrap legal"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Документы</span><h1>Политика обработки персональных данных</h1></div></div>
   <p class="muted">Редакция от ${LEGAL_DATE}. Действует для сайта konturhouse.ru, его страниц и приложения, установленного с сайта на телефон или компьютер.</p>
@@ -4865,6 +4866,11 @@ function consentView(){
   <h2>Отзывы</h2>
   <p>Публикация имени и города вместе с отзывом — это распространение персональных данных. На него даётся отдельное согласие галочкой в форме отзыва, и оно тоже может быть отозвано: отзыв будет удалён со страницы.</p>
   <p class="muted" style="margin-top:22px">Порядок обработки данных подробно описан в <a class="link" href="#/privacy">политике обработки персональных данных</a>.</p></div>`}
+function pdRemember(){if(!user||user.pdok)return;user.pdok=Date.now();try{store.set('user',user)}catch(e){}
+  if(SB.kind==='api')apiReq('consent',{json:{}}).catch(()=>{});
+  else{try{const us=store.get('users',{});if(us[user.email]){us[user.email].pdok=user.pdok;store.set('users',us)}}catch(e){}}}
+document.addEventListener('submit',e=>{const f=e.target;if(!user||user.pdok||!f||!f.querySelector)return;
+  const c=f.querySelector('input[name=pdok]');if(c&&c.checked)pdRemember()},true);
 /* ---------- cookie ----------
    Необходимые (кабинет, корзина, избранное, тема) хранятся в браузере и работают всегда.
    Яндекс Метрика включается только после «Принять все». Выбор хранится в браузере. */
@@ -5919,7 +5925,7 @@ function openAuth(mode='in'){
       if(pass.length<6)return err.textContent='Пароль должен быть не короче 6 символов.';
       if(mode==='up'&&!fd.get('pdok'))return err.textContent='Отметьте согласие на обработку персональных данных: без него мы не можем создать аккаунт.';
       if(SB.on&&SB.kind==='api'){
-        try{const d=mode==='up'?await apiReq('register',{json:{email,pass,name}}):await apiReq('login',{json:{email,pass}});
+        try{const d=mode==='up'?await apiReq('register',{json:{email,pass,name,pdok:1}}):await apiReq('login',{json:{email,pass}});
           apiSetToken(d.token);srvUser(d.user);await sbLoadOrders();
           el.remove();toast(mode==='up'?(d.user.role==='admin'?'Аккаунт создан — вы администратор':'Аккаунт создан'):'Вы вошли');render();return}
         catch(ex){return err.textContent=ex.message||'Не удалось войти'}}
@@ -5938,7 +5944,8 @@ function openAuth(mode='in'){
       const users=store.get('users',{}),ph=await hash(email+':'+pass);
       if(mode==='up'){if(!name)return err.textContent='Укажите имя.';if(users[email])return err.textContent='Аккаунт с этой почтой уже есть — перейдите на вкладку «Вход».';users[email]={name,ph};store.set('users',users)}
       else{if(!users[email])return err.textContent='Аккаунт не найден. Зарегистрируйтесь на соседней вкладке.';if(users[email].ph!==ph)return err.textContent='Неверный пароль.'}
-      const guestFavs=favs;user={name:users[email].name,email};store.set('user',user);loadUserData();favs=[...new Set([...favs,...guestFavs])];saveFavs();
+      const guestFavs=favs;user={name:users[email].name,email,pdok:mode==='up'?Date.now():(users[email].pdok||0)};
+      if(mode==='up'){users[email].pdok=user.pdok;store.set('users',users)}store.set('user',user);loadUserData();favs=[...new Set([...favs,...guestFavs])];saveFavs();
       el.remove();toast(mode==='up'?'Аккаунт создан':'Вы вошли');render()};
     setTimeout(()=>el.querySelector('input')?.focus(),50)};
   draw();el.addEventListener('click',e=>{if(e.target===el)el.remove()});

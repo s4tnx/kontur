@@ -77,6 +77,9 @@ function db(): PDO {
   $pdo->exec('CREATE TABLE IF NOT EXISTS msgs(
       id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER, user_id INTEGER, role TEXT, who TEXT,
       text TEXT, files TEXT, item TEXT, created INTEGER)');
+  $pdo->exec('CREATE TABLE IF NOT EXISTS reviews(
+      id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT, city TEXT, obj TEXT,
+      rating INTEGER DEFAULT 5, text TEXT, ok INTEGER DEFAULT 1, created INTEGER)');
   $mc = array_column($pdo->query('PRAGMA table_info(msgs)')->fetchAll(PDO::FETCH_ASSOC), 'name');
   if (!in_array('item', $mc, true)) $pdo->exec('ALTER TABLE msgs ADD COLUMN item TEXT');
   /* промокод заявки — колонка появилась позже, добавляем в старые базы */
@@ -349,6 +352,60 @@ if ($a === 'unread') {
   out(['orders' => $res, 'neworders' => $fresh]);
 }
 
+/* ---------- отзывы ----------
+   Писать может только свой аккаунт, у которого есть заявка, дошедшая до стройки:
+   так на сайте оказываются отзывы тех, кому мы действительно построили. */
+function canReview(array $u): bool {
+  if (staff($u)) return true;
+  $st = db()->prepare('SELECT COUNT(*) FROM orders WHERE user_id=? AND (stage>=3 OR status IN ("build","done"))');
+  $st->execute([(int)$u['id']]);
+  return (int)$st->fetchColumn() > 0;
+}
+
+if ($a === 'reviews') {
+  $u = me();
+  $rows = db()->query('SELECT * FROM reviews WHERE ok=1 ORDER BY created DESC LIMIT 300')->fetchAll(PDO::FETCH_ASSOC);
+  out(['reviews' => array_map(fn($r) => [
+    'id' => (int)$r['id'], 'name' => $r['name'], 'city' => $r['city'], 'obj' => $r['obj'],
+    'rating' => (int)$r['rating'], 'text' => $r['text'], 'created' => (int)$r['created'] * 1000,
+    'mine' => $u && (int)$r['user_id'] === (int)$u['id'],
+  ], $rows)]);
+}
+
+if ($a === 'review') {
+  $u = need();
+  if (!canReview($u)) fail('Отзыв можно оставить, когда заявка дойдёт до стройки', 403);
+  $b = body();
+  $text = trim((string)($b['text'] ?? ''));
+  if (mb_strlen($text) < 40) fail('Напишите хотя бы пару предложений');
+  $rating = (int)($b['rating'] ?? 5); if ($rating < 1 || $rating > 5) $rating = 5;
+  $name = trim((string)($u['name'] ?: $u['email']));
+  if (strpos($name, '@') !== false) $name = explode('@', $name)[0];
+  $fields = [mb_substr($name, 0, 60), mb_substr(trim((string)($b['city'] ?? '')), 0, 40),
+             mb_substr(trim((string)($b['obj'] ?? '')), 0, 60), $rating, mb_substr($text, 0, 900)];
+  /* один отзыв на аккаунт: повторная отправка заменяет прежний */
+  $st = db()->prepare('SELECT id FROM reviews WHERE user_id=?'); $st->execute([(int)$u['id']]);
+  $old = $st->fetchColumn();
+  if ($old) {
+    $q = db()->prepare('UPDATE reviews SET name=?, city=?, obj=?, rating=?, text=?, created=? WHERE id=?');
+    $q->execute(array_merge($fields, [time(), (int)$old]));
+    out(['id' => (int)$old, 'updated' => true]);
+  }
+  $q = db()->prepare('INSERT INTO reviews(user_id,name,city,obj,rating,text,ok,created) VALUES(?,?,?,?,?,?,1,?)');
+  $q->execute(array_merge([(int)$u['id']], $fields, [time()]));
+  out(['id' => (int)db()->lastInsertId()]);
+}
+
+if ($a === 'reviewdel') {
+  $u = need(); $b = body(); $id = (int)($b['id'] ?? 0);
+  $st = db()->prepare('SELECT user_id FROM reviews WHERE id=?'); $st->execute([$id]);
+  $row = $st->fetch(PDO::FETCH_ASSOC);
+  if (!$row) fail('Отзыв не найден', 404);
+  if (!staff($u) && (int)$row['user_id'] !== (int)$u['id']) fail('Нет доступа', 403);
+  db()->prepare('DELETE FROM reviews WHERE id=?')->execute([$id]);
+  out(['ok' => true]);
+}
+
 /* короткая сводка о состоянии: сколько аккаунтов и заявок в базе.
    Нужна, чтобы понять, работает ли кабинет на сервере. Личных данных не отдаёт. */
 if ($a === 'ping') {
@@ -356,7 +413,7 @@ if ($a === 'ping') {
     try { return (int)db()->query('SELECT COUNT(*) FROM ' . $tbl)->fetchColumn(); } catch (Throwable $e) { return -1; }
   };
   out(['ok' => true, 'php' => PHP_VERSION, 'users' => $n('users'), 'orders' => $n('orders'),
-       'msgs' => $n('msgs'), 'docs' => $n('docs'), 'write' => is_writable(__DIR__), 'db' => file_exists(DB_FILE),
+       'msgs' => $n('msgs'), 'docs' => $n('docs'), 'reviews' => $n('reviews'), 'write' => is_writable(__DIR__), 'db' => file_exists(DB_FILE),
        'hdrAuth' => !empty($_SERVER['HTTP_AUTHORIZATION']) || !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION']),
        'hdrX' => !empty($_SERVER['HTTP_X_AUTH_TOKEN']), 'token' => (bool)bearer()]);
 }

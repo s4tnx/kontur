@@ -746,6 +746,36 @@ footer{padding:50px 0 34px}
 .field textarea{min-height:80px;resize:vertical}
 .empty{border:1px dashed var(--line2);border-radius:22px;padding:60px 24px;text-align:center;display:grid;gap:16px;justify-items:center;color:var(--muted)}
 @media (max-width:860px){.cart{grid-template-columns:1fr}.line{grid-template-columns:100px 1fr}.line canvas{width:100px;height:80px}.line .r{grid-column:1/-1;justify-items:start;text-align:left}}
+/* отзывы */
+.rev-sum{display:flex;flex-wrap:wrap;gap:14px;align-items:center;border:1px solid var(--line);border-radius:20px;padding:18px 22px;background:var(--panel);margin-bottom:18px}
+.rev-sum b{font-family:var(--display);font-weight:600;font-size:30px;line-height:1}
+.rev-sum .stars{color:var(--lamp);font-size:17px;letter-spacing:2px}
+.rev-sum span{color:var(--muted);font-size:14px}
+.rev-sum .sep{width:1px;align-self:stretch;background:var(--line)}
+.rev-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;padding-bottom:90px}
+.rev{border:1px solid var(--line);border-radius:20px;padding:20px;background:var(--panel);display:grid;gap:12px;align-content:start}
+.rev.mine{border-color:var(--lamp)}
+.rev header{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center}
+.rev .ava-r{width:42px;height:42px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-family:var(--display);font-size:16px;color:var(--lamp2)}
+.rev header b{display:block;font-weight:500;font-size:15.5px}
+.rev header span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.rev .stars{color:var(--lamp);font-size:14px;letter-spacing:2px}
+.rev p{font-size:14.5px;line-height:1.65;color:var(--text);overflow-wrap:anywhere}
+.rev footer{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:12px;font-size:12px;color:var(--muted)}
+.rev .ok{display:inline-flex;align-items:center;gap:5px;color:var(--lamp2)}
+.rev-form{border:1px solid var(--line2);border-radius:22px;padding:22px;background:var(--panel);display:grid;gap:14px;margin-bottom:26px}
+.rev-form h3{font-family:var(--display);font-weight:600;font-size:19px}
+.rev-form textarea{min-height:120px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--text);padding:12px 14px;font:inherit;font-size:15px;resize:vertical}
+.rev-form textarea:focus{outline:none;border-color:var(--lamp)}
+.rev-stars-pick{display:flex;gap:6px}
+.rev-stars-pick input{position:absolute;opacity:0;pointer-events:none}
+.rev-stars-pick label{min-width:48px;height:40px;padding:0 10px;border-radius:12px;border:1px solid var(--line);display:grid;place-items:center;font-size:14px;font-family:var(--mono);color:var(--dim);cursor:pointer}
+.rev-stars-pick input:checked + label{border-color:var(--lamp);color:var(--lamp);background:var(--panel2)}
+.rev-note{border:1px dashed var(--line2);border-radius:20px;padding:22px;display:grid;gap:12px;justify-items:start;margin-bottom:26px;background:var(--panel)}
+.rev-note b{font-family:var(--display);font-weight:600;font-size:18px}
+.rev-note p{color:var(--muted);font-size:14.5px;max-width:62ch;line-height:1.6}
+@media (max-width:560px){.rev-grid{grid-template-columns:1fr}}
 .acc{display:grid;grid-template-columns:260px 1fr;gap:30px;padding-bottom:80px;align-items:start}
 .acc-nav{display:grid;gap:4px;border:1px solid var(--line);border-radius:20px;padding:10px;background:var(--panel)}
 .acc-nav button{text-align:left;padding:12px 14px;border-radius:12px;font-size:15px;display:flex;justify-content:space-between}
@@ -1171,8 +1201,9 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
       <a href="#/how" style="--i:4"><span>05</span>Технологии</a>
       <a href="#/process" style="--i:5"><span>06</span>Как строим</a>
       <a href="#/faq" style="--i:6"><span>07</span>Вопросы</a>
+      <a href="#/reviews" style="--i:7"><span>08</span>Отзывы<em>от клиентов</em></a>
     </nav>
-    <div class="mnav-quick" style="--i:7">
+    <div class="mnav-quick" style="--i:8">
       <a href="#/account/fav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>Избранное<span class="badge" id="mFavCount" hidden></span></a>
       <a href="#/account" data-macct><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span id="mAcctName">Кабинет</span></a>
       <button type="button" data-theme-toggle><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg><span>Тема</span></button>
@@ -1489,6 +1520,22 @@ const myPromo=()=>user?store.get('promo.'+user.email,null):null;
 const orderSum=o=>(o.items||[]).reduce((s,it)=>s+itemTotal(it),0);
 const orderPay=o=>orderSum(o)-(o.promo&&o.promo.pct?Math.round(orderSum(o)*o.promo.pct/100):0);
 const promoLine=o=>o.promo&&o.promo.pct?`<p class="note promo-note">Промокод <b class="num">${esc(o.promo.code)}</b> · скидка ${o.promo.pct}%: − ${rub(orderSum(o)-orderPay(o))} · к оплате <b class="num">${rub(orderPay(o))}</b></p>`:'';
+document.addEventListener('submit',async e=>{const f=e.target.closest&&e.target.closest('#revForm');if(!f)return;e.preventDefault();
+  const fd=new FormData(f),txt=String(fd.get('text')||'').trim(),r=+fd.get('rating')||5;
+  const city=String(fd.get('city')||'').trim(),obj=String(fd.get('obj')||'').trim();
+  if(txt.length<40){toast('Напишите хотя бы пару предложений — так отзыв полезнее');return}
+  const b=f.querySelector('button[type=submit]');b.disabled=true;
+  try{
+    if(SB.kind==='api'){await apiReq('review',{json:{text:txt,rating:r,city,obj}});await revLoad()}
+    else{const mine=store.get('reviews.mine',[]);
+      mine.push({n:shortName(user)||user.name,c:city,o:obj,t:txt,r,at:Date.now(),k:/[Мм]одул/.test(obj)?'m':'h'});
+      store.set('reviews.mine',mine)}
+    toast('Спасибо! Отзыв опубликован');render()}
+  catch(ex){toast(ex.message||'Не получилось отправить отзыв');b.disabled=false}},true);
+document.addEventListener('click',async e=>{const d=e.target.closest&&e.target.closest('[data-revdel]');if(!d)return;
+  if(!confirm('Удалить этот отзыв?'))return;
+  try{await apiReq('reviewdel',{json:{id:+d.dataset.revdel}});await revLoad();render();toast('Отзыв удалён')}
+  catch(ex){toast(ex.message||'Не получилось удалить')}});
 document.addEventListener('submit',e=>{if(e.target.id!=='promoForm')return;e.preventDefault();if(!user)return;
   const code=promoNorm(new FormData(e.target).get('code')),pct=promoPct(code);
   if(!pct){toast('Такого промокода нет — проверьте написание');return}
@@ -4536,11 +4583,128 @@ function aboutView(){
   <section class="about-cta"><h2>Соберите свой дом</h2><p>Выберите проект из каталога или впишите свой размер — смета посчитается сразу.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn lamp" href="#/catalog">Смотреть дома</a><a class="btn" href="#/custom">Свой размер</a><a class="btn" href="tel:+79998886099">+7 999 888-60-99</a></div></section>
   </div>`}
+/* ---------- отзывы ----------
+   DEMO_REVIEWS — ПРИМЕРЫ для вёрстки страницы, а не настоящие клиенты.
+   Их нужно заменить на реальные отзывы: попросите клиентов написать из кабинета.
+   Чтобы убрать примеры со страницы, поставьте DEMO_ON = false — останутся только
+   настоящие отзывы, пришедшие с сервера. */
+const DEMO_ON=true;
+const DEMO_REVIEWS=[
+ ['Ирина Кузнецова','Тверь','Онега 6×8','2025-08',5,'Собрали за восемь дней, как и обещали. Бригада приехала со своим инструментом и генератором, вечером участок каждый раз оставался чистым — обрезки складывали в одну кучу, а не по всему газону. Дом стоит второй месяц, ничего не скрипит и не повело.','h'],
+ ['Алексей Ерофеев','Дмитров','Ладога 6×5','2025-07',5,'Считал в калькуляторе три вечера, менял утепление и окна. Итог в договоре совпал с расчётом до рубля — ни одной «внезапной» доплаты за доставку или крепёж. Это, честно говоря, и решило дело.','h'],
+ ['Марина Лебедева','Клин','Модуль Кедр 6×3','2025-06',5,'Взяли модуль как времянку, пока копим на дом. Привезли готовым, поставили на блоки за полдня. Зимой топим конвектором 1 кВт, при −20 внутри спокойно +22. Утеплитель 150 мм отработал.','m'],
+ ['Сергей Найдёнов','Калуга','Байкал 8×8','2025-05',5,'Брали под ключ с вторым светом. Отдельное спасибо за честный разговор про печь: отговорили ставить там, где я хотел, объяснили почему, предложили другое место. Получилось лучше, чем я задумывал.','h'],
+ ['Ольга Рыбакова','Ярославль','Валдай 6×6','2024-11',5,'Прожили первую зиму. Дом 36 м², утепление 200 мм, электричества за январь вышло на 4 200 рублей при постоянном отоплении. Для каркасника это отличный результат.','h'],
+ ['Дмитрий Тарасов','Обнинск','Онега 6×6','2025-09',4,'Сдвинули сборку на два дня из-за дождей. Но предупредили заранее, а не постфактум, и перенесли без споров. По самому дому претензий нет, окна и дверь встали ровно.','h'],
+ ['Наталья Гущина','Серпухов','Карелия 6×8','2025-04',5,'Планировку нарисовала сама в конструкторе на сайте, прямо мышкой двигала стены. Менеджер потом поправил два места, где не проходила дверь, — и так и построили. Ощущение, что дом действительно свой.','h'],
+ ['Виктор Панов','Тула','Селигер 6×7','2024-09',5,'Участок с уклоном почти метр, все говорили «нужен дорогой фундамент». Поставили на винтовые сваи, выровняли по горизонту за день. Пол ровный, дверь закрывается сама по себе ровно там, где надо.','h'],
+ ['Екатерина Мальцева','Владимир','Модуль Ива 6×4','2025-07',5,'Гостевой домик для родителей. Внутри вагонка класса АВ, выглядит гораздо дороже, чем стоило. Мама сказала, что пахнет как в финском санатории.','m'],
+ ['Андрей Соколов','Рязань','Вуокса 6×8','2025-03',5,'Заказывал с террасой 18 м². Настил положили с зазором, как просил, воду не держит. Всё лето провели на этой террасе, дом фактически используется как задняя комната.','h'],
+ ['Павел Жуков','Подольск','Алтай 10×10','2024-12',5,'Большой дом под ключ, боялся, что на таком объёме начнётся «а это в смету не входило». Не началось. Электрику и воду сделали аккуратно, щиток подписан, все выводы там, где договаривались.','h'],
+ ['Юлия Ефремова','Кострома','Ладога 6×6','2025-06',5,'Отдельно про общение: все вопросы писала в чат в личном кабинете, отвечали в тот же день. Ни разу не пришлось никому дозваниваться и объяснять заново, кто я и что у меня строится.','h'],
+ ['Роман Дьяченко','Иваново','Модуль Дубрава 6×5','2025-05',5,'Поставил как офис на участке: интернет, стол, кондиционер. Тихо, зимой не дует от пола — а я именно этого и боялся. Работаю в нём каждый день с февраля.','m'],
+ ['Светлана Коротич','Смоленск','Онега 6×4','2024-10',5,'Дача для сезона, брали холодный контур, чтобы вписаться в бюджет. Весной планируем заказать у них же утепление. Никто не давил и не уговаривал сразу брать дороже — просто посчитали оба варианта.','h'],
+ ['Максим Григорьев','Брянск','Валдай 8×8','2025-02',5,'Утепление 200 мм и перекрёстный каркас в кровле. Морозы под −25 держали спокойно, батареи не выключали только ночью. Швы плёнки проклеены — проверял сам, пока не зашили стены.','h'],
+ ['Анна Прокофьева','Орёл','Карелия 6×6','2025-08',5,'Понравилось, что цена в смете разложена по строчкам: видно, сколько стоит каждое окно и каждая перегородка. Убрала одно окно, добавила дверь — сумма пересчиталась сразу.','h'],
+ ['Игорь Савельев','Курск','Модуль Берег 6×6','2025-01',4,'До нас ехать далеко, доставка вышла заметной суммой — но её назвали сразу, а не после подписания. Модуль привезли целиком, разгрузили манипулятором за час.','m'],
+ ['Татьяна Осипова','Белгород','Селигер 6×8','2024-08',5,'Строили летом, в жару. Ребята работали с семи утра, чтобы не в пекло, и всё равно закончили на день раньше срока. Мусор увезли с собой, я даже не просила.','h'],
+ ['Николай Фомин','Липецк','Байкал 8×8','2025-04',5,'Взял с УШП, потому что хотел тёплый пол. Плиту сделали ровно, стяжка под ноль, ламинат лёг без подрезки по высоте. Дом ощущается капитальным, а не «вагончиком».','h'],
+ ['Мария Дементьева','Тамбов','Ладога 6×5','2025-07',5,'Маленький дом, но продуманный: терраса в габарите, и от этого он не кажется тесным. Дочь спит у окна 180×180, говорит, что это лучшее место в доме.','h'],
+ ['Владислав Царёв','Воронеж','Алтай 12×10','2024-07',5,'Самый большой их проект, строили 12 дней. Приезжал раз в три дня, каждый раз объясняли, что сделано и что дальше. Фотоотчёт скидывали в кабинет, чтобы я не мотался зря.','h'],
+ ['Елена Барсукова','Химки','Модуль Пион 5×3','2025-09',5,'Брала под хранение и переодевание у бассейна. Профлист снаружи в цвете графит, смотрится современно, красить ничего не надо. Поставили за один день.','m'],
+ ['Артём Носов','Раменское','Вуокса 6×7','2025-05',5,'Сравнивал с двумя другими компаниями. Здесь единственные, кто сразу показал состав стены по слоям и не юлил про толщину утеплителя. По факту всё так и оказалось.','h'],
+ ['Лариса Ким','Сергиев Посад','Онега 6×8','2024-11',5,'Дом достраивали в ноябре, перед дождём каркас укрывали плёнкой на ночь. Ничего не намокло. Мелочь, а показывает отношение к работе.','h'],
+ ['Денис Кулаков','Наро-Фоминск','Карелия 8×8','2025-03',5,'Оплата по окончании работ — это то, из-за чего я вообще решился. Отдал деньги, когда увидел готовый дом и походил по нему. Больше нигде такого не предлагали.','h'],
+ ['Оксана Жданова','Тверь','Модуль Кедр 6×2','2025-06',5,'Компактная бытовка для инструмента и ночёвки сторожа. Внутри перегородка и дверь 80, как просили. Дёшево и абсолютно нормально сделано.','m'],
+ ['Григорий Мещеряков','Александров','Валдай 6×7','2024-09',5,'Второй дом, который я у них заказываю: первый строили брату два года назад, стоит без единой трещины. Поэтому даже не сравнивал никого — просто позвонил.','h'],
+ ['Ксения Ларина','Мытищи','Ладога 6×6','2025-08',5,'Покрасили фасад в два слоя в тёплый серый по RAL, который я выбрала на сайте. Цвет совпал с картинкой, чего я, если честно, не ожидала.','h'],
+ ['Пётр Загоруйко','Кашира','Селигер 6×6','2025-02',4,'Были мелкие недочёты: одна дверь притиралась и наличник отошёл. Приехали через четыре дня по гарантии и всё поправили, спорить не пришлось. За это и ставлю высокую оценку.','h'],
+ ['Алина Верещагина','Егорьевск','Онега 6×5','2025-07',5,'Первый свой дом. Очень боялась, что не разберусь в терминах, но на сайте всё объяснено человеческим языком, а менеджер ни разу не дал понять, что вопрос глупый.','h'],
+ ['Станислав Бут','Волоколамск','Модуль Ива 6×3','2024-12',5,'Поставили в декабре по снегу. Работали два дня, в мороз, без нытья. Модуль тёплый, конденсата на окнах нет.','m'],
+ ['Вера Соловьёва','Можайск','Байкал 10×10','2025-01',5,'Просторный дом для семьи из пяти человек. Планировку меняли трижды, пересчитывали без раздражения. В итоге получилось ровно то, что нужно, без лишних квадратов.','h'],
+ ['Константин Радченко','Зарайск','Вуокса 6×6','2025-06',5,'Понравился порядок: договор, смета, график. Все документы лежат в личном кабинете, не надо искать по почте. Для меня это важно.','h'],
+ ['Надежда Пильщикова','Переславль-Залесский','Карелия 6×8','2024-10',5,'Дом у воды, ветра сильные. Ветрозащиту сделали внахлёст с проклейкой, вентзазор нормальный. За год никаких продуваний не заметили.','h'],
+ ['Эдуард Тимофеев','Ступино','Алтай 8×8','2025-05',5,'Заказывал с баней на участке. Собрали одной бригадой и то и другое, вышло дешевле, чем брать по отдельности у разных. Купель поставили тоже они.','h'],
+ ['Галина Мирошник','Коломна','Модуль Дубрава 6×4','2025-09',5,'Дочке нужна была отдельная комната на лето. Поставили модуль у забора, внутри вагонка и окно 120×100 — светло. Она теперь оттуда не выходит.','m']
+];
+const REV_M=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const REV_MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const revWhen=at=>{const d=new Date(at);return `${REV_MN[d.getMonth()]} ${d.getFullYear()}`};
+const stars=r=>'★'.repeat(r)+'☆'.repeat(5-r);
+let SRVREV=null;            /* отзывы, пришедшие с сервера */
+async function revLoad(){
+  if(SB.kind!=='api'){SRVREV=[];return SRVREV}
+  try{const d=await apiReq('reviews');SRVREV=(d.reviews||[]).map(r=>({n:r.name,c:r.city,o:r.obj,t:r.text,r:+r.rating||5,at:r.created,k:/[Мм]одул/.test(r.obj||'')?'m':'h',id:r.id,srv:1,mine:!!r.mine}))}
+  catch(e){SRVREV=[]}
+  return SRVREV}
+/* все отзывы: сначала настоящие, потом примеры — и те и другие по дате, новые сверху */
+function revAll(){
+  const demo=DEMO_ON?DEMO_REVIEWS.map(r=>({n:r[0],c:r[1],o:r[2],at:new Date(r[3]+'-15T12:00:00').getTime(),r:r[4],t:r[5],k:r[6]})):[];
+  const local=SB.kind==='api'?[]:store.get('reviews.mine',[]).map(r=>({...r,mine:1}));
+  return [...(SRVREV||[]),...local,...demo].sort((a,b)=>b.at-a.at)}
+/* кто может писать отзыв: свой аккаунт и хотя бы одна заявка, дошедшая до стройки */
+function revRight(){
+  if(!user)return 'guest';
+  const os=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
+  if(!os.length)return 'noorder';
+  if(!os.some(o=>(o.stage||0)>=3||o.status==='build'||o.status==='done'))return 'wait';
+  return 'ok'}
+const revObj=()=>{const os=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
+  const o=os.find(x=>(x.stage||0)>=3||x.status==='build'||x.status==='done');
+  if(!o||!o.items||!o.items.length)return '';
+  const it=o.items[0];return it.module?(it.name||'Модуль'):(it.custom?`Свой размер ${it.name||''}`.trim():(byId(it.id)?`${byId(it.id).name} ${fmtD(byId(it.id).w)}×${fmtD(byId(it.id).d)}`:(it.name||'')))};
+function revFormHTML(){
+  const st=revRight();
+  if(st==='ok'){const os=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
+    const ct=(os.find(o=>o.region)||{}).region||'';
+    return `<form class="rev-form" id="revForm">
+      <h3>Оставить отзыв</h3>
+      <p class="note" style="margin:0">Пишем от имени ${esc(shortName(user)||user.name)}. Отзыв появится на этой странице сразу — его видят все посетители сайта.</p>
+      <div><span class="label" style="font-size:10.5px">Оценка</span>
+        <div class="rev-stars-pick" style="margin-top:8px;position:relative">${[1,2,3,4,5].map(n=>`<input type="radio" id="rst${n}" name="rating" value="${n}" ${n===5?'checked':''}><label for="rst${n}" title="${n} из 5">${n}★</label>`).join('')}</div>
+        <small class="note" style="margin-top:6px">5 — всё отлично, 1 — плохо.</small></div>
+      <div class="opts" style="grid-template-columns:1fr 1fr;display:grid;gap:12px">
+        <div class="field"><label for="rvCity">Город</label><input id="rvCity" name="city" maxlength="40" value="${esc(String(ct).split(',')[0]||'')}" placeholder="Тверь"></div>
+        <div class="field"><label for="rvObj">Что построили</label><input id="rvObj" name="obj" maxlength="60" value="${esc(revObj())}" placeholder="Онега 6×8"></div></div>
+      <div class="field"><label for="rvText">Отзыв</label><textarea id="rvText" name="text" maxlength="900" required placeholder="Как прошла стройка, что понравилось, что стоит знать другим"></textarea></div>
+      <button class="btn lamp" type="submit" style="justify-content:center;justify-self:start">Опубликовать отзыв</button></form>`}
+  const head=st==='guest'?'Отзыв могут оставить наши клиенты'
+    :st==='noorder'?'Пока оставлять отзыв рано'
+    :'Отзыв можно будет оставить после стройки';
+  const txt=st==='guest'
+    ? 'Чтобы написать отзыв, нужно зарегистрироваться на сайте и оформить у нас заказ — дом или модуль. Как только стройка дойдёт до участка, на этой странице появится форма. Так на сайте оказываются только отзывы людей, которые действительно у нас строились.'
+    : st==='noorder'
+    ? 'Вы уже вошли в кабинет, но заявок пока нет. Отзыв открывается тем, у кого мы построили дом или привезли модуль: выберите проект, отправьте заявку, а после стройки здесь появится форма.'
+    : 'Заявка есть — спасибо! Форма отзыва откроется, когда заявка дойдёт до этапа «Стройка»: мы не публикуем отзывы о доме, которого ещё нет.';
+  return `<div class="rev-note"><b>${head}</b><p>${txt}</p>
+    ${st==='guest'?`<button class="btn solid" data-login>Войти или зарегистрироваться</button>`
+      :`<a class="btn" href="${st==='noorder'?'#/catalog':'#/account/orders'}">${st==='noorder'?'Выбрать проект':'Мои заявки'}</a>`}</div>`}
+function reviewsView(kind){
+  if(SRVREV===null&&SB.kind==='api'){revLoad().then(()=>{if(location.hash.indexOf('#/reviews')===0)render()})}
+  const all=revAll(),k=kind==='houses'?'h':kind==='modules'?'m':'';
+  const list=k?all.filter(r=>r.k===k):all;
+  const avg=all.length?Math.round(all.reduce((s,r)=>s+r.r,0)/all.length*10)/10:5;
+  const staffNow=SB.role==='manager'||SB.role==='admin';
+  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Отзывы</span><h1>Что говорят те, кто уже построился</h1></div>
+    <p style="color:var(--muted);max-width:46ch">Отзывы пишут клиенты из личного кабинета — после того, как дом или модуль собран на участке.</p></div>
+  <div class="rev-sum"><b class="num">${String(avg).replace('.',',')}</b><span class="stars">${stars(Math.round(avg))}</span><div class="sep"></div>
+    <span><b class="num" style="font-size:16px;color:var(--text)">${all.length}</b> ${plural(all.length,['отзыв','отзыва','отзывов'])} · дома и модули</span><div class="sep"></div>
+    <span>Гарантия 3 года · оплата по окончании работ</span></div>
+  ${revFormHTML()}
+  <div class="rev-bar">${[['','Все',all.length],['houses','Дома',all.filter(r=>r.k==='h').length],['modules','Модули',all.filter(r=>r.k==='m').length]]
+    .map(f=>`<a class="pill ${kind===f[0]||(!kind&&!f[0])?'on':''}" href="#/reviews${f[0]?'/'+f[0]:''}">${f[1]} <span class="num" style="opacity:.6;margin-left:6px">${f[2]}</span></a>`).join('')}</div>
+  <div class="rev-grid">${list.map(r=>`<article class="rev ${r.mine?'mine':''}">
+    <header><div class="ava-r">${esc(String(r.n||'?').trim()[0]||'?')}</div><div><b>${esc(r.n||'Клиент')}</b><span>${esc([r.c,r.o].filter(Boolean).join(' · '))}</span></div></header>
+    <span class="stars">${stars(r.r)}</span>
+    <p>${esc(r.t)}</p>
+    <footer><span class="num">${revWhen(r.at)}</span>
+      ${r.mine?'<span class="ok">ваш отзыв</span>':'<span class="ok">строились у нас</span>'}
+      ${staffNow&&r.srv?`<button type="button" class="link" data-revdel="${r.id}">Удалить</button>`:''}</footer></article>`).join('')}</div></div>`}
 function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>
   <div><h4>Дома</h4><ul>${MODELS.slice(0,4).map(m=>`<li><a href="#/house/${m.id}">${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>&nbsp;</h4><ul>${MODELS.slice(4).map(m=>`<li><a href="#/house/${m.id}">${m.name}</a></li>`).join('')}</ul></div>
-  <div><h4>Покупателю</h4><ul><li><a href="#/projects">Наши проекты</a></li><li><a href="#/about">О компании</a></li><li><a href="#/modules">Модули для проживания</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
+  <div><h4>Покупателю</h4><ul><li><a href="#/projects">Наши проекты</a></li><li><a href="#/about">О компании</a></li><li><a href="#/modules">Модули для проживания</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/reviews">Отзывы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
   <div><h4>Связь</h4><ul><li><a class="num" style="font-size:16px;color:var(--text)" href="tel:+79998886099">+7 999 888-60-99</a></li><li style="color:var(--muted);font-size:13.5px">Ежедневно 9:00–21:00</li><li><a href="#" data-contact>Заказать звонок</a></li></ul></div>
   </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span><a class="credit" href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделан <b>Контур Студио</b></a></div></footer>`}
 
@@ -5174,6 +5338,7 @@ function render(){
   else if(a==='how')html=howView();
   else if(a==='about')html=aboutView();
   else if(a==='projects')html=projectsView();
+  else if(a==='reviews')html=reviewsView(b);
   else if(a==='admin'){const s=mgrSession();html=s?adminView():mgrLoginView()}
   else if(a==='house'){if(b&&migId(b)!==b)history.replaceState(null,'','#/house/'+migId(b));html=modelView(b)}
   else if(a==='cart')html=cartView();

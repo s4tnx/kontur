@@ -766,6 +766,28 @@ footer{padding:50px 0 34px}
 .field textarea{min-height:80px;resize:vertical}
 .empty{border:1px dashed var(--line2);border-radius:22px;padding:60px 24px;text-align:center;display:grid;gap:16px;justify-items:center;color:var(--muted)}
 @media (max-width:860px){.cart{grid-template-columns:1fr}.line{grid-template-columns:100px 1fr}.line canvas{width:100px;height:80px}.line .r{grid-column:1/-1;justify-items:start;text-align:left}}
+/* юридические страницы, согласие в формах, плашка cookie */
+.legal{max-width:840px;padding-bottom:90px}
+.legal h2{font-size:clamp(19px,2.2vw,24px);margin:34px 0 10px}
+.legal p,.legal li{color:var(--text);font-size:15px;line-height:1.7;max-width:76ch}
+.legal p+p{margin-top:10px}
+.legal ul{padding-left:20px;display:grid;gap:6px;margin:8px 0 12px}
+.legal .muted{color:var(--muted);font-size:13.5px}
+.legal-card{border:1px solid var(--line);border-radius:18px;padding:18px 20px;background:var(--panel);margin:18px 0}
+.pd-ok{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;font-size:13px;color:var(--muted);line-height:1.5;cursor:pointer;text-align:left}
+.pd-ok input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--lamp);cursor:pointer}
+.pd-ok a{color:var(--lamp2);text-decoration:underline;text-underline-offset:3px}
+.ck-bar{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:95;max-width:780px;margin:0 auto;
+  display:flex;gap:14px 18px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:16px 18px;
+  border:1px solid var(--line2);border-radius:18px;background:var(--panel);box-shadow:0 18px 40px rgba(0,0,0,.45);animation:fade .3s both}
+.ck-bar p{font-size:13.5px;color:var(--muted);line-height:1.55;flex:1 1 320px;margin:0}
+.ck-bar p a{color:var(--lamp2);text-decoration:underline;text-underline-offset:3px}
+.ck-bar div{display:flex;gap:8px;flex-wrap:wrap}
+.ck-bar .btn{height:40px;font-size:13.5px;padding:0 18px}
+@media (max-width:760px){.ck-bar{bottom:calc(94px + env(safe-area-inset-bottom))}.ck-bar div{width:100%}.ck-bar .btn{flex:1;justify-content:center}}
+.legal-links{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:12px;font-size:12px;font-family:var(--mono)}
+.legal-links a,.legal-links button{color:var(--dim);font:inherit;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.legal-links a:hover,.legal-links button:hover{color:var(--lamp)}
 /* отзывы */
 .rev-sum{display:flex;flex-wrap:wrap;gap:14px;align-items:center;border:1px solid var(--line);border-radius:20px;padding:18px 22px;background:var(--panel);margin-bottom:18px}
 .rev-sum b{font-family:var(--display);font-weight:600;font-size:30px;line-height:1}
@@ -4143,9 +4165,10 @@ function cartView(){
       const dsc=Math.round(total*pr.pct/100);
       return `<div class="promo-rows"><div><span>Сумма</span><b class="num">${rub(total)}</b></div><div><span>Промокод ${esc(pr.code)} · −${pr.pct}%</span><b class="num" style="color:var(--lamp2)">− ${rub(dsc)}</b></div></div>
       <div class="tot"><span style="color:var(--muted)">Итого со скидкой</span><b class="num">${rub(total-dsc)}</b></div>`})()}
+    ${pdConsent('pdCart')}
     ${user?`<button class="btn lamp" type="submit" style="justify-content:center">Отправить заявку</button>`:`<button class="btn lamp" type="submit" style="justify-content:center">Отправить заявку</button>
     <button class="link" type="button" data-login style="justify-self:center">Войти, чтобы следить за стройкой</button>`}
-    <p class="note">Отправляя заявку, вы соглашаетесь на обработку персональных данных: имя, телефон и адрес участка нужны, чтобы менеджер связался с вами и посчитал доставку.</p>
+    <p class="note">Имя, телефон и адрес участка нужны, чтобы менеджер связался с вами и посчитал доставку.</p>
     <p class="note"><b style="color:var(--text);font-weight:500">Оплата — по окончании работ.</b> Цена фиксируется в договоре после выезда на участок. Вопросы по заявке — <a class="num" style="color:var(--lamp2)" href="tel:+79998886099">+7 999 888-60-99</a>.</p>
   </form></div></div>`;
 }
@@ -4728,6 +4751,7 @@ function revFormHTML(){
         <div class="field"><label for="rvCity">Город</label><input id="rvCity" name="city" maxlength="40" value="${esc(String(ct).split(',')[0]||'')}" placeholder="Тверь"></div>
         <div class="field"><label for="rvObj">Что построили</label><input id="rvObj" name="obj" maxlength="60" value="${esc(revObj())}" placeholder="Онега 6×8"></div></div>
       <div class="field"><label for="rvText">Отзыв</label><textarea id="rvText" name="text" maxlength="900" required placeholder="Как прошла стройка, что понравилось, что стоит знать другим"></textarea></div>
+      <label class="pd-ok"><input type="checkbox" name="pubok" required><span>Даю согласие на распространение моих персональных данных (имени и города) вместе с текстом отзыва на странице отзывов сайта konturhouse.ru. Согласие можно отозвать, тогда отзыв будет удалён. <a href="#/consent" target="_blank" rel="noopener">Подробнее</a></span></label>
       <button class="btn lamp" type="submit" style="justify-content:center;justify-self:start">Опубликовать отзыв</button></form>`}
   const head=st==='guest'?'Отзыв могут оставить наши клиенты'
     :st==='noorder'?'Пока оставлять отзыв рано'
@@ -4761,13 +4785,112 @@ function reviewsView(kind){
     <footer><span class="num">${revWhen(r.at)}</span>
       ${r.mine?'<span class="ok">ваш отзыв</span>':'<span class="ok">строились у нас</span>'}
       ${staffNow&&r.srv?`<button type="button" class="link" data-revdel="${r.id}">Удалить</button>`:''}</footer></article>`).join('')}</div></div>`}
+/* ---------- юридическое: 152-ФЗ «О персональных данных» ----------
+   Реквизиты оператора. Как только заполните — они сами появятся в политике
+   и в согласии. Пока поля пустые, оператор назван владельцем сайта. */
+const LEGAL={
+  name:'',        /* например: 'ИП Соловьёв Никита Сергеевич' */
+  inn:'',         /* ИНН */
+  ogrn:'',        /* ОГРНИП или ОГРН */
+  address:'',     /* почтовый адрес для письменных обращений */
+  email:''        /* почта для обращений по персональным данным */
+};
+const LEGAL_DATE='23 сентября 2026 г.';
+const legalWho=()=>LEGAL.name?[LEGAL.name,LEGAL.inn&&`ИНН ${LEGAL.inn}`,LEGAL.ogrn&&`${LEGAL.ogrn.length>13?'ОГРНИП':'ОГРН'} ${LEGAL.ogrn}`].filter(Boolean).join(', ')
+  :'владелец сайта konturhouse.ru, работающий под названием «Контур Дома»';
+const legalContacts=()=>[LEGAL.email&&`электронная почта <a class="link" href="mailto:${LEGAL.email}">${LEGAL.email}</a>`,
+  'телефон <a class="link num" href="tel:+79998886099">+7 999 888-60-99</a>','сообщение в чате личного кабинета на сайте',
+  LEGAL.address&&`письмо по адресу: ${esc(LEGAL.address)}`].filter(Boolean);
+/* галочка согласия для форм: без неё форма не отправится */
+const pdConsent=id=>`<label class="pd-ok"><input type="checkbox" name="pdok" id="${id}" required><span>Даю <a href="#/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и подтверждаю, что ознакомлен(а) с <a href="#/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a></span></label>`;
+function privacyView(){
+  return `<div class="wrap legal"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Документы</span><h1>Политика обработки персональных данных</h1></div></div>
+  <p class="muted">Редакция от ${LEGAL_DATE}. Действует для сайта konturhouse.ru, его страниц и приложения, установленного с сайта на телефон или компьютер.</p>
+  <h2>1. Общие положения</h2>
+  <p>Политика составлена в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных» и описывает, какие данные мы собираем, зачем, как храним и защищаем, и какие права есть у вас.</p>
+  <p>Оператор персональных данных: ${esc(legalWho())}. Далее — «мы» или «Оператор».</p>
+  <h2>2. Какие данные мы обрабатываем</h2>
+  <p>Данные, которые вы сообщаете сами:</p>
+  <ul><li>имя, фамилия и отчество;</li><li>номер телефона;</li><li>адрес электронной почты (при регистрации личного кабинета);</li>
+    <li>регион и адрес участка, где планируется стройка;</li><li>сведения о заказе: выбранный проект, комплектация, планировка, комментарии;</li>
+    <li>переписка с менеджером и документы, загруженные в личный кабинет;</li><li>текст отзыва, имя и город, если вы оставляете отзыв.</li></ul>
+  <p>Данные, которые собираются автоматически: IP-адрес, сведения о браузере и устройстве, адреса посещённых страниц, дата и время посещения, файлы cookie. Аналитические cookie (Яндекс Метрика) собираются только после вашего согласия.</p>
+  <p>Мы не обрабатываем специальные категории данных (о здоровье, убеждениях и т. п.) и биометрические данные.</p>
+  <h2>3. Зачем мы это делаем</h2>
+  <ul><li>регистрация и работа личного кабинета;</li><li>приём и обработка заявок, расчёт стоимости и доставки, обратная связь;</li>
+    <li>заключение и исполнение договора на строительство дома или модуля;</li><li>ответы на вопросы и обращения;</li>
+    <li>публикация отзывов, если вы дали на это отдельное согласие;</li><li>анализ работы сайта и его улучшение, если вы разрешили аналитические cookie.</li></ul>
+  <h2>4. Правовые основания</h2>
+  <p>Ваше согласие на обработку персональных данных (п. 1 ч. 1 ст. 6 152-ФЗ); заключение и исполнение договора, стороной которого вы являетесь (п. 5 ч. 1 ст. 6 152-ФЗ); отдельное согласие на распространение данных при публикации отзыва (ст. 10.1 152-ФЗ).</p>
+  <h2>5. Как мы обрабатываем и храним данные</h2>
+  <p>Обработка ведётся с использованием средств автоматизации и без них: сбор, запись, систематизация, накопление, хранение, уточнение, извлечение, использование, передача (предоставление, доступ), обезличивание, блокирование, удаление, уничтожение.</p>
+  <p>Данные хранятся в базе данных на серверах хостинг-провайдера, расположенных на территории Российской Федерации. Запись, систематизация, накопление, хранение, уточнение и извлечение данных граждан РФ ведутся с использованием баз данных, находящихся в РФ.</p>
+  <p>Срок хранения — до достижения целей обработки или до отзыва согласия. Данные личного кабинета хранятся, пока существует кабинет. Сведения, связанные с заключённым договором, хранятся в течение сроков, установленных законодательством (в том числе о бухгалтерском учёте).</p>
+  <h2>6. Кому мы передаём данные</h2>
+  <p>Мы не продаём и не передаём ваши данные для рекламы третьих лиц. Доступ к данным получают только:</p>
+  <ul><li>хостинг-провайдер, на серверах которого работает сайт, — для хранения данных;</li>
+    <li>ООО «ЯНДЕКС» — сервис Яндекс Метрика, только если вы разрешили аналитические cookie;</li>
+    <li>государственные органы — в случаях, прямо предусмотренных законом.</li></ul>
+  <p>Трансграничная передача данных не ведётся.</p>
+  <h2>7. Файлы cookie</h2>
+  <p>Cookie — небольшие файлы, которые сайт сохраняет в вашем браузере. Мы используем два вида:</p>
+  <ul><li><b>необходимые</b> — вход в личный кабинет, корзина, избранное, выбранная тема оформления и настройки калькулятора. Без них сайт не работает, поэтому они включены всегда;</li>
+    <li><b>аналитические</b> — Яндекс Метрика: считает посещения, показывает, какие страницы полезны, а какие нет. Включаются только после согласия в плашке внизу сайта.</li></ul>
+  <p>Изменить выбор можно в любой момент: <button type="button" class="link" data-cksettings>настройки cookie</button>. Также cookie можно удалить или запретить в настройках браузера.</p>
+  <h2>8. Ваши права</h2>
+  <ul><li>узнать, какие ваши данные мы обрабатываем, и получить их копию;</li><li>потребовать уточнить, заблокировать или удалить данные, если они неполные, устарели или обрабатываются незаконно;</li>
+    <li>отозвать согласие на обработку и на распространение данных;</li><li>обжаловать наши действия в Роскомнадзоре или в суде.</li></ul>
+  <p>Чтобы воспользоваться правами, напишите нам любым удобным способом:</p>
+  <ul>${legalContacts().map(c=>`<li>${c};</li>`).join('')}</ul>
+  <p>Мы ответим в течение 10 рабочих дней с момента получения обращения. Срок может быть продлён не более чем на 5 рабочих дней, о чём мы сообщим с объяснением причин.</p>
+  <h2>9. Как мы защищаем данные</h2>
+  <p>Соединение с сайтом защищено шифрованием (HTTPS). Пароли хранятся только в виде необратимого хеша, их не видит никто, включая сотрудников. Доступ к заявкам и переписке есть только у вас и у сотрудников, которым он нужен для работы. Файл базы данных и загруженные документы закрыты от доступа из интернета.</p>
+  <h2>10. Заключительные положения</h2>
+  <p>Мы можем обновлять политику. Новая редакция вступает в силу с момента публикации на этой странице, дата редакции указана вверху. Текст согласия на обработку персональных данных опубликован отдельно: <a class="link" href="#/consent">согласие на обработку персональных данных</a>.</p></div>`}
+function consentView(){
+  return `<div class="wrap legal"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Документы</span><h1>Согласие на обработку персональных данных</h1></div></div>
+  <p class="muted">Редакция от ${LEGAL_DATE}.</p>
+  <p>Отмечая галочку «Даю согласие на обработку персональных данных» в форме регистрации, заявки или обратного звонка на сайте konturhouse.ru, я свободно, своей волей и в своём интересе даю конкретное, предметное, информированное, сознательное и однозначное согласие на обработку моих персональных данных.</p>
+  <div class="legal-card"><p><b>Оператор:</b> ${esc(legalWho())}.</p></div>
+  <h2>Какие данные</h2>
+  <p>Фамилия, имя, отчество; номер телефона; адрес электронной почты; регион и адрес участка; сведения о заказе (проект, комплектация, планировка, комментарии); переписка с менеджером и документы, загруженные в личный кабинет.</p>
+  <h2>Для чего</h2>
+  <p>Регистрация и работа личного кабинета; приём и обработка заявок; расчёт стоимости и доставки; связь со мной по заявке; подготовка, заключение и исполнение договора; ответы на мои обращения.</p>
+  <h2>Какие действия</h2>
+  <p>Сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, передача (предоставление, доступ) хостинг-провайдеру для хранения данных, обезличивание, блокирование, удаление, уничтожение. С использованием средств автоматизации и без них.</p>
+  <h2>Срок и отзыв</h2>
+  <p>Согласие действует до достижения целей обработки или до его отзыва. Отозвать согласие можно в любой момент, написав Оператору:</p>
+  <ul>${legalContacts().map(c=>`<li>${c};</li>`).join('')}</ul>
+  <p>После отзыва Оператор прекращает обработку и уничтожает данные в течение 30 дней, за исключением случаев, когда обработка продолжается на законных основаниях, например для исполнения заключённого договора.</p>
+  <h2>Отзывы</h2>
+  <p>Публикация имени и города вместе с отзывом — это распространение персональных данных. На него даётся отдельное согласие галочкой в форме отзыва, и оно тоже может быть отозвано: отзыв будет удалён со страницы.</p>
+  <p class="muted" style="margin-top:22px">Порядок обработки данных подробно описан в <a class="link" href="#/privacy">политике обработки персональных данных</a>.</p></div>`}
+/* ---------- cookie ----------
+   Необходимые (кабинет, корзина, избранное, тема) хранятся в браузере и работают всегда.
+   Яндекс Метрика включается только после «Принять все». Выбор хранится в браузере. */
+const cookieChoice=()=>{try{return store.get('cookies',null)}catch(e){return null}};
+function cookieInit(){const c=cookieChoice();if(c==='all')ymInit();else if(!c)setTimeout(cookieBar,900)}
+function cookieBar(){if(document.querySelector('.ck-bar'))return;
+  const el=document.createElement('div');el.className='ck-bar';el.setAttribute('role','dialog');el.setAttribute('aria-label','Файлы cookie');
+  el.innerHTML=`<p>Мы используем cookie. Необходимые нужны, чтобы работали кабинет и корзина. Аналитические (Яндекс Метрика) помогают понять, что улучшить на сайте, и включаются только с вашего согласия. <a href="#/privacy">Подробнее</a></p>
+    <div><button type="button" class="btn lamp" data-ck="all">Принять все</button><button type="button" class="btn" data-ck="necessary">Только необходимые</button></div>`;
+  document.body.appendChild(el)}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-ck]');if(!b)return;
+  const v=b.dataset.ck,was=cookieChoice();try{store.set('cookies',v)}catch(ex){}
+  document.querySelector('.ck-bar')?.remove();
+  if(v==='all'&&was!=='all'){ymInit();setTimeout(ymHit,400);toast('Спасибо! Настройки cookie сохранены')}
+  else if(v==='necessary'&&was==='all'){toast('Аналитика отключена');setTimeout(()=>location.reload(),700)}
+  else toast('Настройки cookie сохранены')});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cksettings]');if(!b)return;e.preventDefault();
+  document.querySelector('.ck-bar')?.remove();cookieBar()});
 function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>
   <div><h4>Дома</h4><ul>${MODELS.slice(0,4).map(m=>`<li><a href="#/house/${m.id}">${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>&nbsp;</h4><ul>${MODELS.slice(4).map(m=>`<li><a href="#/house/${m.id}">${m.name}</a></li>`).join('')}</ul></div>
   <div><h4>Покупателю</h4><ul><li><a href="#/projects">Наши проекты</a></li><li><a href="#/about">О компании</a></li><li><a href="#/modules">Модули для проживания</a></li><li><a href="#/how">Технологии</a></li><li><a href="#/process">Этапы стройки</a></li><li><a href="#/faq">Вопросы</a></li><li><a href="#/reviews">Отзывы</a></li><li><a href="#/account">Личный кабинет</a></li></ul></div>
   <div><h4>Связь</h4><ul><li><a class="num" style="font-size:16px;color:var(--text)" href="tel:+79998886099">+7 999 888-60-99</a></li><li style="color:var(--muted);font-size:13.5px">Ежедневно 9:00–21:00</li><li><a href="#" data-contact>Заказать звонок</a></li></ul></div>
-  </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span><a class="credit" href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделан <b>Контур Студио</b></a></div></footer>`}
+  </div><div class="foot-big" aria-hidden="true">КОНТУР</div><div class="copy"><span>© ${new Date().getFullYear()} Контур Дома · <a class="num" href="tel:+79998886099">+7 999 888-60-99</a></span><span>Цены указаны за холодный контур</span><a class="credit" href="https://t.me/+79998886099" target="_blank" rel="noopener">Сайт сделан <b>Контур Студио</b></a></div>
+  <div class="legal-links"><a href="#/privacy">Политика конфиденциальности</a><a href="#/consent">Согласие на обработку данных</a><button type="button" data-cksettings>Настройки cookie</button></div></footer>`}
 
 /* ---------- страница «Технологии»: узлы, сваи, материалы, конструктор стены ---------- */
 const NODES={
@@ -5400,6 +5523,8 @@ function render(){
   else if(a==='about')html=aboutView();
   else if(a==='projects')html=projectsView();
   else if(a==='reviews')html=reviewsView(b);
+  else if(a==='privacy')html=privacyView();
+  else if(a==='consent')html=consentView();
   else if(a==='admin'){const s=mgrSession();html=s?adminView():mgrLoginView()}
   else if(a==='house'){if(b&&migId(b)!==b)history.replaceState(null,'','#/house/'+migId(b));html=modelView(b)}
   else if(a==='cart')html=cartView();
@@ -5724,6 +5849,7 @@ function openContact(){
     <div class="field"><label for="cn">Имя</label><input id="cn" name="name" autocomplete="name" value="${user?esc(user.name):''}" required></div>
     <div class="field"><label for="cp">Телефон</label><input id="cp" name="phone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00" required></div>
     <div class="field"><label for="ct">Удобное время</label><select id="ct" name="time"><option>Как можно скорее</option><option>10:00–13:00</option><option>13:00–17:00</option><option>17:00–20:00</option></select></div>
+    ${pdConsent('pdCall')}
     <button class="btn lamp" type="submit" style="justify-content:center">Жду звонка</button>
     <p class="note">${SB.on?'Перезвоним в рабочее время.':'Демо-форма: номер сохраняется только в этом браузере.'}</p></form>`;
   el.querySelector('.x').onclick=()=>el.remove();el.addEventListener('click',e=>{if(e.target===el)el.remove()});
@@ -5779,6 +5905,7 @@ function openAuth(mode='in'){
     ${mode==='up'?`<div class="field"><label for="an">Имя</label><input id="an" name="name" autocomplete="name" required></div>`:''}
     <div class="field"><label for="ae">Эл. почта</label><input id="ae" name="email" type="email" autocomplete="email" required></div>
     <div class="field pw"><label for="ap">Пароль</label><input id="ap" name="pass" type="password" autocomplete="${mode==='in'?'current-password':'new-password'}" minlength="6" required><button type="button" class="eye" data-eye aria-label="Показать пароль">показать</button></div>
+    ${mode==='up'?pdConsent('pdReg'):''}
     <p class="err" id="aerr"></p>
     <button class="btn lamp" type="submit" style="justify-content:center">${mode==='in'?'Войти':'Создать аккаунт'}</button>
     <p class="note">${SB.on?'Аккаунт общий для всех ваших устройств: заявки и документы хранятся у нас, а не в браузере.':'Пока аккаунт и заявки сохраняются только в этом браузере — для общего кабинета нужно подключить базу.'}</p>
@@ -5790,6 +5917,7 @@ function openAuth(mode='in'){
       const email=String(fd.get('email')||'').trim().toLowerCase(),pass=String(fd.get('pass')||''),name=String(fd.get('name')||'').trim();
       if(!/^\S+@\S+\.\S+$/.test(email))return err.textContent='Проверьте адрес почты — в нём должен быть символ @ и домен.';
       if(pass.length<6)return err.textContent='Пароль должен быть не короче 6 символов.';
+      if(mode==='up'&&!fd.get('pdok'))return err.textContent='Отметьте согласие на обработку персональных данных: без него мы не можем создать аккаунт.';
       if(SB.on&&SB.kind==='api'){
         try{const d=mode==='up'?await apiReq('register',{json:{email,pass,name}}):await apiReq('login',{json:{email,pass}});
           apiSetToken(d.token);srvUser(d.user);await sbLoadOrders();
@@ -5877,7 +6005,7 @@ document.addEventListener('click',async e=>{if(!e.target.closest||!e.target.clos
 let toastT;function toast(msg){document.querySelector('.toast')?.remove();const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);clearTimeout(toastT);toastT=setTimeout(()=>t.remove(),2200)}
 let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{window.__heroResize?.();document.querySelectorAll('canvas[data-scene]').forEach(c=>{const m=byId(c.dataset.scene);scene(c,m,{fixed:!!c.dataset.fixed,hz:+c.dataset.hz||.64,gy:+c.dataset.gy||.84,fw:+c.dataset.fw||.6,fh:+c.dataset.fh||.6,stars:c.dataset.stars!=='0',seed:m.w*13+m.d*7})})},150)});
 addEventListener('hashchange',render);
-ymInit();
+cookieInit();
 appInit();
 updateHeader();
 modWarm();

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE yml_catalog SYSTEM "shops.dtd">
+<yml_catalog date="2026-09-22 23:57">
+  <shop>
+    <name>Контур Дома</name>
+    <company>Контур Дома</company>
+    <url>https://konturhouse.ru/</url>
+    <currencies><currency id="RUR" rate="1"/></currencies>
+    <categories>
+      <category id="1">Каркасные дома</category>
+      <category id="2">Модули для проживания</category>
+      <category id="3">Услуги</category>
+    </categories>
+    <offers>
+    <offer id="dom-ladoga" available="true">
+      <name>Каркасный дом «Ладога» 6×5 м, 30 м²</name>
+      <url>https://konturhouse.ru/dom-ladoga.html</url>
+      <price>816368</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h6x4.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Ломаная кровля со смещённым коньком и встроенной террасой в габарите дома: два панорамных окна 180×180, окно 100×120, две перегородки и две межкомнатные двери. Дом одноэтажный, 30 м²: 1 спальня, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 3 дня. Цена указана за холодный контур в размере 6×5 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="dom-onega" available="true">
+      <name>Каркасный дом «Онега» 6×4 м, 24 м²</name>
+      <url>https://konturhouse.ru/dom-onega.html</url>
+      <price>721056</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h6x5.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Компактный дом на выходные для двоих: прямоугольный, без террасы, вход через небольшое боковое крыльцо. Дом одноэтажный, 24 м²: 1 спальня, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 3 дня. Цена указана за холодный контур в размере 6×4 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="dom-seliger" available="true">
+      <name>Каркасный дом «Селигер» 6×5 м, 30 м²</name>
+      <url>https://konturhouse.ru/dom-seliger.html</url>
+      <price>745920</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h6x6.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Одна светлая комната и терраса 2 м во всю длину под общей кровлей. Дом одноэтажный, 30 м²: 1 спальня, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 4 дня. Цена указана за холодный контур в размере 6×5 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="dom-valdai" available="true">
+      <name>Каркасный дом «Валдай» 6×5 м, 30 м²</name>
+      <url>https://konturhouse.ru/dom-valdai.html</url>
+      <price>779072</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h6x7.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Две спальни — для семьи с ребёнком. Дом одноэтажный, 30 м²: 2 спальни, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 5 дней. Цена указана за холодный контур в размере 6×5 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="dom-vuoksa" available="true">
+      <name>Каркасный дом «Вуокса» 6×5 м, 30 м²</name>
+      <url>https://konturhouse.ru/dom-vuoksa.html</url>
+      <price>824656</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h6x8.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Вытянутый барнхаус для постоянной жизни. Дом одноэтажный, 30 м²: 2 спальни, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 5 дней. Цена указана за холодный контур в размере 6×5 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="dom-karelia" available="true">
+      <name>Каркасный дом «Карелия» 6×8 м, 41,9 м²</name>
+      <url>https://konturhouse.ru/dom-karelia.html</url>
+      <price>1089872</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h8x8.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Одноэтажный дом: спальня, просторная кухня-гостиная, душ и Г-образная терраса вдоль гостиной и торца. Дом одноэтажный, 41,9 м²: 1 спальня, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 14 дней. Цена указана за холодный контур в размере 6×8 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="dom-altai" available="true">
+      <name>Каркасный дом «Алтай» 6×5 м, 30 м²</name>
+      <url>https://konturhouse.ru/dom-altai.html</url>
+      <price>779072</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h10x10.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Две спальни, большая гостиная и терраса во всю длину под общей кровлей. Дом одноэтажный, 30 м²: 2 спальни, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 12 дней. Цена указана за холодный контур в размере 6×5 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="dom-baikal" available="true">
+      <name>Каркасный дом «Байкал» 6×8 м, 72 м²</name>
+      <url>https://konturhouse.ru/dom-baikal.html</url>
+      <price>1877232</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>1</categoryId>
+      <picture>https://konturhouse.ru/h12x10.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Дом со стеклянным фронтоном: двухэтажный центральный объём 6×5 м, кухня-столовая в левом крыле и спальня в правом. Дом с мансардой, 72 м²: 3 спальни, санузел. Фундамент: бетонные блоки 400×200×200. Собирается за 12 дней. Цена указана за холодный контур в размере 6×8 м, тёплый контур и «под ключ» считаются в калькуляторе на сайте. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="modul-pion" available="true">
+      <name>Модуль для проживания «Пион» 5×2 м</name>
+      <url>https://konturhouse.ru/modul-pion.html</url>
+      <price>135000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>2</categoryId>
+      <picture>https://konturhouse.ru/mod1.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Компактная бытовка для дачи и стройки. Модуль 5×2 м, 10 м². Каркас из сухой строганой доски, утепление 50–150 мм, вагонка внутри, окна и утеплённая дверь. Собираем прямо на вашем участке за 1–3 дня. Размеры от 5×2 до 6×2 м, цена от 135 000 до 154 000 ₽. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="modul-kedr" available="true">
+      <name>Модуль для проживания «Кедр» 5×3 м</name>
+      <url>https://konturhouse.ru/modul-kedr.html</url>
+      <price>182000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>2</categoryId>
+      <picture>https://konturhouse.ru/mod2.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Самый ходовой размер: комната и место для кухни. Модуль 5×3 м, 15 м². Каркас из сухой строганой доски, утепление 50–150 мм, вагонка внутри, окна и утеплённая дверь. Собираем прямо на вашем участке за 1–3 дня. Размеры от 5×3 до 6×3 м, цена от 182 000 до 211 000 ₽. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="modul-iva" available="true">
+      <name>Модуль для проживания «Ива» 5×4 м</name>
+      <url>https://konturhouse.ru/modul-iva.html</url>
+      <price>230000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>2</categoryId>
+      <picture>https://konturhouse.ru/mod3.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Квадратный модуль под спальню и душ. Модуль 5×4 м, 20 м². Каркас из сухой строганой доски, утепление 50–150 мм, вагонка внутри, окна и утеплённая дверь. Собираем прямо на вашем участке за 1–3 дня. Размеры от 5×4 до 5×5 м, цена от 230 000 до 277 000 ₽. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="modul-dubrava" available="true">
+      <name>Модуль для проживания «Дубрава» 6×4 м</name>
+      <url>https://konturhouse.ru/modul-dubrava.html</url>
+      <price>267000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>2</categoryId>
+      <picture>https://konturhouse.ru/mod4.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Просторный модуль с местом под террасу. Модуль 6×4 м, 24 м². Каркас из сухой строганой доски, утепление 50–150 мм, вагонка внутри, окна и утеплённая дверь. Собираем прямо на вашем участке за 1–3 дня. Размеры от 6×4 до 6×5 м, цена от 267 000 до 324 000 ₽. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="modul-bereg" available="true">
+      <name>Модуль для проживания «Берег» 6×6 м</name>
+      <url>https://konturhouse.ru/modul-bereg.html</url>
+      <price>381000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>2</categoryId>
+      <picture>https://konturhouse.ru/mod5.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Самый большой: полноценный дом на одну комнату и кухню. Модуль 6×6 м, 36 м². Каркас из сухой строганой доски, утепление 50–150 мм, вагонка внутри, окна и утеплённая дверь. Собираем прямо на вашем участке за 1–3 дня. Размеры от 6×6 до 6×6 м, цена от 381 000 до 381 000 ₽. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="svc-custom" available="true">
+      <name>Каркасный дом по вашим размерам</name>
+      <url>https://konturhouse.ru/#/custom</url>
+      <price>650000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>3</categoryId>
+      <picture>https://konturhouse.ru/hero.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Дом любого габарита от 3×3 до 18×24 м: вы задаёте размеры и планировку, мы считаем смету и собираем на участке. Расчёт в калькуляторе на сайте занимает пять минут, цена фиксируется в договоре. Цена указана как ориентир за небольшой дом в холодном контуре. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="svc-warm" available="true">
+      <name>Утепление дома до тёплого контура</name>
+      <url>https://konturhouse.ru/uteplenie-karkasnogo-doma.html</url>
+      <price>250000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>3</categoryId>
+      <picture>https://konturhouse.ru/h6x6.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Плиточно-базальтовый утеплитель 100–250 мм по кругу: пол, стены, потолок. Пароизоляция с проклейкой стыков, внутренняя обшивка вагонкой, плита OSB-3 15 мм на пол. Подходит и для домов, построенных раньше. Цена зависит от площади, указана от. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="svc-bath" available="true">
+      <name>Баня каркасная под ключ</name>
+      <url>https://konturhouse.ru/nashi-proekty.html</url>
+      <price>420000</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>3</categoryId>
+      <picture>https://konturhouse.ru/pr5.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Каркасная баня на участке: парная, моечная и комната отдыха. Печь, дымоход и обшивка липой или осиной. Собираем одной бригадой вместе с домом, так выходит дешевле, чем заказывать у разных подрядчиков. В цену входит сборка на вашем участке. Оплата по окончании работ, гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.</description>
+    </offer>
+    <offer id="svc-delivery" available="true">
+      <name>Доставка и сборка на участке</name>
+      <url>https://konturhouse.ru/dostavka-i-sborka.html</url>
+      <price>300</price>
+      <currencyId>RUR</currencyId>
+      <categoryId>3</categoryId>
+      <picture>https://konturhouse.ru/h6x8.jpg</picture>
+      <vendor>Контур Дома</vendor>
+      <description>Доставка материалов по Центральному федеральному округу: 300 ₽ за километр от производства. Сборка на вашем участке входит в стоимость дома или модуля, отдельно платить за работу не нужно. Дом собирается за 3–14 дней в зависимости от размера, модуль — за 1–3 дня.</description>
+    </offer>
+    </offers>
+  </shop>
+</yml_catalog>

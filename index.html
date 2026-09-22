@@ -3510,7 +3510,8 @@ const cParts=c=>({...basePartsOf({plan:cPlan(c)}),...(c.parts||{})});
 const customViz=()=>({w:customState.w,d:customState.d,floors:customState.floors==='2'?2:customState.floors==='1.5'?1.5:1,
   facade:cSel(customState,'facade'),roof:cSel(customState,'roof'),wins:cWins(customState),terrace:0,plan:cPlan(customState),ver:cVer(customState),parts:cParts(customState),
   winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides,roofShape:(customState.planBase&&byId(customState.planBase)||{}).roofShape,
-  mdl:customModel(),plan:planOf(customModel(),getCfg(customModel())),openings:openingsOf(customModel(),getCfg(customModel())),idoors:idoorsOf(customModel(),getCfg(customModel()))});
+  mdl:customModel(),plan:planOf(customModel(),getCfg(customModel())),openings:openingsOf(customModel(),getCfg(customModel())),idoors:idoorsOf(customModel(),getCfg(customModel())),
+  walls:drawnWalls(getCfg(customModel()))});
 const cModel=()=>({w:customState.w,d:customState.d,ver:cVer(customState),plan:cPlan(customState),
   wins:cWins(customState),winSides:(customState.planBase&&byId(customState.planBase)||{}).winSides});
 function refreshCustom(groups){

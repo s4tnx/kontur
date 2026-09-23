@@ -425,12 +425,17 @@ def house_page(h, all_houses):
     return slug, page(slug, title, desc, body, nav)
 
 
+def min_house(houses):
+    """Самый доступный дом: минимум по всем размерам всех проектов, холодный контур."""
+    return min(s['price'] for h in houses for s in (h.get('sizes') or [{'price': h['price']}]))
+
+
 def houses_hub(houses):
     slug = 'karkasnye-doma.html'
     title = 'Каркасные дома под ключ — 8 проектов от 6×4 до 12×10 м | Контур Дома'
     desc = ('Каркасные дома под ключ: восемь проектов от %s. Свой размер с шагом 0,5 м, расчёт сметы онлайн, '
             'сборка на участке за 3–14 дней, гарантия 3 года, оплата по окончании работ.'
-            % rub(min(h['price'] for h in houses)))
+            % rub(min_house(houses)))
     cards = ''.join(
         f"""<a class="card" href="dom-{h['id']}.html">
   <img src="{h['photo']}" alt="Каркасный дом «{esc(h['name'])}»" loading="lazy">
@@ -498,7 +503,7 @@ def prices_page(houses, mods):
     title = 'Цены на каркасные дома и модули 2026 — прайс | Контур Дома'
     desc = ('Актуальные цены: каркасные дома от %s, модули от %s. Три комплектации, '
             'сборка на участке включена, доставка 300 ₽ за км, оплата по окончании работ.'
-            % (rub(min(h['price'] for h in houses)), rub(min(s['price'] for m in mods for s in m['sizes']))))
+            % (rub(min_house(houses)), rub(min(s['price'] for m in mods for s in m['sizes']))))
     rows = ''.join(
         f"<tr><td>«{esc(h['name'])}» {fmt(h['w'])} × {fmt(h['d'])} м</td><td>{fmt(h['area'])} м²</td>"
         f"<td>{rub(h['price'])}</td><td>{rub(h['warm'])}</td><td>{rub(h['key'])}</td></tr>" for h in houses)
@@ -843,7 +848,7 @@ QA = [
  ('Когда нужно платить?',
   'Оплата производится по окончании работ — после того как вы примете готовый дом и подпишете акт. Предоплату за работу мы не берём.'),
  ('Сколько стоит каркасный дом под ключ?',
-  'От 816 368 ₽ за компактный дом в холодном контуре. Тот же дом под ключ обходится примерно вдвое дороже: в цену входят электрика, вода, сантехника, освещение и чистовая отделка. Полный прайс есть на странице цен.'),
+  'От {MIN_HOUSE} за компактный дом в холодном контуре. Тот же дом под ключ обходится примерно вдвое дороже: в цену входят электрика, вода, сантехника, освещение и чистовая отделка. Полный прайс есть на странице цен.'),
  ('Нужно ли разрешение на строительство?',
   'Для жилого дома до 20 метров по каждой стороне разрешение не требуется — достаточно уведомления о планируемом строительстве. Поможем его оформить.'),
  ('Какая гарантия?',
@@ -861,15 +866,17 @@ QA = [
 ]
 
 
-def faq_page():
+def faq_page(houses=None):
     slug = 'voprosy.html'
     title = 'Вопросы о каркасных домах — отвечаем честно | Контур Дома'
     desc = ('Можно ли жить зимой, сколько стоит под ключ, нужно ли разрешение, когда платить, '
             'куда доставляем — ответы на частые вопросы о каркасных домах и модулях.')
-    items = ''.join('<h3>%s</h3>\n<p>%s</p>\n' % (esc(q), esc(a)) for q, a in QA)
+    mh = rub(min_house(houses)) if houses else ''
+    qa = [(q, a.replace('{MIN_HOUSE}', mh)) for q, a in QA]
+    items = ''.join('<h3>%s</h3>\n<p>%s</p>\n' % (esc(q), esc(a)) for q, a in qa)
     ld_items = ',\n '.join(
         '{"@type":"Question","name":"%s","acceptedAnswer":{"@type":"Answer","text":"%s"}}' % (esc(q), esc(a))
-        for q, a in QA)
+        for q, a in qa)
     ld = ('<script type="application/ld+json">\n{"@context":"https://schema.org","@type":"FAQPage",'
           '"mainEntity":[\n %s\n]}\n</script>' % ld_items)
     body = PAGE_FAQ % {'items': items, 'ld': ld, 'phone': PHONE, 'phref': PHONE_HREF}
@@ -881,7 +888,7 @@ def faq_page():
 
 # ---------- статьи под длинный хвост ----------
 def article_pages(houses):
-    lo = rub(min(h['price'] for h in houses))
+    lo = rub(min_house(houses))
     nav = ('<a href="karkasnye-doma.html">Каркасные дома</a> <a href="moduli-dlya-prozhivaniya.html">Модули</a> '
            '<a href="tseny.html">Цены</a> <a href="dostavka-i-sborka.html">Доставка</a> '
            '<a href="voprosy.html">Вопросы</a>')
@@ -938,7 +945,7 @@ def main():
     cpath = os.path.join(os.path.dirname(os.path.abspath(src)), 'cities.json')
     cities = json.load(io.open(cpath, encoding='utf-8')) if os.path.exists(cpath) else []
     pages = [houses_hub(d['houses']), mods_page(d['mods']), prices_page(d['houses'], d['mods']),
-             projects_page(d['prj']), about_page(), delivery_page(cities), faq_page(), err404_page()]
+             projects_page(d['prj']), about_page(), delivery_page(cities), faq_page(d['houses']), err404_page()]
     pages += [house_page(h, d['houses']) for h in d['houses']]
     pages += size_pages(d['houses'])
     pages += mod_pages(d['mods'])

@@ -2438,7 +2438,7 @@ function home(){
       <button data-contact aria-label="Написать в WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l1.2-3.8A8 8 0 1 1 8 19z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.6-2-1-1 .8a4 4 0 0 1-1.9-1.9l.8-1-1-2z"/></svg></button>
       <button data-contact aria-label="Заказать звонок"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></button>
     </div>
-    <div class="hero-cta glass"><p>Восемь размеров<br>от 6×4 до 12×10 м</p><b class="num">от ${(MODELS[0].price*PKGS[0].k/1e6).toFixed(2).replace('.',',')} млн ₽</b><a class="btn solid" href="#/catalog" style="justify-content:center">Выбрать дом</a></div>
+    <div class="hero-cta glass"><p>Восемь размеров<br>от 6×4 до 12×10 м</p><b class="num">от ${(Math.min(...MODELS.map(minPrice))/1e6).toFixed(2).replace('.',',')} млн ₽</b><a class="btn solid" href="#/catalog" style="justify-content:center">Выбрать дом</a></div>
     <div class="stats glass">
       <div class="stat"><b class="num">8</b><span>размеров в линейке</span></div>
       <div class="stat"><b class="num">3–14</b><span>дней на сборку</span></div>

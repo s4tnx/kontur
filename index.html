@@ -64,7 +64,7 @@
 :root[data-theme="light"] .hero{background:#C8CEDA!important}
 :root[data-theme="light"] .hero::before{background:linear-gradient(rgba(20,23,30,.35),rgba(20,23,30,0))}
 :root[data-theme="light"] .wordmark h1 i{color:#FFFFFF;text-shadow:0 14px 60px rgba(40,70,120,.35)}
-:root[data-theme="light"] .foot-big{opacity:.06}
+:root[data-theme="light"] .foot-big{color:#DCD5C9}
 :root[data-theme="light"] .card .pic,:root[data-theme="light"] .stage{background:#E6E2DA}
 :root[data-theme="light"] .viz{background:radial-gradient(120% 90% at 50% 0%,#FFFFFF,#ECE8E1 70%)} 
 :root[data-theme="light"] header.top{background:rgba(246,244,240,.94);border-bottom-color:rgba(28,26,24,.16)}
@@ -463,6 +463,10 @@ header.top{transition:background .4s,border-color .4s}
 .socials button,.socials a{width:42px;height:42px;border-radius:50%;border:1px solid rgba(236,232,225,.35);display:grid;place-items:center;transition:.25s;color:inherit}
 .socials button:hover,.socials a:hover{background:#EDEBE8;color:#111}
 .socials svg{width:17px;height:17px}
+/* при смене темы значки и стеклянные плашки главного фото перетекают вместе с рассветом/закатом */
+html.theme-anim .socials a,html.theme-anim .socials button,html.theme-anim .hero .glass{
+  transition:background-color 2.4s cubic-bezier(.4,0,.2,1),color 2.4s cubic-bezier(.4,0,.2,1),border-color 2.4s cubic-bezier(.4,0,.2,1),box-shadow 2.4s cubic-bezier(.4,0,.2,1)!important}
+html.theme-anim .foot-big{transition:color 1.2s}
 .stats{position:absolute;right:0;bottom:0;height:72px;padding:0 clamp(18px,3vw,40px);display:flex;align-items:center;gap:clamp(18px,3vw,40px);border-radius:16px 0 0 0;animation:fade 1s 1.7s both}
 .stat{display:flex;align-items:center;gap:10px}
 .stat b{font-family:var(--display);font-weight:600;font-size:clamp(22px,2.4vw,32px);letter-spacing:-.03em}
@@ -6202,6 +6206,7 @@ function setTheme(mode){
   if(mode==='light')document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.removeAttribute('data-theme');
   try{localStorage.setItem('kontur-theme',mode)}catch(e){}
+  const de=document.documentElement;de.classList.add('theme-anim');clearTimeout(de._ta);de._ta=setTimeout(()=>de.classList.remove('theme-anim'),2800);
   /* главное фото: тёплый отсвет восходящего или заходящего солнца на время перехода */
   const hr=document.querySelector('.hero');if(hr){hr.classList.remove('dawn','sunset');void hr.offsetWidth;hr.classList.add(mode==='light'?'dawn':'sunset');
     clearTimeout(hr._sun);hr._sun=setTimeout(()=>hr.classList.remove('dawn','sunset'),3800)}

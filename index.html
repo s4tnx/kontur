@@ -4061,7 +4061,7 @@ const SB={c:null,on:false,kind:'',orders:[],docs:{},role:'client',loading:false}
 /* пользователь пришёл с сервера — раскладываем по местам */
 function srvUser(u){if(!u){user=null;SB.role='client';SB.orders=[];store.set('user',null);loadUserData();updateHeader();return}
   SB.role=u.role||'client';user={name:u.name||u.email,email:u.email,id:u.id,role:SB.role,pdok:u.pdok||0};store.set('user',user);loadUserData();updateHeader();
-  setTimeout(guestClaim,0)}
+  setTimeout(async()=>{await guestClaim();await flushLocal()},0)}
 const API_FIXED=API_URL;
 async function apiDetect(){
   if(API_FIXED)return true;
@@ -4079,6 +4079,32 @@ async function guestClaim(){let g=[];try{g=store.get('guestOrders',[])}catch(e){
   if(!user||!g.length||SB.kind!=='api')return;
   try{const d=await apiReq('claim',{json:{list:g}});store.set('guestOrders',[]);
     if(d&&d.claimed){await sbLoadOrders();toast(d.claimed>1?`${d.claimed} заявки перенесены в ваш кабинет`:'Ваша заявка перенесена в кабинет — переписка с менеджером здесь');render()}}catch(e){}}
+/* заявки и звонки, которые раньше остались только в браузере (не было связи с сервером),
+   отправляем, как только сервер доступен. Отправленные из браузера удаляем, чтобы не задвоить. */
+let flushBusy=false;
+async function flushLocal(){
+  if(flushBusy||!isProd()||!SB.on||SB.kind!=='api')return;flushBusy=true;let sent=0;
+  try{
+    const keys=['orders.guest'];if(user&&user.email)keys.push('orders.'+user.email);
+    for(const k of keys){let list=[];try{list=store.get(k,[])||[]}catch(e){}
+      if(!list.length)continue;const keep=[];
+      for(const o of list){
+        if(!o||!o.items||!o.items.length||!o.phone){continue}
+        try{const res=await apiReq('order',{json:{...o,total:orderPay(o),comment:[o.comment,'(заявка догружена: была сохранена в браузере клиента '+new Date(o.at||Date.now()).toLocaleString('ru-RU')+')'].filter(Boolean).join(' ')}});
+          guestKeep(res,o.no);sent++}
+        catch(e){keep.push(o)}}
+      store.set(k,keep)}
+    let cbs=[];try{cbs=store.get('callbacks',[])||[]}catch(e){}
+    if(cbs.length){const keep=[];
+      for(const c of cbs){if(!c||!c.phone)continue;
+        try{const res=await apiReq('order',{json:{no:String(1000+Math.floor(Math.random()*9000)),items:[],fio:c.name||'',phone:c.phone,
+            email:user?user.email:'',region:'',total:0,callback:1,
+            comment:`Обратный звонок · удобное время: ${c.time||'не указано'} (оставлен ${new Date(c.at||Date.now()).toLocaleString('ru-RU')}, догружен из браузера клиента)`}});
+          guestKeep(res,'');sent++}
+        catch(e){keep.push(c)}}
+      store.set('callbacks',keep)}
+  }finally{flushBusy=false}
+  if(sent){await sbLoadOrders();render();toast(sent>1?`Отправили менеджеру ${sent} ваших прошлых заявки`:'Отправили менеджеру вашу прошлую заявку')}}
 function guestAfterOrder(no){document.querySelector('.modal')?.remove();
   const el=document.createElement('div');el.className='modal';
   el.innerHTML=`<div class="dialog"><button type="button" class="x" aria-label="Закрыть">✕</button>
@@ -4104,7 +4130,10 @@ async function sbInit(){
   await apiDetect();
   if(API_URL){SB.on=true;SB.kind='api';
     try{if(apiToken){const d=await apiReq('me');srvUser(d.user)}}catch(e){apiSetToken(null)}
-    await sbLoadOrders();revLoad();render();return}
+    /* сайт помнит имя, а сервер вход не подтвердил: без этого заявки уходили бы «гостем» и пропадали из кабинета */
+    if(user&&!apiToken){user=null;store.set('user',null);SB.role='client';loadUserData();updateHeader();
+      setTimeout(()=>{toast('Войдите в кабинет ещё раз — так заявки и переписка будут у вас');if(/^#\/(account|cart)/.test(location.hash))openAuth('in')},700)}
+    await sbLoadOrders();revLoad();render();flushLocal();return}
   if(!SB_URL||!SB_ANON)return;
   SB.kind='sb';
   try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
@@ -4546,7 +4575,8 @@ function accountView(tab,sub){
     ${installBtn()}
     <a class="btn staff-in" href="#/admin">Вход для сотрудников</a></div>
     ${favs.length?`<div class="sec-head"><h2>Избранное на этом устройстве</h2></div><div class="grid" style="margin-bottom:80px">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:''}</div>`;
-  const orders=SB.on?SB.orders.filter(o=>o.email===user.email):store.get('orders.'+user.email,[]);
+  const staffNow=SB.role==='manager'||SB.role==='admin';
+  const orders=SB.on?SB.orders.filter(o=>staffNow?o.email===user.email:true):(isProd()?[]:store.get('orders.'+user.email,[]));
   tab=tab||'orders';
   const body=tab==='fav'?(favs.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">${favs.map(byId).filter(Boolean).map(card).join('')}</div>`:`<div class="empty"><p>Нажмите ♡ на карточке дома, чтобы сохранить его здесь.</p><a class="btn" href="#/catalog">В каталог</a></div>`)
    :tab==='promo'?`<form class="summary" id="promoForm" style="position:static;max-width:520px"><h3 style="font-size:20px">Промокод на скидку</h3>

@@ -4341,6 +4341,7 @@ async function ensureApi(){
       return true}
     await new Promise(r=>setTimeout(r,700))}
   return SB.on}
+const userPage=()=>/^#\/(account|admin|cart|reviews)/.test(location.hash);
 async function sbInit(){
   await apiDetect();
   if(API_URL){SB.on=true;SB.kind='api';
@@ -4348,7 +4349,10 @@ async function sbInit(){
     /* сайт помнит имя, а сервер вход не подтвердил: без этого заявки уходили бы «гостем» и пропадали из кабинета */
     if(user&&!apiToken){user=null;store.set('user',null);SB.role='client';loadUserData();updateHeader();
       setTimeout(()=>{toast('Войдите в кабинет ещё раз — так заявки и переписка будут у вас');if(/^#\/(account|cart)/.test(location.hash))openAuth('in')},700)}
-    await sbLoadOrders();revLoad();render();flushLocal();return}
+    /* ответ сервера: перерисовываем только страницы, где видны кабинет, заявки и отзывы —
+       главную и каталог не трогаем, иначе заставка проигрывается второй раз и мелькает */
+    await sbLoadOrders();revLoad();if(userPage())render();
+    else document.querySelectorAll('.fav[data-fav]').forEach(b=>b.classList.toggle('on',favs.includes(b.dataset.fav)));flushLocal();return}
   if(!SB_URL||!SB_ANON)return;
   SB.kind='sb';
   try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');

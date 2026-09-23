@@ -859,6 +859,23 @@ footer{padding:50px 0 34px}
 .hp-card em{font-style:normal;font-family:var(--display);font-weight:600;font-size:17px;margin:2px 0 4px}
 .hp-card .btn{height:36px;font-size:13px;padding:0 14px;justify-self:start}
 .hp-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0}
+.hp-compose{display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:var(--panel)}
+.hp-compose input{flex:1;min-width:0;height:44px;border:1px solid var(--line2);border-radius:22px;background:var(--panel2);color:var(--text);padding:0 16px;font:inherit;font-size:14.5px}
+.hp-compose input:focus{outline:none;border-color:var(--lamp)}
+.hp-send,.hp-mic{flex:none;width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;padding:0}
+.hp-send{background:var(--lamp);color:#1a120a}
+.hp-mic{background:var(--panel2);color:var(--text);border:1px solid var(--line2)}
+.hp-mic.on{background:#E2553D;color:#fff;border-color:#E2553D;animation:hpPulse 1.2s infinite}
+.hp-send svg,.hp-mic svg{width:20px;height:20px}
+.hp-chips{display:flex;flex-wrap:wrap;gap:6px}
+.hp-chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.hp-chip:hover{border-color:var(--lamp);background:var(--panel2)}
+.hp-typing{display:flex;gap:4px;padding:13px 14px}
+.hp-typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:hpDots 1s infinite}
+.hp-typing i:nth-child(2){animation-delay:.15s}.hp-typing i:nth-child(3){animation-delay:.3s}
+@keyframes hpDots{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.hp-hint{font-size:11.5px;color:var(--dim);padding:0 14px 8px;margin-top:-4px}
+@media (max-width:760px){.hp-compose input{font-size:16px}}
 @media (max-width:760px){
   .hp-fab{right:14px;bottom:calc(88px + env(safe-area-inset-bottom));width:56px;height:56px}
   body:has(.mdock.show) .hp-fab{bottom:calc(152px + env(safe-area-inset-bottom))}
@@ -5029,6 +5046,7 @@ function privacyView(){
     <li>ООО «ЯНДЕКС» — сервис Яндекс Метрика, только если вы разрешили аналитические cookie;</li>
     <li>государственные органы — в случаях, прямо предусмотренных законом.</li></ul>
   <p>Трансграничная передача данных не ведётся.</p>
+  <p>Голосовой ввод в помощнике «Контур ИИ» распознаёт сам браузер посетителя средствами своего разработчика (например, Google или Яндекс) по его правилам. Сайт получает только готовый текст, аудио не записывает и не хранит. Сообщения помощнику обрабатываются в браузере и на наш сервер не отправляются, пока посетитель сам не оформит заявку. Чтобы посчитать доставку, название населённого пункта или адрес, которые посетитель вписал в помощнике или калькуляторе, передаются картографическим сервисам OpenStreetMap — только сам адрес, без имени и телефона.</p>
   <h2>7. Файлы cookie</h2>
   <p>Cookie — небольшие файлы, которые сайт сохраняет в вашем браузере. Мы используем два вида:</p>
   <ul><li><b>необходимые</b> — вход в личный кабинет, корзина, избранное, выбранная тема оформления и настройки калькулятора. Без них сайт не работает, поэтому они включены всегда;</li>
@@ -5085,12 +5103,14 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   else toast('Настройки cookie сохранены')});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cksettings]');if(!b)return;e.preventDefault();
   document.querySelector('.ck-bar')?.remove();cookieBar()});
-/* ---------- помощник по выбору дома (бесплатный опросник) ----------
-   Кнопка в правом нижнем углу: 4–5 вопросов — и 2–3 готовых варианта с ценой.
-   Цену считает тот же калькулятор, что на сайте, поэтому она совпадает со сметой.
+/* ---------- помощник «Контур ИИ» (без языковой модели) ----------
+   Понимает свободный текст и голос по ключевым словам и числам: что строим, людей и детей,
+   спальни, размер, площадь, этажи, террасу, сезон, бюджет и город. Подбирает варианты
+   настоящим калькулятором (цена совпадает со сметой), отвечает на частые вопросы и понимает
+   уточнения. Чего не понял — переспрашивает кнопками. Голос распознаёт сам браузер.
    Выключить помощника целиком: HELPER_ON = false. */
 const HELPER_ON=true;
-const HP={step:0,ans:{},log:[],result:'',picks:[]};
+const HP={ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,rec:false};
 const HP_FACE='<span class="hp-face"><span class="hp-eyes"><i class="hp-eye"><b></b></i><i class="hp-eye"><b></b></i></span><i class="hp-smile"></i></span>';
 /* глазки следят за курсором (на компьютере); без движения мыши снова оглядываются сами */
 let hpTrackT=0;
@@ -5102,18 +5122,19 @@ addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;
 const HELP_MOD0=JSON.parse(JSON.stringify(modState));   /* модуль «по умолчанию» — до любых правок посетителя */
 const hpHideRoute=()=>/^#\/(admin|cart|account|privacy|consent)/.test(location.hash);
 const HP_Q={
-  kind:{q:'Привет! Я Контур ИИ. Помогу тебе подобрать дом и сразу посчитаю цену. Что хочешь построить?',
+  kind:{q:'Привет! Я Контур ИИ. Помогу подобрать дом и сразу посчитаю цену. Напиши своими словами, что нужно, — или выбери:',
     opts:[['life','Дом, чтобы жить круглый год'],['dacha','Дачный дом на сезон'],['mod','Модуль: гостевой домик, кабинет, бытовка']]},
+  season:{q:'Жить в доме круглый год или приезжать на сезон?',opts:[['life','Круглый год'],['dacha','На сезон, как дача']]},
   people:{q:'Сколько человек будет жить в доме?',opts:[['2','1–2 человека'],['4','3–4 человека'],['6','5 и больше']]},
   budget:{q:'На какой бюджет ориентируешься? Вместе с доставкой.',
     opts:[['1000000','До 1 млн ₽'],['1500000','До 1,5 млн ₽'],['2500000','До 2,5 млн ₽'],['4000000','До 4 млн ₽'],['0','Пока не знаю']]},
   terrace:{q:'Нужна терраса или веранда?',opts:[['1','Да, хочу'],['0','Не обязательно']]},
   use:{q:'Для чего нужен модуль?',opts:[['guest','Гостевой домик или жить летом'],['office','Кабинет или мастерская'],['site','Бытовка на стройку, для инструмента']]},
   winter:{q:'Будешь пользоваться им зимой?',opts:[['1','Да, круглый год'],['0','Только в тёплое время']]},
-  place:{q:'Где участок? Напиши город или посёлок — посчитаю доставку по дорогам.',input:1}
+  place:{q:'Где участок? Напиши город или посёлок — посчитаю доставку по дорогам.',opts:[['skip','Пропустить']]}
 };
-const hpOrder=()=>HP.ans.kind==='mod'?['kind','use','winter','place']:['kind','people','budget','terrace','place'];
 const hpSeen=()=>{try{sessionStorage.setItem('kontur.hp','1')}catch(e){}};
+const hpSay=(html,me)=>HP.log.push({html,me:!!me});
 function helperInit(){if(!HELPER_ON||document.querySelector('.hp-fab'))return;
   const b=document.createElement('button');b.type='button';b.className='hp-fab';b.setAttribute('aria-label','Контур ИИ: подобрать дом');b.title='Контур ИИ — подобрать дом';
   b.innerHTML='<span class="hp-blob">'+HP_FACE+'</span><i class="hp-dot"></i>';
@@ -5126,83 +5147,284 @@ function helperRoute(){const f=document.querySelector('.hp-fab');if(!f)return;co
 function helperTease(){if(document.querySelector('.hp-panel,.hp-tease,.modal,.ck-bar')||hpHideRoute())return;
   const f=document.querySelector('.hp-fab');if(!f||f.hidden)return;
   const el=document.createElement('div');el.className='hp-tease';el.setAttribute('role','button');el.tabIndex=0;
-  el.innerHTML='<button type="button" class="hp-tease-x" aria-label="Скрыть">✕</button><b>Привет! Я Контур ИИ</b><span>Помогу тебе подобрать дом и сразу посчитаю цену с доставкой</span>';
-  const fab=document.querySelector('.hp-fab');if(fab){fab.classList.add('happy');setTimeout(()=>fab.classList.remove('happy'),4000)}
+  el.innerHTML='<button type="button" class="hp-tease-x" aria-label="Скрыть">✕</button><b>Привет! Я Контур ИИ</b><span>Напиши или скажи, какой дом нужен, — подберу и посчитаю цену с доставкой</span>';
+  f.classList.add('happy');setTimeout(()=>f.classList.remove('happy'),4000);
   el.onclick=e=>{el.remove();if(e.target.closest('.hp-tease-x')){hpSeen();return}helperOpen()};
   document.body.appendChild(el);setTimeout(()=>el.remove(),15000)}
 function helperOpen(){hpSeen();document.querySelector('.hp-tease')?.remove();if(document.querySelector('.hp-panel'))return;
   const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Контур ИИ — помощник по выбору дома');
   document.body.appendChild(p);document.body.classList.add('hp-open');
-  HP.step=0;HP.ans={};HP.log=[];HP.result='';HP.picks=[];helperAsk();ymGoal('helper')}
-function helperClose(){document.querySelector('.hp-panel')?.remove();document.body.classList.remove('hp-open')}
-function helperAsk(){const p=document.querySelector('.hp-panel');if(!p)return;
-  const order=hpOrder(),key=order[HP.step],Q=key&&HP_Q[key];
-  const log=HP.log.map(m=>`<div class="hp-msg${m.me?' me':''}">${m.html}</div>`).join('');
-  const tail=!Q?HP.result:`<div class="hp-msg">${esc(Q.q)}</div>`+(Q.input
-    ?`<form class="hp-in" data-hpplace><input name="place" placeholder="Например: Тверь или Истра" autocomplete="off" aria-label="Город или посёлок"><button class="btn lamp" type="submit">Дальше</button></form><button type="button" class="hp-skip" data-hpskip>Пропустить</button>`
-    :`<div class="hp-opts">${Q.opts.map(o=>`<button type="button" class="hp-opt" data-hpans="${key}:${o[0]}">${esc(o[1])}</button>`).join('')}</div>`);
-  p.innerHTML=`<div class="hp-head"><div class="hp-head-l"><span class="hp-ava">${HP_FACE}</span><div><b>Контур ИИ</b><span>${Q?`Вопрос ${HP.step+1} из ${order.length}`:'Готово'}</span></div></div>
-    <div class="hp-head-b">${HP.step?'<button type="button" class="hp-mini" data-hpreset>Заново</button>':''}<button type="button" class="hp-x" data-hpclose aria-label="Закрыть">✕</button></div></div>
-    <div class="hp-body">${log}${tail}</div>`;
+  hpReset();ymGoal('helper')}
+function hpReset(){Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false});hpStep()}
+function helperClose(){if(hpRec){try{hpRec.abort()}catch(e){}}document.querySelector('.hp-panel')?.remove();document.body.classList.remove('hp-open')}
+const hpVoiceOK=()=>!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+function helperRender(){const p=document.querySelector('.hp-panel');if(!p)return;
+  const keep=p.querySelector('.hp-compose input')?.value||'';
+  const log=HP.log.map(m=>m.raw!=null?m.raw:`<div class="hp-msg${m.me?' me':''}">${m.html}</div>`).join('');
+  const Q=!HP.busy&&HP.ask&&HP_Q[HP.ask];
+  const quick=Q?`<div class="hp-opts">${Q.opts.map(o=>`<button type="button" class="hp-opt" data-hpans="${HP.ask}:${o[0]}">${esc(o[1])}</button>`).join('')}</div>`
+    :(!HP.busy&&HP.chips.length?`<div class="hp-chips">${HP.chips.map(c=>`<button type="button" class="hp-chip" data-hpsay="${esc(c)}">${esc(c)}</button>`).join('')}</div>`:'');
+  const typing=HP.busy?'<div class="hp-msg hp-typing" aria-label="печатает"><i></i><i></i><i></i></div>':'';
+  const mic=hpVoiceOK()?`<button type="button" class="hp-mic${HP.rec?' on':''}" data-hpmic aria-label="${HP.rec?'Остановить запись':'Сказать голосом'}" title="Сказать голосом — речь распознаёт браузер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>`:'';
+  p.innerHTML=`<div class="hp-head"><div class="hp-head-l"><span class="hp-ava">${HP_FACE}</span><div><b>Контур ИИ</b><span>${HP.busy?'печатает…':HP.rec?'слушаю…':'подберу дом и отвечу на вопросы'}</span></div></div>
+    <div class="hp-head-b">${HP.log.length>1?'<button type="button" class="hp-mini" data-hpreset>Заново</button>':''}<button type="button" class="hp-x" data-hpclose aria-label="Закрыть">✕</button></div></div>
+    <div class="hp-body">${log}${typing}${quick}</div>
+    <form class="hp-compose" data-hpform>${mic}<input name="t" placeholder="${HP.rec?'Говори…':HP.ask==='place'?'Город или посёлок':'Например: дом для четверых зимой до 2 млн'}" autocomplete="off" aria-label="Сообщение помощнику"><button class="hp-send" type="submit" aria-label="Отправить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></form>`;
+  const inp=p.querySelector('.hp-compose input');if(keep)inp.value=keep;
   const body=p.querySelector('.hp-body');body.scrollTop=body.scrollHeight;
-  const inp=p.querySelector('.hp-in input');if(inp)setTimeout(()=>inp.focus(),60)}
+  if(matchMedia('(pointer:fine)').matches&&!HP.rec)setTimeout(()=>inp.focus({preventScroll:true}),40)}
+/* что спросить дальше; при свободном тексте необязательное не спрашиваем */
+function hpNeed(){const a=HP.ans;
+  if(!a.kind)return a.houseWord?'season':'kind';
+  if(a.kind==='mod'){if(!a.use)return 'use';if(a.winter==null)return 'winter';if(!HP.free&&a.place==null)return 'place';return null}
+  if(!a.people&&!a.area&&!a.size&&!a.beds)return 'people';
+  if(HP.free)return null;
+  if(a.budget==null)return 'budget';if(a.terrace==null)return 'terrace';if(a.place==null)return 'place';return null}
+async function hpStep(){const k=hpNeed();
+  if(k){if(HP.ask!==k){HP.ask=k;hpSay(esc(HP_Q[k].q))}HP.chips=[];helperRender();return}
+  HP.ask=null;await hpResults();helperRender()}
+/* ---------- разбор свободного текста ---------- */
+const HP_NUM={'один':1,'одна':1,'одного':1,'одним':1,'одну':1,'одной':1,'два':2,'две':2,'двое':2,'двух':2,'двоих':2,'двумя':2,'три':3,'трое':3,'трех':3,'троих':3,'тремя':3,
+  'четыре':4,'четверо':4,'четырех':4,'четверых':4,'четырьмя':4,'пять':5,'пятеро':5,'пяти':5,'пятерых':5,'пятью':5,'шесть':6,'шестеро':6,'шести':6,'семь':7};
+const hpN=w=>/^\d+$/.test(w)?+w:(HP_NUM[w]||(w.startsWith('одн')?1:w.startsWith('дв')?2:0));
+const HP_CITY=[
+ ['Москва','москва москве москву москвы москвой подмосковье подмосковья подмосковном'],['Тверь','тверь твери тверью тверская тверской'],
+ ['Калуга','калуга калуге калугу калуги калугой калужская калужской'],['Тула','тула туле тулу тулы тулой тульская тульской'],
+ ['Рязань','рязань рязани рязанью рязанская рязанской'],['Владимир','владимире владимирская владимирской'],
+ ['Ярославль','ярославль ярославле ярославля ярославская ярославской'],['Смоленск','смоленск смоленске смоленска смоленская смоленской'],
+ ['Кострома','кострома костроме кострому костромы костромская костромской'],['Иваново','иваново иванове ивановская ивановской'],
+ ['Брянск','брянск брянске брянска брянская брянской'],['Орёл','орел орле орловская орловской'],['Курск','курск курске курска курская курской'],
+ ['Белгород','белгород белгороде белгорода белгородская белгородской'],['Липецк','липецк липецке липецка липецкая липецкой'],
+ ['Тамбов','тамбов тамбове тамбова тамбовская тамбовской'],['Воронеж','воронеж воронеже воронежа воронежская воронежской'],
+ ['Истра','истра истре истру истрой'],['Дмитров','дмитров дмитрове дмитрова'],['Клин','клину клине клином'],['Серпухов','серпухов серпухове серпухова'],
+ ['Подольск','подольск подольске подольска'],['Коломна','коломна коломне коломну коломной'],['Обнинск','обнинск обнинске обнинска'],
+ ['Наро-Фоминск','наро фоминск наро фоминске'],['Раменское','раменское раменском'],['Химки','химки химках'],['Мытищи','мытищи мытищах'],
+ ['Пушкино','пушкино'],['Домодедово','домодедово'],['Егорьевск','егорьевск егорьевске'],['Ступино','ступино'],['Можайск','можайск можайске'],
+ ['Волоколамск','волоколамск волоколамске'],['Чехов','чехов чехове'],['Дубна','дубна дубне дубну'],['Звенигород','звенигород звенигороде'],
+ ['Руза','руза рузе рузу'],['Солнечногорск','солнечногорск солнечногорске'],['Сергиев Посад','сергиев посад сергиевом посаде сергиев посаде'],
+ ['Кашира','кашира кашире'],['Зарайск','зарайск зарайске'],['Переславль-Залесский','переславль переславле переславля'],['Александров','александров александрове'],
+ ['Ногинск','ногинск ногинске'],['Орехово-Зуево','орехово зуево'],['Шатура','шатура шатуре'],['Кимры','кимры кимрах'],['Конаково','конаково']];
+function hpCity(orig,t){
+  for(const [name,forms] of HP_CITY){const fs=forms.split(' ');
+    for(let k=0;k<fs.length;k++){const two=fs[k]+' '+(fs[k+1]||'');
+      if(fs[k+1]&&t.includes(' '+two+' '))return name;
+      if(t.includes(' '+fs[k]+' '))return name}}
+  const m=orig.match(/(?:^|\s)(?:в|во|под|около|возле|рядом с|город|пос[её]лок|деревня|деревне|снт|село)\s+([А-ЯЁ][а-яё-]{2,}(?:\s[А-ЯЁ][а-яё-]+)?)/);
+  return m?m[1]:null}
+function hpBudget(t){let m,v=0;
+  if(m=t.match(/(\d+(?:[.,]\d+)?)\s*(?:млн|миллион|лям)/))v=+m[1].replace(',','.')*1e6;
+  else if(/полтора\s*(?:млн|миллион|лям)/.test(t))v=1.5e6;
+  else if(/полутора\s*(?:млн|миллион)/.test(t))v=1.5e6;
+  else if(m=t.match(/(один|одного|два|две|двух|три|трех|четыре|четырех|пять|пяти|шесть|шести)\s*(?:млн|миллион)/))v=hpN(m[1])*1e6;
+  else if(/(?:до|в|за|около|не больше|не дороже)\s+(?:одного\s+)?миллион/.test(t))v=1e6;
+  else if(/полмиллиона|пол миллиона/.test(t))v=5e5;
+  else if(m=t.match(/(\d{3,4})\s*(?:тыс|т\.?р\.?|к)(?=[^а-я]|$)/))v=+m[1]*1000;
+  else if(m=t.match(/тысяч\s+(?:за|в|до|около|примерно)?\s*(\d{3,4})/))v=+m[1]*1000;
+  else if(m=t.match(/(\d[\d ]{5,11}\d)/)){const n=+m[1].replace(/ /g,'');if(n>=100000)v=n}
+  return v>=100000&&v<=50000000?v:0}
+function hpFaqKey(t){
+  if(/когда плат|оплат|предоплат|платить|аванс/.test(t))return 'pay';
+  if(/гарант/.test(t))return 'warranty';
+  if(/строит[еь]? .*зим|строите .*зим|зимой стро|строите ли|собираете .*зим/.test(t))return 'winterbuild';
+  if(/(сколько|как долго|как быстро|за сколько)[^.?!]*(стро|собира|делает|дней|времени)|срок/.test(t))return 'time';
+  if(/доставк|привез|довез/.test(t))return 'delivery';
+  if(/разрешени|уведомлени|документ|оформит/.test(t))return 'permit';
+  if(/ипотек|кредит|рассрочк/.test(t))return 'mortgage';
+  if(/фундамент|свая|сваи|сваях|ушп/.test(t))return 'foundation';
+  if(/утепл|тепл(ый|о) ли|холодно ли|не замерз/.test(t))return 'insulation';
+  if(/менеджер|позвони|перезвон|связаться|свяжитесь|живой человек|оператор/.test(t))return 'manager';
+  if(/сколько стоит|цена|цены|стоимость|почем|почём/.test(t))return 'price';
+  if(/^ (привет|здравств|добрый|доброе|хай|hello)/.test(t))return 'hello';
+  if(/спасибо|благодар/.test(t))return 'thanks';
+  return null}
+function hpParse(orig){
+  /* знаки препинания убираем, запятую и точку оставляем только внутри чисел: «2,5 млн» */
+  const t=' '+String(orig).toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9.,×*]+/g,' ')
+    .replace(/([^0-9])[.,]/g,'$1 ').replace(/[.,]([^0-9])/g,' $1').replace(/[.,]$/,' ').replace(/\s+/g,' ').trim()+' ';
+  const f={};let m,follow=null;const faq=hpFaqKey(t);
+  if(/ заново | сначала | сбрось | начать снова /.test(t))return{reset:1};
+  /* что строим */
+  if(/модул|бытовк|времянк|гостев(ой|ого|ому)? дом|кабинет|мастерск|хозблок|сторожк/.test(t)){f.kind='mod';
+    if(/бытовк|стройк|инструмент|сторож|хозблок/.test(t))f.use='site';else if(/кабинет|мастерск|офис|работ/.test(t))f.use='office';else f.use='guest'}
+  const isMod=(f.kind||HP.ans.kind)==='mod';
+  const winterW=faq!=='winterbuild'&&/кругл(ый|ого|ом) год|круглогодич|зим|постоянн| пмж |переехать/.test(t),
+        dachaW=/ дач|на лето|летом|летн|сезон|весн|выходн|не зимой/.test(t),
+        lifeW=/для жизни| жить | проживан|для семьи жить/.test(t);
+  if(winterW){if(isMod)f.winter='1';else f.kind='life'}
+  else if(dachaW){if(isMod)f.winter='0';else if(!f.kind)f.kind='dacha'}
+  else if(lifeW&&!isMod&&!f.kind)f.kind='life';
+  if(!f.kind&&!HP.ans.kind&&/ дом| домик| коттедж| жилье| избу/.test(t))f.houseWord=1;
+  /* люди, дети, спальни */
+  if(m=t.match(/(\d+|один|одного|двое|двоих|два|трое|троих|три|четверо|четверых|четыре|пятеро|пятерых|пять|шестеро|шесть)\s*(?:человек|чел |взросл)/))f.people=hpN(m[1]);
+  if(m=t.match(/семь[яиюе] из (\d+|[а-я]+)/)){const n=hpN(m[1]);if(n)f.people=n}
+  if(m=t.match(/ нас (\d+|двое|трое|четверо|пятеро|шестеро) /)){const n=hpN(m[1]);if(n)f.people=n}
+  if(/вдвоем|для двоих| пара | с женой| с мужем| с супруг/.test(t))f.people=f.people||2;
+  if(/больш(ая|ой|ую|ие|их) семь|многодетн/.test(t))f.people=Math.max(f.people||0,5);
+  if(/втроем|для троих/.test(t))f.people=3;if(/вчетвером|для четверых/.test(t))f.people=4;if(/впятером|для пятерых/.test(t))f.people=5;
+  if(m=t.match(/(\d+|один|одним|одного|двое|двух|двумя|два|трое|трех|тремя|три|четверо|четырьмя)\s+(?:дет|ребен|ребят)/)){const k=hpN(m[1]);if(k)f.people=Math.max(f.people||0,k+2)}
+  else if(/ребенк|ребенок|сыном|дочкой|дочерью/.test(t))f.people=Math.max(f.people||0,3);
+  if(m=t.match(/(\d+|одн[аоуй]|дв[еау]|двумя|три|тремя|четыре)\s*(?:спальн|комнат)/)){const n=hpN(m[1]);if(n)f.beds=n}
+  /* размер и площадь */
+  if(m=t.match(/(\d+(?:[.,]\d)?)\s*(?:на|x|х|×|\*)\s*(\d+(?:[.,]\d)?)/)){const w=+m[1].replace(',','.'),d=+m[2].replace(',','.');
+    if(w>=3&&w<=24&&d>=3&&d<=24){f.size=[Math.min(w,d),Math.max(w,d)];f.area=null}}
+  if(!f.size&&(m=t.match(/(\d{2,3})\s*(?:кв|квадрат|м2|м²|метр)/))){const a=+m[1];if(a>=10&&a<=300)f.area=a}
+  /* этажи и терраса */
+  if(/два этажа|двухэтаж|2 этаж|2х этаж|второй этаж|второго этажа/.test(t))f.floors=2;else if(/мансард/.test(t))f.floors=1.5;else if(/одноэтаж|один этаж|одном этаже|без второго/.test(t))f.floors=1;
+  if(/без террас|без веранд|террас[аы]? не нуж|веранд[аы]? не нуж/.test(t))f.terrace='0';else if(/террас|веранд/.test(t))f.terrace='1';
+  /* бюджет */
+  const bud=hpBudget(t);if(bud)f.budget=bud;
+  /* уточнения к уже показанным вариантам */
+  if(/дешевле|подешевле|дорого|бюджетнее|экономнее/.test(t))follow='cheaper';
+  else if(!bud&&/побольше|больше|просторн|шире|крупнее/.test(t)&&!f.size&&!f.area)follow='bigger';
+  else if(/поменьше|меньше|компактн/.test(t)&&!f.size&&!f.area)follow='smaller';
+  return{f,follow,faq,city:hpCity(orig,t),t}}
+/* ---------- ответы на частые вопросы ---------- */
+async function hpGeo(city){let r=null;try{r=await addrLookup(city)}catch(e){}
+  if(r&&r.km){HP.ans.km=r.km;HP.ans.addr=r.name;return true}
+  HP.ans.km=null;hpSay(`Не нашёл «${esc(city)}» на карте — доставку посчитаю условно, а точную сумму покажет калькулятор по адресу.`);return false}
+async function hpFaq(k,got){
+  const A={pay:'Оплата — по окончании работ: сначала мы собираем дом, ты принимаешь его и подписываешь акт, и только потом платишь. Предоплату за работу не берём.',
+    warranty:'Гарантия 3 года на каркас, отделку и инженерию — она прописывается в договоре.',
+    time:'Сборка на участке — от 3 до 14 дней в зависимости от размера дома, модуль собираем за 1–3 дня. От расстояния срок не зависит.',
+    permit:'Для жилого дома до 20 метров по каждой стороне разрешение на строительство не нужно — достаточно уведомления. Поможем его оформить.',
+    mortgage:'Да, каркасный дом можно взять в ипотеку: банки кредитуют ИЖС по договору подряда. Поможем собрать документы для банка.',
+    winterbuild:'Строим круглый год: у каркаса нет мокрых процессов, а винтовые сваи завинчиваются и в мёрзлый грунт.',
+    foundation:'Фундамент подбираем по грунту: бетонные блоки уже в цене, можно винтовые сваи или утеплённую шведскую плиту под тёплый пол.',
+    insulation:'В базе утеплитель 100 мм — для дачи. Для жизни круглый год берут 150 мм, для сильных морозов и севера ЦФО — 200 мм.',
+    thanks:'Пожалуйста! Если что-то ещё — пиши.',
+    hello:'Привет! Расскажи своими словами, какой дом нужен: сколько человек, круглый год или дача, бюджет и где участок.'};
+  if(k==='delivery'){
+    if(got.city&&await hpGeo(got.city)){hpSay(`До «${esc(HP.ans.addr)}» ${HP.ans.km} км по дорогам — доставка ${rub(HP.ans.km*DELIVERY_RATE)}, по ${DELIVERY_RATE} ₽ за километр. Сборка на участке уже входит в цену дома.`);return}
+    hpSay(`Доставка — ${DELIVERY_RATE} ₽ за каждый километр от производства. Напиши город — посчитаю точно.`);if(!HP.ask)HP.ask='place';return}
+  if(k==='price'){hpSay(`Дома — от ${rub(Math.min(...MODELS.map(minPrice)))} за холодный контур, модули — от ${rub(Math.min(...MOD_SIZES.map(modBase)))}. Скажи, что нужно, — посчитаю точную цену с доставкой.`);return}
+  if(k==='manager'){HP.log.push({raw:`<div class="hp-msg">Передам менеджеру — оставь телефон, он перезвонит в рабочее время. Или позвони сам: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.</div><button type="button" class="btn lamp" data-hpcall style="justify-self:start">Заказать звонок</button>`});return}
+  hpSay(A[k])}
+/* ---------- обработка сообщения ---------- */
+async function hpText(txt){txt=String(txt||'').trim();if(!txt||HP.busy)return;
+  hpSay(esc(txt),true);HP.free=true;HP.busy=true;HP.chips=[];helperRender();
+  await new Promise(r=>setTimeout(r,500));
+  try{await hpUnderstand(txt)}catch(e){hpSay('Что-то пошло не так. Попробуй сказать иначе или выбери вариант ниже.')}
+  HP.busy=false;helperRender()}
+async function hpUnderstand(txt){
+  if(HP.ask==='place'&&!/сколько|когда|гарант|цена|стоит|почем/.test(txt.toLowerCase())){
+    if(/пропус|не знаю|потом|без разниц|неважно/.test(txt.toLowerCase()))HP.ans.place='skip';else{HP.ans.city=txt;HP.ans.km=null;HP.ans.place='city'}
+    HP.ask=null;return hpStep()}
+  const g=hpParse(txt);
+  if(g.reset){Object.assign(HP,{ans:{},ask:null,picks:[],last:false});hpSay('Начнём сначала. Расскажи, какой дом нужен.');return hpStep()}
+  const f=g.f,info=Object.keys(f).length>0||!!g.city||(g.follow&&HP.last);
+  if(g.city){HP.ans.city=g.city;HP.ans.km=null;HP.ans.place='city'}
+  Object.keys(f).forEach(k=>{if(f[k]!==null&&f[k]!==undefined)HP.ans[k]=f[k];else delete HP.ans[k]});
+  if(f.size)delete HP.ans.area;
+  if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info)return}
+  if(g.follow&&HP.last)hpFollow(g.follow);
+  if(!info&&!g.faq&&HP.ask){hpSay('Не совсем понял. Выбери вариант ниже или напиши по-другому.');return}
+  if(!info&&!g.faq){hpSay('Пока не понял. Я разбираю размер, бюджет, сколько человек, сезон, этажи, террасу и город. Например: «дом для троих на лето до 1,5 млн под Калугой». Ещё могу рассказать про доставку, сроки и оплату.');
+    HP.chips=['Дом для жизни','Дачный дом','Модуль','Сколько стоит доставка?','Когда платить?'];return}
+  if(info)return hpStep()}
+function hpFollow(k){const a=HP.ans,ar=x=>x.area||(x.s?x.s.w*x.s.d:0);
+  if(!HP.picks.length)return;
+  if(k==='cheaper'){a.budget=Math.max(100000,Math.min(...HP.picks.map(x=>x.total))-1)}
+  if(k==='bigger'){a.area=Math.round(Math.max(...HP.picks.map(ar))*1.25);delete a.size;a.modStep=(a.modStep||0)+1}
+  if(k==='smaller'){a.area=Math.max(18,Math.round(Math.min(...HP.picks.map(ar))*0.8));delete a.size;a.modStep=(a.modStep||0)-1}}
+/* ---------- подбор ---------- */
 const hpCard=(title,sub,total,key,photo)=>`<div class="hp-card">${photo?`<img src="${esc(photo)}" alt="" loading="lazy">`:'<span></span>'}<div><b>${esc(title)}</b><span>${esc(sub)}</span><em class="num">${rub(total)}</em>
   <button type="button" class="btn lamp" data-hpopen="${key}">Открыть расчёт</button></div></div>`;
-function hpHouses(km){const a=HP.ans,year=a.kind==='life',pp=+a.people||2,cap=+a.budget||Infinity,terr=a.terrace==='1',ins=year?'150':'100';
-  const [amin,amax]=pp<=2?[22,48]:pp<=4?[40,82]:[68,240];
+const hpNarrow=(list,fn)=>{const r=list.filter(fn);return r.length?r:list};
+function hpHouses(km){const a=HP.ans,year=a.kind==='life',pp=+a.people||0,cap=+a.budget||Infinity,ins=year?'150':'100';
+  let [amin,amax]=pp?(pp<=2?[22,48]:pp<=4?[40,82]:[68,240]):[20,240];
+  if(a.area){amin=a.area*.82;amax=a.area*1.2}
+  const beds=a.beds||(pp?(pp<=2?1:pp<=4?2:3):1);
   const all=[];
   MODELS.forEach(m=>sizesOf(m).forEach(s=>{const vm=s.id===m.size?m:variant(m,s.id);
     try{const warm={...defaultCfg(vm,'warm'),ins,km},cold={...defaultCfg(vm,'cold'),km};
       all.push({m,vm,warm,cold,tw:computeCalc(vm,warm).total,tc:computeCalc(vm,cold).total,area:livingA(vm),terr:!!vm.ver})}catch(e){}}));
-  /* спален нужно столько, чтобы всем хватило места: 1–2 человека — одна, 3–4 — две, 5+ — три */
-  const beds=pp<=2?1:pp<=4?2:3;
-  const byArea=all.filter(x=>x.area>=amin&&x.area<=amax&&(!terr||x.terr));
-  const byBeds=byArea.filter(x=>(x.vm.beds||1)>=beds);
-  const pool=byBeds.length?byBeds:byArea.length?byArea:all.filter(x=>!terr||x.terr);
-  const mid=(amin+Math.min(amax,amin+36))/2;
+  let pool=all,custom=null;
+  /* «два этажа» и «мансарда» — всё, что выше одного этажа, как в фильтре каталога */
+  const flOK=x=>a.floors>1?x.vm.floors>1:x.vm.floors===1;
+  const base=a.floors?all.filter(flOK):all;
+  if(a.floors&&base.length&&a.size&&!base.some(x=>Math.min(x.vm.w,x.vm.d)===a.size[0]&&Math.max(x.vm.w,x.vm.d)===a.size[1]))HP.floorNote=1;else HP.floorNote=0;
+  if(a.floors&&base.length){const ex=a.size?base.filter(x=>Math.min(x.vm.w,x.vm.d)===a.size[0]&&Math.max(x.vm.w,x.vm.d)===a.size[1]):[];
+    const tgt=a.size?a.size[0]*a.size[1]*.85:(a.area||(amin+amax)/2);
+    pool=ex.length?ex:base.slice().sort((p,q)=>Math.abs(p.area-tgt)-Math.abs(q.area-tgt)).slice(0,12)}
+  else if(a.size){const [w,d]=a.size,ex=all.filter(x=>Math.min(x.vm.w,x.vm.d)===w&&Math.max(x.vm.w,x.vm.d)===d);
+    if(ex.length)pool=ex;else{custom=[w,d];amin=w*d*.62;amax=w*d*1.05;pool=hpNarrow(all,x=>x.area>=amin&&x.area<=amax)}}
+  else pool=hpNarrow(all,x=>x.area>=amin&&x.area<=amax);
+  if(a.floors&&!base.length)HP.floorNote=2;
+  if(a.terrace==='1')pool=hpNarrow(pool,x=>x.terr);
+  pool=hpNarrow(pool,x=>(x.vm.beds||1)>=beds);
+  const mid=a.area||(a.size?a.size[0]*a.size[1]*.85:(amin+Math.min(amax,amin+36))/2);
   const rank=list=>list.slice().sort((p,q)=>Math.abs(p.area-mid)-Math.abs(q.area-mid)||p.total-q.total);
   let mode='warm',list=pool.filter(x=>x.tw<=cap).map(x=>({...x,cfg:x.warm,total:x.tw}));
   if(!list.length){mode='cold';list=pool.filter(x=>x.tc<=cap).map(x=>({...x,cfg:x.cold,total:x.tc}))}
   if(!list.length){mode='near';list=pool.map(x=>({...x,cfg:x.cold,total:x.tc})).sort((p,q)=>p.total-q.total).slice(0,6)}
   const out=[],seen=new Set();for(const x of rank(list)){if(seen.has(x.m.id))continue;seen.add(x.m.id);out.push(x);if(out.length===3)break}
   HP.picks=out;
-  const head=mode==='warm'?`Подобрал ${out.length} ${plural(out.length,['вариант','варианта','вариантов'])} под твои условия:`
+  let head=mode==='warm'?`Подобрал ${out.length} ${plural(out.length,['вариант','варианта','вариантов'])}:`
     :mode==='cold'?'В тёплом контуре в этот бюджет не укладываемся, а в холодном — да. Утеплить можно позже, когда будет удобно:'
     :'В этот бюджет с доставкой пока не укладываемся. Вот самые доступные подходящие варианты:';
-  return{head,cards:out.map((x,i)=>hpCard(`${x.m.name} ${fmtD(x.vm.w)}×${fmtD(x.vm.d)} м`,
-    `${fmtD(x.area)} м² · ${x.vm.beds} ${plural(x.vm.beds,['спальня','спальни','спален'])}${x.terr?' · терраса':''} · ${x.cfg.pkg==='cold'?'холодный контур':'тёплый контур, утеплитель '+ins+' мм'}`,
+  if(HP.floorNote===1)head=`${a.floors>1?'Домов со вторым этажом':'Одноэтажных домов'} ровно ${fmtD(a.size[0])}×${fmtD(a.size[1])} нет — вот ближайшие по площади:`;
+  if(HP.floorNote===2)head=`${a.floors>1?'Домов со вторым этажом':'Одноэтажных домов'} под эти условия нет, вот что подходит:`;
+  if(custom&&!HP.floorNote)head=`Дома ровно ${fmtD(custom[0])}×${fmtD(custom[1])} в каталоге нет, но его можно посчитать в «Своём размере». А вот близкие по площади готовые проекты:`;
+  return{head,custom,cards:out.map((x,i)=>hpCard(`${x.m.name} ${fmtD(x.vm.w)}×${fmtD(x.vm.d)} м`,
+    `${fmtD(x.area)} м² · ${x.vm.beds} ${plural(x.vm.beds,['спальня','спальни','спален'])}${x.vm.floors>1?' · '+floorsOf(x.vm):''}${x.terr?' · терраса':''} · ${x.cfg.pkg==='cold'?'холодный контур':'тёплый контур, утеплитель '+ins+' мм'}`,
     x.total,'h'+i,x.vm.photo||x.m.photo))}}
-function hpModules(km){const a=HP.ans,ins=a.winter==='1'?'150':'50';
-  const sizes=a.use==='site'?['5x2','6x2']:a.use==='office'?['5x3','6x3','5x4']:['5x4','6x4','6x5'];
-  const out=sizes.map(sz=>{const cfg={...JSON.parse(JSON.stringify(HELP_MOD0)),size:sz,ins,km,addr:HP.ans.addr||''};
-    try{return{cfg,total:computeModule(cfg).total,L:modLineOf(sz),s:modSize(cfg)}}catch(e){return null}}).filter(Boolean).slice(0,3);
+const HP_MODS=['5x2','6x2','5x3','6x3','5x4','6x4','5x5','6x5','6x6'];
+function hpModules(km){const a=HP.ans,ins=a.winter==='1'?'150':'50',base=a.use==='site'?0:a.use==='office'?2:4;
+  let st=Math.max(0,Math.min(HP_MODS.length-3,base+(a.modStep||0)*2));
+  if(a.area){let best=0;HP_MODS.forEach((id,k)=>{const s=parseSize(id);if(Math.abs(s.w*s.d-a.area)<Math.abs(parseSize(HP_MODS[best]).w*parseSize(HP_MODS[best]).d-a.area))best=k});st=Math.max(0,Math.min(HP_MODS.length-3,best-1))}
+  const cap=+a.budget||Infinity;
+  let out=HP_MODS.slice(st,st+3).map(sz=>{const cfg={...JSON.parse(JSON.stringify(HELP_MOD0)),size:sz,ins,km,addr:HP.ans.addr||''};
+    try{const s=modSize(cfg);return{cfg,total:computeModule(cfg).total,L:modLineOf(sz),s,area:s.w*s.d}}catch(e){return null}}).filter(Boolean);
+  const fit=out.filter(x=>x.total<=cap);if(fit.length)out=fit;
   HP.picks=out;
-  return{head:`Подобрал ${out.length} ${plural(out.length,['вариант','варианта','вариантов'])}:`,
+  return{head:fit.length||cap===Infinity?`Подобрал ${out.length} ${plural(out.length,['вариант','варианта','вариантов'])}:`:'В этот бюджет с доставкой не укладываемся, вот самые близкие:',
     cards:out.map((x,i)=>hpCard(`Модуль «${x.L?x.L.name:'свой размер'}» ${fmtD(x.s.w)}×${fmtD(x.s.d)} м`,
-      `${fmtD(x.s.w*x.s.d)} м² · утеплитель ${ins} мм${a.winter==='1'?', для зимы':''}`,x.total,'m'+i,x.L&&x.L.photo))}}
-function helperFinish(){const a=HP.ans,km=a.km||50;
-  const r=a.kind==='mod'?hpModules(km):hpHouses(km);
-  const where=a.km?`Доставка по адресу «${esc(a.addr)}» — ${a.km} км по дорогам, уже в цене.`:'Доставку посчитал условно на 50 км — точную сумму калькулятор покажет по адресу участка.';
-  HP.result=`<div class="hp-msg">${esc(r.head)}</div>${r.cards.join('')}<p class="hp-note">${where} В калькуляторе можно поменять всё: размер, окна, отделку, планировку.</p>`;
-  helperAsk();ymGoal('helper_done')}
+      `${fmtD(x.area)} м² · утеплитель ${ins} мм${a.winter==='1'?', для зимы':''}`,x.total,'m'+i,x.L&&x.L.photo))}}
+async function hpResults(){const a=HP.ans;
+  if(a.city&&!a.km)await hpGeo(a.city);
+  const km=a.km||50,r=a.kind==='mod'?hpModules(km):hpHouses(km);
+  hpSay(esc(r.head));
+  HP.log.push({raw:r.cards.join('')+(r.custom?`<button type="button" class="btn" data-hpcustom="${r.custom[0]}x${r.custom[1]}" style="justify-self:start">Посчитать дом ${fmtD(r.custom[0])}×${fmtD(r.custom[1])} в «Своём размере»</button>`:'')});
+  hpSay((a.km?`Доставка по адресу «${esc(a.addr)}» — ${a.km} км по дорогам, ${rub(a.km*DELIVERY_RATE)}, уже в цене.`:'Доставку посчитал условно на 50 км — напиши город, и я пересчитаю.')+
+    (HP.free?' Можно уточнить словами: «подешевле», «побольше», «два этажа», «с террасой» или другой город.':' В калькуляторе можно поменять всё: размер, окна, отделку, планировку.'));
+  HP.last=true;
+  HP.chips=a.kind==='mod'?['Побольше','Поменьше',a.winter==='1'?'Только на лето':'Для зимы','Связаться с менеджером']
+    :['Подешевле','Побольше',a.terrace==='1'?'Без террасы':'С террасой',a.floors===2?'Один этаж':'Два этажа','Связаться с менеджером'];
+  ymGoal('helper_done')}
 function helperApply(key){const x=HP.picks[+key.slice(1)];if(!x)return;
   if(key[0]==='h'){calcState[x.vm.id]={...x.cfg,addr:HP.ans.addr||''};helperClose();location.hash='#/house/'+x.vm.id}
   else{Object.assign(modState,JSON.parse(JSON.stringify(x.cfg)));helperClose();location.hash='#/modules/'+x.cfg.size}}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-hpans],[data-hpclose],[data-hpreset],[data-hpskip],[data-hpopen]');if(!t)return;
+/* ---------- голос: распознаёт браузер, сайт получает только текст ---------- */
+let hpRec=null;
+function hpMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+  if(hpRec){try{hpRec.stop()}catch(e){}return}
+  const r=new SR();r.lang='ru-RU';r.interimResults=true;r.maxAlternatives=1;hpRec=r;HP.rec=true;helperRender();
+  let said='';
+  r.onresult=e=>{let s='';for(let k=0;k<e.results.length;k++)s+=e.results[k][0].transcript;said=s;const el=document.querySelector('.hp-compose input');if(el)el.value=s};
+  r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('Разреши доступ к микрофону в браузере, чтобы говорить с помощником');
+    else if(e.error==='no-speech')toast('Ничего не услышал — попробуй ещё раз')};
+  r.onend=()=>{hpRec=null;HP.rec=false;const el=document.querySelector('.hp-compose input');if(el)el.value='';helperRender();if(said.trim())hpText(said)};
+  try{r.start()}catch(e){hpRec=null;HP.rec=false;helperRender()}}
+/* ---------- события ---------- */
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-hpans],[data-hpclose],[data-hpreset],[data-hpopen],[data-hpsay],[data-hpmic],[data-hpcall],[data-hpcustom]');if(!t)return;
   if('hpclose' in t.dataset){helperClose();return}
-  if('hpreset' in t.dataset){HP.step=0;HP.ans={};HP.log=[];HP.result='';HP.picks=[];helperAsk();return}
+  if('hpreset' in t.dataset){hpReset();return}
   if('hpopen' in t.dataset){helperApply(t.dataset.hpopen);return}
-  if('hpskip' in t.dataset){HP.log.push({html:esc(HP_Q.place.q)},{me:1,html:'Пропустить'});HP.ans.km=null;HP.step++;helperFinish();return}
-  const [k,v]=t.dataset.hpans.split(':'),Q=HP_Q[k];HP.ans[k]=v;
-  HP.log.push({html:esc(Q.q)},{me:1,html:esc((Q.opts.find(o=>o[0]===v)||['',''])[1])});
-  HP.step++;helperAsk()});
-document.addEventListener('submit',async e=>{const f=e.target.closest&&e.target.closest('[data-hpplace]');if(!f)return;e.preventDefault();
-  const q=String(new FormData(f).get('place')||'').trim();if(!q)return;
-  const btn=f.querySelector('button');btn.disabled=true;btn.textContent='Считаю…';
-  let r=null;try{r=await addrLookup(q)}catch(err){}
-  HP.log.push({html:esc(HP_Q.place.q)},{me:1,html:esc(q)});
-  if(r&&r.km){HP.ans.km=r.km;HP.ans.addr=r.name}else{HP.ans.km=null;HP.log.push({html:'Не нашёл такой адрес — посчитаю доставку условно, а точную сумму покажет калькулятор.'})}
-  HP.step++;helperFinish()},true);
+  if('hpmic' in t.dataset){hpMic();return}
+  if('hpsay' in t.dataset){hpText(t.dataset.hpsay);return}
+  if('hpcall' in t.dataset){helperClose();openContact();return}
+  if('hpcustom' in t.dataset){const [w,d]=t.dataset.hpcustom.split('x').map(Number);Object.assign(customState,{w,d,km:HP.ans.km||customState.km,addr:HP.ans.addr||customState.addr,ins:HP.ans.kind==='life'?'150':customState.ins});helperClose();location.hash='#/custom';return}
+  if(HP.busy)return;
+  const [k,v]=t.dataset.hpans.split(':'),Q=HP_Q[k];
+  hpSay(esc((Q.opts.find(o=>o[0]===v)||['',''])[1]),true);
+  if(k==='kind'||k==='season')HP.ans.kind=v;
+  else if(k==='people')HP.ans.people=+v;
+  else if(k==='budget')HP.ans.budget=+v;
+  else if(k==='place'){HP.ans.place='skip';HP.ans.km=null}
+  else HP.ans[k]=v;
+  HP.ask=null;hpStep()});
+document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('[data-hpform]');if(!f)return;e.preventDefault();
+  const inp=f.querySelector('input'),v=inp.value;inp.value='';hpText(v)},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.hp-panel'))helperClose()});
 function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>

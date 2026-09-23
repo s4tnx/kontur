@@ -887,6 +887,17 @@ footer{padding:50px 0 34px}
 .hp-lead .btn{height:40px;justify-content:center;font-size:13.5px}
 .hp-lead small{font-size:12px;color:var(--muted)}
 .hp-lead small a{color:var(--lamp2)}
+.hp-lead textarea{min-height:78px;padding:10px 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);color:var(--text);font:inherit;font-size:14px;line-height:1.45;resize:vertical}
+.hp-lead textarea:focus{outline:none;border-color:var(--lamp)}
+.hp-lead-files{display:flex;flex-wrap:wrap;gap:6px}
+.hp-lead-files span{position:relative;width:58px;height:58px;border-radius:8px;overflow:hidden;border:1px solid var(--line2)}
+.hp-lead-files img{width:100%;height:100%;object-fit:cover;display:block}
+.hp-lead-files button{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:10px;line-height:18px;padding:0;cursor:pointer}
+.hp-lead-att{display:inline-flex;align-items:center;gap:8px;justify-self:start;height:34px;padding:0 12px;border-radius:10px;border:1px dashed var(--line2);color:var(--text);font-size:13px;cursor:pointer}
+.hp-lead-att:hover{border-color:var(--lamp)}
+.hp-lead-att svg{width:16px;height:16px}
+.hp-lead .hp-lead-reg{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.hp-lead .hp-lead-reg button{border:0;background:none;padding:0;color:var(--lamp2);font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .hp-acts .btn{height:38px;font-size:13px;padding:0 14px}
 .hp-chip.act{border-color:rgba(231,163,92,.55);color:var(--lamp2)}
 @media (max-width:380px){.hp-compose{gap:6px;padding:8px}.hp-clip,.hp-mic,.hp-send{width:40px;height:40px}}
@@ -5172,7 +5183,10 @@ function helperTease(){if(document.querySelector('.hp-panel,.hp-tease,.modal,.ck
 function helperOpen(){hpSeen();document.querySelector('.hp-tease')?.remove();if(document.querySelector('.hp-panel'))return;
   const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Контур ИИ — помощник по выбору дома');
   document.body.appendChild(p);document.body.classList.add('hp-open');
-  hpReset();ymGoal('helper')}
+  /* вернулись после регистрации — продолжаем тот же разговор с заполненной формой */
+  if(HP.keep&&HP.log.length){HP.keep=false;if(user&&HP.leadV&&!HP.leadV.name)HP.leadV.name=user.name||'';
+    if(user&&HP.lead==='form')hpSay('Кабинет готов — теперь отправь заявку, и переписка с менеджером будет там.');helperRender();return}
+  HP.keep=false;hpReset();ymGoal('helper')}
 function hpReset(){Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,refs:[],lead:null,leadV:{}});hpStep()}
 function helperClose(){if(hpRec){try{hpRec.abort()}catch(e){}}document.querySelector('.hp-panel')?.remove();document.body.classList.remove('hp-open')}
 const hpVoiceOK=()=>!!(window.SpeechRecognition||window.webkitSpeechRecognition);
@@ -5244,6 +5258,7 @@ function hpBudget(t){let m,v=0;
   else if(m=t.match(/(\d[\d ]{5,11}\d)/)){const n=+m[1].replace(/ /g,'');if(n>=100000)v=n}
   return v>=100000&&v<=50000000?v:0}
 function hpFaqKey(t){
+  if(/перепланир|(измен|поменя|передела|переделк|перенес|перестав|сдвин|подвин|убра|добав|объедин|раздел|расшир|увелич|уменьш|друг(ую|ая|ой|ие)|сво(ю|я|ей)|индивидуальн)[а-я]* [^.?!]*(планировк|перегородк|комнат|спальн|санузел|туалет|ванн|кухн|гостин|прихож|тамбур|двер[ьи]|стенк)|планировк[а-я]* [^.?!]*(измен|поменя|передела|друг|не нрав|не подход|свою|под себя|по-своему|по своему)|не нрав[а-я]* [^.?!]*планировк|планировк[а-я]* не нрав/.test(t))return 'layout';
   if(/окончательн|финальн|итогов(ая|ую|ой) (цен|сумм|стоимост)|(цен[аыу]|сумм[аы]|стоимост[ьи]) (потом |еще |может |не |точно )*(измен|поменя|выраст|выше|увелич|выйдет|фиксир|точн|окончат|оконч)|(измени?т|поменяет|вырастет|увеличит)[а-я]* (ли )?(потом )?(цен|сумм|стоимост)|фиксир|доплат[а-я]* потом|потом доплат|скрыт[а-я]* (платеж|доплат|расход)|это (вся|полная|конечная) (цен|сумм)|точная цена|цена точная/.test(t))return 'fixed';
   if(/не знаю[^.?!]*(как|какой|какую|какая|что|чего)|не могу (выбрать|определ|решить)|помоги[а-я]* (мне )?(выбрать|определ|подобрать планир)|сложно выбрать|трудно выбрать|затрудняюсь|не определил|не решил|посоветуй|какую планировку|какая планировка|что (мне )?выбрать|консультац/.test(t))return 'unsure';
   if(/когда плат|оплат|предоплат|платить|аванс/.test(t))return 'pay';
@@ -5326,6 +5341,7 @@ async function hpFaq(k,got){
   if(k==='price'){hpSay(`Дома — от ${rub(Math.min(...MODELS.map(minPrice)))} за холодный контур, модули — от ${rub(Math.min(...MOD_SIZES.map(modBase)))}. Скажи, что нужно, — посчитаю точную цену с доставкой.`);return}
   if(k==='manager'){hpSay('Передам менеджеру — оставь телефон, он перезвонит в рабочее время.');hpLeadOpen('попросил связаться с менеджером');return}
   if(k==='fixed'){hpFixedAns();return}
+  if(k==='layout'){hpLayoutAns();return}
   if(k==='unsure'){hpSay('Так бывает у многих, это нормально. Оставь заявку: менеджер позвонит, расспросит, как будете жить, какой участок и бюджет, и поможет выбрать дом и планировку. Это бесплатно и ни к чему не обязывает.');
     hpLeadOpen('не знает, какой дом или планировку выбрать — нужна помощь с выбором');return}
   if(k==='insulation'){hpInsAns(hpScope());return}
@@ -5348,7 +5364,7 @@ async function hpUnderstand(txt){
   Object.keys(f).forEach(k=>{if(f[k]!==null&&f[k]!==undefined)HP.ans[k]=f[k];else delete HP.ans[k]});
   if(f.size)delete HP.ans.area;
   const onlyKind=Object.keys(f).every(k=>k==='kind'||k==='houseWord')&&!g.city&&!(g.follow&&HP.last);
-  if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info||g.faq==='unsure'||g.faq==='fixed'||g.faq==='manager'||(onlyKind&&(g.faq==='insulation'||g.faq==='foundation')))return}
+  if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info||g.faq==='unsure'||g.faq==='fixed'||g.faq==='manager'||g.faq==='layout'||(onlyKind&&(g.faq==='insulation'||g.faq==='foundation')))return}
   if(g.intent==='photo'){hpSay('Пришли фото дома, который нравится: нажми на скрепку слева от строки ввода — можно до 4 снимков. Соберу проект под него, а фото уйдёт менеджеру вместе с заявкой.');
     HP.chips=[['Прикрепить фото','photo'],['Наши постройки','gallery']];if(!info)return}
   if(g.intent==='own'){hpSay('Свой проект собирается в «Своём размере»: любой размер с шагом 0,5 м, планировку рисуешь сам, смета считается сразу. Открою его с тем, что ты уже рассказал.');
@@ -5519,15 +5535,43 @@ function hpFixedAns(){const c=hpCurTotal();
     ' Перед договором менеджер сверит с тобой смету, а инженер бесплатно посмотрит участок, чтобы всё было учтено заранее.');
   HP.chips=[['Оставить заявку','lead']]}
 /* ---------- заявка менеджеру прямо в чате ---------- */
-function hpLeadOpen(why){
-  if(HP.lead==='sent'){hpSay('Заявку ты уже оставил — менеджер позвонит в рабочее время. Если срочно: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');return}
-  HP.lead='form';HP.leadWhy=why;HP.chips=[];HP.leadV=HP.leadV||{};if(user&&!HP.leadV.name)HP.leadV.name=user.name||''}
+/* ---------- изменить планировку ---------- */
+function hpLayoutWhat(){const s=hpScope();
+  if(s==='house'){const m=hpPageModel();return m?`«${m.name}» ${fmtD(m.w)}×${fmtD(m.d)}`:''}
+  if(s==='custom')return `дом ${fmtD(customState.w)}×${fmtD(customState.d)}`;
+  if(s==='mod')return `модуль ${String(modState.size).replace('x','×')}`;return ''}
+function hpLayoutAns(){const what=hpLayoutWhat();
+  if(what){hpSay(`Да, планировку можно изменить. Простое — передвинуть перегородки, поменять комнаты местами, добавить или убрать дверь — можно сделать прямо на странице, в блоке «Планировка»: смета пересчитается сама.`);
+    HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn" data-hpact="plan">Открыть планировку</button></div>'});
+    hpSay(`Если нужно по-другому — напиши ниже, что поменять, или прикрепи чертёж (подойдёт и фото рисунка от руки). Менеджер добавит изменения в заказ на ${esc(what)} и скорректирует цену. Обычно цена меняется несильно: каркас, утепление и кровля остаются теми же, меняются только перегородки и двери.`)}
+  else hpSay('Да, планировку любого нашего дома можно изменить. Открой дом, который нравится, и спроси там — заявка уйдёт вместе с ним. Или напиши ниже, что хочешь, и прикрепи чертёж — менеджер подберёт дом, внесёт изменения и пересчитает цену. Обычно цена меняется несильно: меняются только перегородки и двери.');
+  if(!what)HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn" data-hpact="own">Собрать свой проект</button><button type="button" class="btn" data-hpact="gallery">Наши постройки</button></div>'});
+  hpLeadOpen(what?`хочет изменить планировку: ${what}`:'хочет свою планировку','layout')}
+function hpLayoutItem(refs){const s=hpScope(),cl=o=>JSON.parse(JSON.stringify(o));
+  try{if(s==='house'){const m=hpPageModel();if(!m)return null;const cfg=cl(getCfg(m));return{id:m.id,cfg,refs,total:computeCalc(m,cfg).total}}
+    if(s==='custom'){const cfg=cl(customState);delete cfg.refs;return{id:'custom',custom:true,cfg,refs:[...(customState.refs||[]),...refs].slice(-REF_MAX),total:computeCustom(cfg).total}}
+    if(s==='mod'){const cfg=cl(modState),pc=getCfg(moduleModel());
+      cfg.plan=cl({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}});delete cfg.refs;
+      return{id:'module',module:true,cfg,refs:[...(modState.refs||[]),...refs].slice(-REF_MAX),total:computeModule(cfg).total}}}catch(e){}
+  return null}
+async function hpLeadFiles(files){const v=HP.leadV=HP.leadV||{};v.files=v.files||[];let n=0;
+  for(const f of files){if(v.files.length>=REF_MAX)break;if(!/^image\//.test(f.type))continue;try{v.files.push(await refShrink(f));n++}catch(e){}}
+  if(files.length>n&&v.files.length>=REF_MAX)toast(`Можно до ${REF_MAX} чертежей`);else if(!n)toast('Прикрепи картинку: фото или скан чертежа');
+  helperRender()}
+function hpLeadOpen(why,kind){kind=kind||'call';
+  if(HP.lead==='sent'&&HP.leadKind===kind){hpSay('Заявку ты уже оставил — менеджер позвонит в рабочее время. Если срочно: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');return}
+  HP.lead='form';HP.leadKind=kind;HP.leadWhy=why;HP.chips=[];HP.ask=null;HP.leadV=HP.leadV||{};if(user&&!HP.leadV.name)HP.leadV.name=user.name||''}
 function hpLeadForm(){if(HP.lead!=='form'&&HP.lead!=='sending')return '';const v=HP.leadV||{},busy=HP.lead==='sending';
-  return `<form class="hp-lead" data-hplead><b>Заявка менеджеру</b>
+  const lay=HP.leadKind==='layout',what=lay?hpLayoutWhat():'';
+  const layHTML=lay?`<textarea name="wish" placeholder="Что поменять? Например: объединить кухню с гостиной, спальню сделать больше, санузел перенести ближе к входу" aria-label="Что изменить в планировке">${esc(v.wish||'')}</textarea>
+    ${(v.files||[]).length?`<div class="hp-lead-files">${v.files.map((u,i)=>`<span><img src="${u}" alt="Чертёж ${i+1}"><button type="button" data-hpldel="${i}" aria-label="Убрать">✕</button></span>`).join('')}</div>`:''}
+    ${(v.files||[]).length<REF_MAX?`<label class="hp-lead-att"><input type="file" accept="image/*" multiple data-hplfile hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5 12.6 19.9a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></svg>Прикрепить чертёж</label>`:''}`:'';
+  const regHTML=lay&&!user?`<div class="hp-lead-reg">Лучше с кабинетом: там переписка с менеджером и новая смета. <button type="button" data-hpact="regkeep">Сначала создать кабинет</button></div>`:'';
+  return `<form class="hp-lead" data-hplead><b>${lay?(what?'Изменить планировку: '+esc(what):'Своя планировка'):'Заявка менеджеру'}</b>${regHTML}${layHTML}
     <input name="name" placeholder="Как к тебе обращаться" autocomplete="name" value="${esc(v.name||'')}" aria-label="Имя">
     <input name="phone" type="tel" placeholder="+7 900 000-00-00" autocomplete="tel" required value="${esc(v.phone||'')}" aria-label="Телефон">
     ${pdConsent('pdHp').replace('name="pdok"',v.pd?'name="pdok" checked':'name="pdok"')}
-    <button class="btn lamp" type="submit"${busy?' disabled':''}>${busy?'Отправляем…':'Оставить заявку'}</button>
+    <button class="btn lamp" type="submit"${busy?' disabled':''}>${busy?'Отправляем…':lay?'Отправить менеджеру':'Оставить заявку'}</button>
     <small>Или позвони сам: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>, ежедневно 9:00–21:00</small></form>`}
 function hpLeadNote(){const a=HP.ans,out=[];
   const kind={life:'дом для жизни круглый год',dacha:'дача',mod:'модуль'}[a.kind];if(kind)out.push(kind);
@@ -5540,11 +5584,14 @@ function hpLeadNote(){const a=HP.ans,out=[];
   return [out.length?out.join(', '):'',said.length?'писал в чате: «'+said.join('» · «')+'»':''].filter(Boolean).join('. ')}
 async function hpLeadSend(f){if(HP.lead==='sending')return;
   const name=String(f.elements.name.value||'').trim(),phone=String(f.elements.phone.value||'').trim();
-  HP.leadV={name,phone,pd:!!(f.elements.pdok&&f.elements.pdok.checked)};
+  const files=(HP.leadV&&HP.leadV.files)||[],wish=f.elements.wish?String(f.elements.wish.value||'').trim():'';
+  HP.leadV={name,phone,pd:!!(f.elements.pdok&&f.elements.pdok.checked),wish,files};
+  if(HP.leadKind==='layout'&&!wish&&!files.length){toast('Напиши, что изменить, или прикрепи чертёж');f.elements.wish.focus();return}
   if(phone.replace(/\D/g,'').length<10){toast('Проверь номер телефона');f.elements.phone.focus();return}
   if(f.elements.pdok&&!f.elements.pdok.checked){toast('Отметь согласие на обработку данных');return}
   HP.lead='sending';helperRender();
-  const note=hpLeadNote();
+  if(HP.leadKind==='layout'){const item=hpLayoutItem(files.slice());if(item)return hpLayoutSend(item,{name,phone,wish,files})}
+  const note=[HP.leadKind==='layout'?`что изменить: ${wish||'—'}${files.length?` (чертежей: ${files.length} — попросите прислать в переписке)`:''}`:'',hpLeadNote()].filter(Boolean).join('. ');
   const cb={no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:[],fio:name,phone,email:user?user.email:'',region:HP.ans.addr||HP.ans.city||'',
     comment:`Заявка из помощника «Контур ИИ»: ${HP.leadWhy||'нужна консультация'}${note?'. '+note:''}`,stage:0,status:'new',callback:1};
   if(!SB.on)await ensureApi();
@@ -5557,6 +5604,23 @@ async function hpLeadSend(f){if(HP.lead==='sending')return;
   if(user){hpSay(`Заявка № ${cb.no} принята и уже лежит в твоём личном кабинете. Менеджер позвонит в рабочее время, а переписка с ним, смета и документы будут там же.`);
     HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="acct">Открыть кабинет</button></div>'})}
   else{hpSay(`Заявка № ${cb.no} принята — менеджер позвонит по номеру ${esc(phone)} в рабочее время. Чтобы не потерять диалог с менеджером, создай личный кабинет: заявка перенесётся туда сама, и там будут его сообщения, смета и документы.`);
+    HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="reg">Создать кабинет</button><button type="button" class="btn" data-hpact="login">У меня уже есть кабинет</button></div>'})}
+  helperRender()}
+async function hpLayoutSend(item,{name,phone,wish,files}){
+  const order={no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:[item],fio:name,phone,email:user?user.email:'',
+    region:HP.ans.addr||HP.ans.city||'',stage:0,status:'new',
+    comment:`Изменить планировку (из помощника «Контур ИИ»): ${wish||'см. чертёж'}${files.length?` · чертежей: ${files.length}, они в позиции заказа`:''}. Смета — по проекту без изменений, скорректируйте цену.`};
+  if(!SB.on)await ensureApi();
+  if(SB.on){try{const res=await sbSaveOrder(order);guestKeep(res,order.no);await sbLoadOrders().catch(()=>{})}
+    catch(ex){HP.lead='form';hpSay('Не получилось отправить: '+esc(ex.message||'нет связи')+'. Попробуй ещё раз или позвони: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');helperRender();return}
+    if(user){try{await chatSend(order.no,`Хочу изменить планировку: ${wish||'прикрепил чертёж'}`,[],'client',item)}catch(e){}}}
+  else if(isProd()){HP.lead='form';hpSay('Нет связи с сервером. Позвони нам: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');helperRender();return}
+  else{const key='orders.'+(user?user.email:'guest'),l=store.get(key,[]);l.push(order);store.set(key,l)}
+  ymGoal('order',{sum:Math.round(item.total)});HP.lead='sent';
+  const tail=`Менеджер посмотрит${files.length?' чертёж':''}, внесёт изменения в заказ и пришлёт новую цену — обычно она отличается несильно.`;
+  if(user){hpSay(`Заявка № ${order.no} с домом и твоими пожеланиями уже в личном кабинете. ${tail} Переписка — там же.`);
+    HP.log.push({raw:`<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="chat:${order.no}">Открыть переписку</button></div>`})}
+  else{hpSay(`Заявка № ${order.no} принята. ${tail} Чтобы не потерять диалог с менеджером и видеть новую смету, создай личный кабинет — заявка перенесётся туда сама.`);
     HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="reg">Создать кабинет</button><button type="button" class="btn" data-hpact="login">У меня уже есть кабинет</button></div>'})}
   helperRender()}
 /* ---------- подсказки по ходу прокрутки ---------- */
@@ -5575,6 +5639,7 @@ const hpCtxSeen=()=>{try{return JSON.parse(sessionStorage.getItem('kontur.hpctx'
 const hpCtxMark=id=>{try{const s=hpCtxSeen();s.push(id);sessionStorage.setItem('kontur.hpctx',JSON.stringify(s))}catch(e){}};
 function hpCtxTick(){
   if(!HELPER_ON||document.visibilityState!=='visible')return;
+  if(HP.keep&&user&&!document.querySelector('.modal,.hp-panel')){helperOpen();return}
   if(document.querySelector('.hp-panel,.hp-tease,.modal,.ck-bar,.mnav.open')||hpHideRoute())return;
   const f=document.querySelector('.hp-fab');if(!f||f.hidden)return;
   if(Date.now()-hpCtxLast<60000)return;
@@ -5612,6 +5677,8 @@ function hpMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecogniti
 document.addEventListener('click',e=>{
   /* «Хочу такой» в чате — дальше работает обычная кнопка «Заказать этот проект», окно закрываем */
   if(e.target.closest&&e.target.closest('.hp-panel [data-prjadd]')){setTimeout(helperClose,0);return}
+  const ld=e.target.closest&&e.target.closest('[data-hpldel]');
+  if(ld){const v=HP.leadV||{};v.files=(v.files||[]).filter((_,i)=>i!==+ld.dataset.hpldel);helperRender();return}
   const t=e.target.closest&&e.target.closest('[data-hpans],[data-hpclose],[data-hpreset],[data-hpopen],[data-hpsay],[data-hpmic],[data-hpcall],[data-hpcustom],[data-hpact],[data-hpgo],[data-hpset]');if(!t)return;
   if('hpset' in t.dataset){hpSet(t.dataset.hpset);return}
   if('hpgo' in t.dataset){helperClose();return}
@@ -5624,6 +5691,10 @@ document.addEventListener('click',e=>{
     if(k==='reg'){helperClose();openAuth('up');return}
     if(k==='login'){helperClose();openAuth('in');return}
     if(k==='acct'){helperClose();location.hash='#/account';return}
+    if(k.indexOf('chat:')===0){helperClose();location.hash='#/account/chat/'+k.slice(5);return}
+    if(k==='regkeep'){const f=document.querySelector('.hp-lead');if(f){HP.leadV={...(HP.leadV||{}),name:f.elements.name.value,phone:f.elements.phone.value,wish:f.elements.wish?f.elements.wish.value:''}}
+      HP.keep=true;helperClose();openAuth('up');return}
+    if(k==='plan'){helperClose();setTimeout(()=>{const g=hpGroup(/^Планировка( модуля)?$/)||document.getElementById('planEditor');if(g)g.scrollIntoView({behavior:'smooth',block:'start'})},120);return}
     return}
   if('hpclose' in t.dataset){helperClose();return}
   if('hpreset' in t.dataset){hpReset();return}
@@ -5646,8 +5717,9 @@ document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closes
   const inp=f.querySelector('input[name=t]'),v=inp?inp.value:'';if(inp)inp.value='';hpText(v)},true);
 document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('[data-hplead]');if(!f)return;e.preventDefault();e.stopPropagation();hpLeadSend(f)},true);
 document.addEventListener('input',e=>{const f=e.target.closest&&e.target.closest('[data-hplead]');if(!f)return;
-  HP.leadV={name:f.elements.name.value,phone:f.elements.phone.value,pd:!!(f.elements.pdok&&f.elements.pdok.checked)}});
+  HP.leadV={...(HP.leadV||{}),name:f.elements.name.value,phone:f.elements.phone.value,wish:f.elements.wish?f.elements.wish.value:'',pd:!!(f.elements.pdok&&f.elements.pdok.checked)}});
 document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-hplead]');if(!f||!f.elements.pdok)return;HP.leadV={...(HP.leadV||{}),pd:f.elements.pdok.checked}});
+document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-hplfile]');if(!f)return;e.stopPropagation();hpLeadFiles([...f.files]).finally(()=>{f.value=''})},true);
 document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-hpfile]');if(!f)return;const files=f.files;hpPhotos(files).finally(()=>{f.value=''})});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.hp-panel'))helperClose()});
 function footer(){return `<footer class="wrap"><div class="foot-grid">

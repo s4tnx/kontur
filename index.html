@@ -879,6 +879,14 @@ footer{padding:50px 0 34px}
 .hp-pics{display:flex;gap:6px;flex-wrap:wrap;padding:6px!important}
 .hp-pics img{width:86px;height:86px;object-fit:cover;border-radius:10px;display:block}
 .hp-acts{display:flex;flex-wrap:wrap;gap:8px}
+.hp-lead{display:grid;gap:8px;padding:12px;border-radius:16px;background:var(--panel2);border:1px solid var(--line)}
+.hp-lead b{font-size:14px}
+.hp-lead input[name=name],.hp-lead input[name=phone]{height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);color:var(--text);font:inherit;font-size:14px;min-width:0}
+.hp-lead input:focus{outline:none;border-color:var(--lamp)}
+.hp-lead .pd-ok{font-size:12px;gap:8px}
+.hp-lead .btn{height:40px;justify-content:center;font-size:13.5px}
+.hp-lead small{font-size:12px;color:var(--muted)}
+.hp-lead small a{color:var(--lamp2)}
 .hp-acts .btn{height:38px;font-size:13px;padding:0 14px}
 .hp-chip.act{border-color:rgba(231,163,92,.55);color:var(--lamp2)}
 @media (max-width:380px){.hp-compose{gap:6px;padding:8px}.hp-clip,.hp-mic,.hp-send{width:40px;height:40px}}
@@ -5119,7 +5127,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 const HELPER_ON=true;
 const HP={ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,rec:false,refs:[]};
 /* под приветствием и после подбора — ещё три пути: свой проект, фото, наши постройки */
-const HP_EXTRA=[['Собрать свой проект','own'],['Прикрепить фото дома','photo'],['Наши постройки','gallery']];
+const HP_EXTRA=[['Собрать свой проект','own'],['Прикрепить фото дома','photo'],['Наши постройки','gallery'],['Не знаю, что выбрать','unsure']];
 const HP_FACE='<span class="hp-face"><span class="hp-eyes"><i class="hp-eye"><b></b></i><i class="hp-eye"><b></b></i></span><i class="hp-smile"></i></span>';
 /* глазки следят за курсором (на компьютере); без движения мыши снова оглядываются сами */
 let hpTrackT=0;
@@ -5165,7 +5173,7 @@ function helperOpen(){hpSeen();document.querySelector('.hp-tease')?.remove();if(
   const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Контур ИИ — помощник по выбору дома');
   document.body.appendChild(p);document.body.classList.add('hp-open');
   hpReset();ymGoal('helper')}
-function hpReset(){Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,refs:[]});hpStep()}
+function hpReset(){Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,refs:[],lead:null,leadV:{}});hpStep()}
 function helperClose(){if(hpRec){try{hpRec.abort()}catch(e){}}document.querySelector('.hp-panel')?.remove();document.body.classList.remove('hp-open')}
 const hpVoiceOK=()=>!!(window.SpeechRecognition||window.webkitSpeechRecognition);
 function helperRender(){const p=document.querySelector('.hp-panel');if(!p)return;
@@ -5181,11 +5189,11 @@ function helperRender(){const p=document.querySelector('.hp-panel');if(!p)return
   const mic=hpVoiceOK()?`<button type="button" class="hp-mic${HP.rec?' on':''}" data-hpmic aria-label="${HP.rec?'Остановить запись':'Сказать голосом'}" title="Сказать голосом — речь распознаёт браузер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>`:'';
   p.innerHTML=`<div class="hp-head"><div class="hp-head-l"><span class="hp-ava">${HP_FACE}</span><div><b>Контур ИИ</b><span>${HP.busy?'печатает…':HP.rec?'слушаю…':'подберу дом и отвечу на вопросы'}</span></div></div>
     <div class="hp-head-b">${HP.log.length>1?'<button type="button" class="hp-mini" data-hpreset>Заново</button>':''}<button type="button" class="hp-x" data-hpclose aria-label="Закрыть">✕</button></div></div>
-    <div class="hp-body">${log}${typing}${quick}</div>
+    <div class="hp-body">${log}${typing}${hpLeadForm()}${quick}</div>
     <form class="hp-compose" data-hpform>${clip}${mic}<input name="t" placeholder="${HP.rec?'Говори…':HP.ask==='place'?'Город или посёлок':'Например: дом для четверых зимой до 2 млн'}" autocomplete="off" aria-label="Сообщение помощнику"><button class="hp-send" type="submit" aria-label="Отправить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></form>`;
   const inp=p.querySelector('.hp-compose input[name=t]');if(keep)inp.value=keep;
   const body=p.querySelector('.hp-body');body.scrollTop=body.scrollHeight;
-  if(matchMedia('(pointer:fine)').matches&&!HP.rec)setTimeout(()=>inp.focus({preventScroll:true}),40)}
+  if(matchMedia('(pointer:fine)').matches&&!HP.rec&&HP.lead!=='form')setTimeout(()=>inp.focus({preventScroll:true}),40)}
 /* что спросить дальше; при свободном тексте необязательное не спрашиваем */
 function hpNeed(){const a=HP.ans;
   if(!a.kind)return a.houseWord?'season':'kind';
@@ -5236,6 +5244,8 @@ function hpBudget(t){let m,v=0;
   else if(m=t.match(/(\d[\d ]{5,11}\d)/)){const n=+m[1].replace(/ /g,'');if(n>=100000)v=n}
   return v>=100000&&v<=50000000?v:0}
 function hpFaqKey(t){
+  if(/окончательн|финальн|итогов(ая|ую|ой) (цен|сумм|стоимост)|(цен[аыу]|сумм[аы]|стоимост[ьи]) (потом |еще |может |не |точно )*(измен|поменя|выраст|выше|увелич|выйдет|фиксир|точн|окончат|оконч)|(измени?т|поменяет|вырастет|увеличит)[а-я]* (ли )?(потом )?(цен|сумм|стоимост)|фиксир|доплат[а-я]* потом|потом доплат|скрыт[а-я]* (платеж|доплат|расход)|это (вся|полная|конечная) (цен|сумм)|точная цена|цена точная/.test(t))return 'fixed';
+  if(/не знаю[^.?!]*(как|какой|какую|какая|что|чего)|не могу (выбрать|определ|решить)|помоги[а-я]* (мне )?(выбрать|определ|подобрать планир)|сложно выбрать|трудно выбрать|затрудняюсь|не определил|не решил|посоветуй|какую планировку|какая планировка|что (мне )?выбрать|консультац/.test(t))return 'unsure';
   if(/когда плат|оплат|предоплат|платить|аванс/.test(t))return 'pay';
   if(/гарант/.test(t))return 'warranty';
   if(/строит[еь]? .*зим|строите .*зим|зимой стро|строите ли|собираете .*зим/.test(t))return 'winterbuild';
@@ -5314,7 +5324,10 @@ async function hpFaq(k,got){
     if(got.city&&await hpGeo(got.city)){hpSay(`До «${esc(HP.ans.addr)}» ${HP.ans.km} км по дорогам — доставка ${rub(HP.ans.km*DELIVERY_RATE)}, по ${DELIVERY_RATE} ₽ за километр. Сборка на участке уже входит в цену дома.`);return}
     hpSay(`Доставка — ${DELIVERY_RATE} ₽ за каждый километр от производства. Напиши город — посчитаю точно.`);if(!HP.ask)HP.ask='place';return}
   if(k==='price'){hpSay(`Дома — от ${rub(Math.min(...MODELS.map(minPrice)))} за холодный контур, модули — от ${rub(Math.min(...MOD_SIZES.map(modBase)))}. Скажи, что нужно, — посчитаю точную цену с доставкой.`);return}
-  if(k==='manager'){HP.log.push({raw:`<div class="hp-msg">Передам менеджеру — оставь телефон, он перезвонит в рабочее время. Или позвони сам: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.</div><button type="button" class="btn lamp" data-hpcall style="justify-self:start">Заказать звонок</button>`});return}
+  if(k==='manager'){hpSay('Передам менеджеру — оставь телефон, он перезвонит в рабочее время.');hpLeadOpen('попросил связаться с менеджером');return}
+  if(k==='fixed'){hpFixedAns();return}
+  if(k==='unsure'){hpSay('Так бывает у многих, это нормально. Оставь заявку: менеджер позвонит, расспросит, как будете жить, какой участок и бюджет, и поможет выбрать дом и планировку. Это бесплатно и ни к чему не обязывает.');
+    hpLeadOpen('не знает, какой дом или планировку выбрать — нужна помощь с выбором');return}
   if(k==='insulation'){hpInsAns(hpScope());return}
   if(k==='foundation'){hpFoundAns(hpScope());return}
   hpSay(A[k])}
@@ -5335,7 +5348,7 @@ async function hpUnderstand(txt){
   Object.keys(f).forEach(k=>{if(f[k]!==null&&f[k]!==undefined)HP.ans[k]=f[k];else delete HP.ans[k]});
   if(f.size)delete HP.ans.area;
   const onlyKind=Object.keys(f).every(k=>k==='kind'||k==='houseWord')&&!g.city&&!(g.follow&&HP.last);
-  if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info||(onlyKind&&(g.faq==='insulation'||g.faq==='foundation')))return}
+  if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info||g.faq==='unsure'||g.faq==='fixed'||g.faq==='manager'||(onlyKind&&(g.faq==='insulation'||g.faq==='foundation')))return}
   if(g.intent==='photo'){hpSay('Пришли фото дома, который нравится: нажми на скрепку слева от строки ввода — можно до 4 снимков. Соберу проект под него, а фото уйдёт менеджеру вместе с заявкой.');
     HP.chips=[['Прикрепить фото','photo'],['Наши постройки','gallery']];if(!info)return}
   if(g.intent==='own'){hpSay('Свой проект собирается в «Своём размере»: любой размер с шагом 0,5 м, планировку рисуешь сам, смета считается сразу. Открою его с тем, что ты уже рассказал.');
@@ -5494,6 +5507,58 @@ function hpSet(v){const [scope,key,val]=v.split(':');
   const re=key==='found'?(scope==='mod'?/^Опоры$/:/^Фундамент$/):(scope==='mod'?/^Утепление$/:/^Утепление стен/);
   setTimeout(()=>{const g=hpGroup(re);if(g)g.scrollIntoView({behavior:'smooth',block:'center'})},150);
   toast('Готово — поменял в расчёте, смета пересчитана')}
+/* ---------- цена окончательная? ---------- */
+function hpCurTotal(){const s=hpScope();
+  try{if(s==='house'){const m=hpPageModel();if(!m)return null;const cfg=getCfg(m);return{what:`«${m.name}» ${fmtD(m.w)}×${fmtD(m.d)}`,total:computeCalc(m,cfg).total,km:cfg.km}}
+    if(s==='custom')return{what:`дом ${fmtD(customState.w)}×${fmtD(customState.d)}`,total:computeCustom(customState).total,km:customState.km};
+    if(s==='mod')return{what:`модуль ${modState.size.replace('x','×')}`,total:computeModule(modState).total,km:modState.km}}catch(e){}
+  return null}
+function hpFixedAns(){const c=hpCurTotal();
+  hpSay('Да. Если размеры, комплектация и адрес доставки указаны верно, цена из расчёта окончательная: мы фиксируем её в договоре, и дальше она не меняется. Измениться она может, только если ты сам решишь что-то добавить или поменять.'+
+    (c?` Сейчас в расчёте ${esc(c.what)} — <b class="num">${rub(c.total)}</b> вместе с доставкой на ${c.km} км.`:'')+
+    ' Перед договором менеджер сверит с тобой смету, а инженер бесплатно посмотрит участок, чтобы всё было учтено заранее.');
+  HP.chips=[['Оставить заявку','lead']]}
+/* ---------- заявка менеджеру прямо в чате ---------- */
+function hpLeadOpen(why){
+  if(HP.lead==='sent'){hpSay('Заявку ты уже оставил — менеджер позвонит в рабочее время. Если срочно: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');return}
+  HP.lead='form';HP.leadWhy=why;HP.chips=[];HP.leadV=HP.leadV||{};if(user&&!HP.leadV.name)HP.leadV.name=user.name||''}
+function hpLeadForm(){if(HP.lead!=='form'&&HP.lead!=='sending')return '';const v=HP.leadV||{},busy=HP.lead==='sending';
+  return `<form class="hp-lead" data-hplead><b>Заявка менеджеру</b>
+    <input name="name" placeholder="Как к тебе обращаться" autocomplete="name" value="${esc(v.name||'')}" aria-label="Имя">
+    <input name="phone" type="tel" placeholder="+7 900 000-00-00" autocomplete="tel" required value="${esc(v.phone||'')}" aria-label="Телефон">
+    ${pdConsent('pdHp').replace('name="pdok"',v.pd?'name="pdok" checked':'name="pdok"')}
+    <button class="btn lamp" type="submit"${busy?' disabled':''}>${busy?'Отправляем…':'Оставить заявку'}</button>
+    <small>Или позвони сам: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>, ежедневно 9:00–21:00</small></form>`}
+function hpLeadNote(){const a=HP.ans,out=[];
+  const kind={life:'дом для жизни круглый год',dacha:'дача',mod:'модуль'}[a.kind];if(kind)out.push(kind);
+  if(a.people)out.push(`${a.people} чел.`);if(a.size)out.push(`размер ${a.size.join('×')} м`);else if(a.area)out.push(`около ${a.area} м²`);
+  if(a.floors)out.push(a.floors>1?'два этажа':'один этаж');if(a.budget)out.push(`бюджет до ${rub(a.budget)}`);
+  if(a.addr||a.city)out.push(`участок: ${a.addr||a.city}${a.km?` (${a.km} км)`:''}`);
+  const c=hpCurTotal();if(c)out.push(`смотрел: ${c.what}, расчёт ${rub(c.total)}`);
+  const tmp=document.createElement('div');
+  const said=HP.log.filter(m=>m.me&&m.html).map(m=>{tmp.innerHTML=m.html;return tmp.textContent.trim()}).filter(Boolean).slice(-8);
+  return [out.length?out.join(', '):'',said.length?'писал в чате: «'+said.join('» · «')+'»':''].filter(Boolean).join('. ')}
+async function hpLeadSend(f){if(HP.lead==='sending')return;
+  const name=String(f.elements.name.value||'').trim(),phone=String(f.elements.phone.value||'').trim();
+  HP.leadV={name,phone,pd:!!(f.elements.pdok&&f.elements.pdok.checked)};
+  if(phone.replace(/\D/g,'').length<10){toast('Проверь номер телефона');f.elements.phone.focus();return}
+  if(f.elements.pdok&&!f.elements.pdok.checked){toast('Отметь согласие на обработку данных');return}
+  HP.lead='sending';helperRender();
+  const note=hpLeadNote();
+  const cb={no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:[],fio:name,phone,email:user?user.email:'',region:HP.ans.addr||HP.ans.city||'',
+    comment:`Заявка из помощника «Контур ИИ»: ${HP.leadWhy||'нужна консультация'}${note?'. '+note:''}`,stage:0,status:'new',callback:1};
+  if(!SB.on)await ensureApi();
+  if(SB.on&&SB.kind==='api'){
+    try{const res=await apiReq('order',{json:{...cb,total:0}});guestKeep(res,cb.no);sbLoadOrders().catch(()=>{})}
+    catch(ex){HP.lead='form';hpSay('Не получилось отправить: '+esc(ex.message||'нет связи')+'. Попробуй ещё раз или позвони: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');helperRender();return}}
+  else if(isProd()){HP.lead='form';hpSay('Нет связи с сервером. Позвони нам: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');helperRender();return}
+  else{const l=store.get('callbacks',[]);l.push({name,phone,time:'из помощника',at:cb.at});store.set('callbacks',l)}
+  ymGoal('call');HP.lead='sent';
+  if(user){hpSay(`Заявка № ${cb.no} принята и уже лежит в твоём личном кабинете. Менеджер позвонит в рабочее время, а переписка с ним, смета и документы будут там же.`);
+    HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="acct">Открыть кабинет</button></div>'})}
+  else{hpSay(`Заявка № ${cb.no} принята — менеджер позвонит по номеру ${esc(phone)} в рабочее время. Чтобы не потерять диалог с менеджером, создай личный кабинет: заявка перенесётся туда сама, и там будут его сообщения, смета и документы.`);
+    HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="reg">Создать кабинет</button><button type="button" class="btn" data-hpact="login">У меня уже есть кабинет</button></div>'})}
+  helperRender()}
 /* ---------- подсказки по ходу прокрутки ---------- */
 const HP_CTX=[
  {id:'house-ins',route:h=>/^#\/house\//.test(h),el:()=>hpGroup(/^Утепление стен/),q:'Сколько утеплителя нужно, чтобы жить круглый год?',sub:'Нажми — расскажу и посчитаю для этого дома',ans:()=>hpInsAns('house')},
@@ -5530,7 +5595,7 @@ function helperOpenCtx(c){if(!c.ans){helperOpen();return}
   hpSeen();document.querySelector('.hp-tease')?.remove();
   if(!document.querySelector('.hp-panel')){const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Контур ИИ — помощник');
     document.body.appendChild(p);document.body.classList.add('hp-open');
-    Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:true,busy:false,last:false,refs:[]})}
+    Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:true,busy:false,last:false,refs:[],lead:null,leadV:{}})}
   hpSay(esc(c.q),true);c.ans();HP.ask=null;helperRender();ymGoal('helper')}
 /* ---------- голос: распознаёт браузер, сайт получает только текст ---------- */
 let hpRec=null;
@@ -5554,6 +5619,11 @@ document.addEventListener('click',e=>{
     if(k==='photo'){document.querySelector('.hp-panel [data-hpfile]')?.click();return}
     if(k==='own'){hpOwn();return}
     if(k==='gallery'&&!HP.busy){HP.free=true;hpSay('Покажи ваши постройки',true);hpGallery('');helperRender();return}
+    if(k==='unsure'&&!HP.busy){HP.free=true;HP.ask=null;hpSay('Не знаю, что выбрать',true);hpFaq('unsure',{});helperRender();return}
+    if(k==='lead'){hpLeadOpen('оставил заявку из помощника');helperRender();return}
+    if(k==='reg'){helperClose();openAuth('up');return}
+    if(k==='login'){helperClose();openAuth('in');return}
+    if(k==='acct'){helperClose();location.hash='#/account';return}
     return}
   if('hpclose' in t.dataset){helperClose();return}
   if('hpreset' in t.dataset){hpReset();return}
@@ -5574,6 +5644,10 @@ document.addEventListener('click',e=>{
 document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('[data-hpform]');if(!f)return;e.preventDefault();
   /* текстовое поле — по имени: первым в форме стоит скрытое поле для фото */
   const inp=f.querySelector('input[name=t]'),v=inp?inp.value:'';if(inp)inp.value='';hpText(v)},true);
+document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('[data-hplead]');if(!f)return;e.preventDefault();e.stopPropagation();hpLeadSend(f)},true);
+document.addEventListener('input',e=>{const f=e.target.closest&&e.target.closest('[data-hplead]');if(!f)return;
+  HP.leadV={name:f.elements.name.value,phone:f.elements.phone.value,pd:!!(f.elements.pdok&&f.elements.pdok.checked)}});
+document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-hplead]');if(!f||!f.elements.pdok)return;HP.leadV={...(HP.leadV||{}),pd:f.elements.pdok.checked}});
 document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-hpfile]');if(!f)return;const files=f.files;hpPhotos(files).finally(()=>{f.value=''})});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.hp-panel'))helperClose()});
 function footer(){return `<footer class="wrap"><div class="foot-grid">

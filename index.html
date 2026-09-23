@@ -650,6 +650,22 @@ footer{padding:50px 0 34px}
 .stage{position:sticky;top:96px;align-self:start;border-radius:26px;overflow:hidden;border:1px solid var(--line);aspect-ratio:4/3.2}
 .stage canvas{width:100%;height:100%;display:block}
 .stage .tag{position:absolute;left:18px;bottom:18px;display:flex;gap:8px;flex-wrap:wrap}
+/* фотогалерея дома: главное фото, дальше фото постройки — свайп, стрелки, точки */
+.gal-track{display:flex;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;overscroll-behavior-x:contain}
+.gal-track::-webkit-scrollbar{display:none}
+.gal-track img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:start;scroll-snap-stop:always}
+.gal-btn{position:absolute;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(12,13,14,.5);color:#fff;
+  display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transition:opacity .25s,background .2s}
+.gal-btn svg{width:18px;height:18px}
+.gal-btn.prev{left:14px}.gal-btn.next{right:14px}
+.gal-btn:hover{background:rgba(12,13,14,.75)}
+.gal-btn[disabled]{opacity:0!important;pointer-events:none}
+.stage.gal:hover .gal-btn,.gal-btn:focus-visible{opacity:1}
+.gal-dots{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(12,13,14,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.gal-dots button{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.45);cursor:pointer;transition:background .2s,transform .2s}
+.gal-dots button.on{background:#fff;transform:scale(1.25)}
+.gal-count{position:absolute;top:16px;right:16px;font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:999px;background:rgba(12,13,14,.55);color:#fff;backdrop-filter:blur(8px)}
+@media (hover:none){.gal-btn{display:none}}
 .stage .tag span{font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:999px;background:rgba(12,13,14,.6);border:1px solid var(--line);backdrop-filter:blur(8px)}
 .info{display:grid;gap:26px;align-content:start}
 .info h1{font-size:clamp(40px,5vw,70px);line-height:.95;font-weight:800;letter-spacing:-.03em}
@@ -1464,10 +1480,10 @@ const MODELS=[
     idoors:[{x:3,y:1,w:.8},{x:3,y:4,w:.8}]},
   base:'Бетонные блоки 400×200×200',lead:'Компактный дом на выходные для двоих: прямоугольный, без террасы, вход через небольшое боковое крыльцо',plan:[['Кухня-гостиная',0,0,3.6,5],['Спальня',3.6,0,2.4,2.1],['С/у',3.6,2.1,2.4,1.4],['Прихожая',3.6,3.5,2.4,1.5]]},
  {id:'seliger',from:'6x5',size:'6x6',winSides:[1,3,.6,1],roofShape:'broken',ver:{w:2,d:6,pos:'side-right',inset:1},photo:'h6x6.jpg',w:6,d:6,name:'Селигер',floors:1,area:36,beds:1,baths:1,price:2490000,weeks:8,days:4,wins:{w120150:2,w100100:1},base:'Бетонные блоки 400×200×200',lead:'Одна светлая комната и терраса 2 м во всю длину под общей кровлей',plan:[['Комната',0,0,4,4.6],['С/у',0,4.6,4,1.4]]},
- {id:'valdai',from:'6x5',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:3},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
+ {id:'valdai',from:'6x5',size:'6x7',winSides:[3,.6,.6,.2],ver:{w:6,d:1.8,pos:'front',inset:1},photo:'h6x7.jpg',gallery:['stroyka-1.webp','stroyka-2.webp','stroyka-3.webp','stroyka-4.webp'],w:6,d:7,name:'Валдай',floors:1,area:42,beds:2,baths:1,price:2860000,weeks:9,days:5,wins:{w120150:3},base:'Бетонные блоки 400×200×200',lead:'Две спальни — для семьи с ребёнком',plan:[['Кухня-гостиная',0,0,3.2,5.2],['Спальня',3.2,0,2.8,2.2],['Детская',3.2,2.2,2.8,1.9],['С/у',3.2,4.1,2.8,1.1]]},
  {id:'vuoksa',from:'6x5',size:'6x8',winSides:[2,1,1,.8],ver:{w:3.6,d:2,pos:'front-right',inset:1},photo:'h6x8.jpg',w:6,d:8,name:'Вуокса',floors:1,area:48,beds:2,baths:1,price:3240000,weeks:10,days:5,wins:{w180180:1,w100100:2,w120100:1},base:'Бетонные блоки 400×200×200',lead:'Вытянутый барнхаус для постоянной жизни',plan:[['Кухня-гостиная',0,0,6,3.4],['Спальня',0,3.4,2.4,4.6],['Спальня',2.4,3.4,2.2,2.6],['С/у',4.6,3.4,1.4,2.6]]},
  {id:'karelia',from:'6x8',size:'karelia-src',door:{wall:0,f:.498},winSides:[3,1,1.2,1.4],ver:{pos:'L',inset:1,a:3,b:1.5,l1:4.84,l2:6},photo:'h8x8.jpg',w:16.24,d:10.55,name:'Карелия',floors:1,area:0,beds:3,baths:2,price:0,weeks:12,days:10,wins:{portal:2,w120150:2,w100100:2},base:'Бетонные блоки 400×200×200',lead:'Одноэтажный дом: спальня, просторная кухня-гостиная, душ и Г-образная терраса вдоль гостиной и торца',plan:[['Спальня',0,1.5,4.4,6.25],['Душ',0,7.75,4.4,2.8],['Кухня-гостиная',4.4,1.5,8.84,9.05]]},
- {id:'altai',from:'6x5',size:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:1,area:172,beds:2,baths:1,price:9110000,weeks:16,days:12,wins:{w180180:1,w6090:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.2,5.2],['Спальня',0,5.2,4.2,4.8],['Кухня-гостиная',4.2,0,3.2,10]]},
+ {id:'altai',from:'6x5',size:'10x10',facade:'proff',winSides:[1.6,2.6,1,.5],roofShape:'mansard',photo:'h10x10.jpg',gallery:['stroyka-1.webp','stroyka-2.webp','stroyka-3.webp','stroyka-4.webp'],ver:{w:2.6,d:10,pos:'side-right',inset:1},w:10,d:10,name:'Алтай',floors:1,area:172,beds:2,baths:1,price:9110000,weeks:16,days:12,wins:{w180180:1,w6090:1},base:'Бетонные блоки 400×200×200',lead:'Две спальни, большая гостиная и терраса во всю длину под общей кровлей',plan:[['Спальня',0,0,4.2,5.2],['Спальня',0,5.2,4.2,4.8],['Кухня-гостиная',4.2,0,3.2,10]]},
  {id:'baikal',from:'6x8',size:'12x5',winSides:[3,1,.8,.5],ver:null,door:{wall:0,f:.625},photo:'h12x10.jpg',w:12,d:5,name:'Байкал',floors:1.5,floorsLabel:'2 этажа в центре',
   ceil:'1 этаж 2,7 м · 2 этаж 2,5 м (под коньком до 3,8 м) · в крыльях до 3,5 м под скатом',
   upper:{x:2.5,w:6},wins2:{w180180:2},winSides2:[6,.2,.2,.1],area:90,beds:3,baths:2,price:0,weeks:16,days:12,wins:{portal:2,w180180:2},base:'Бетонные блоки 400×200×200',
@@ -3750,7 +3766,7 @@ function modelView(id){
   return `<div class="wrap">
   <div class="crumbs"><a href="#/">Главная</a>/<a href="#/catalog">Каталог</a>/<span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)}</span></div>
   <div class="model">
-    <div class="stage">${m.photo?`<img src="${m.photo}" alt="Каркасный дом «${m.name}» ${fmtD(m.w)}×${fmtD(m.d)} м вечером">`:`<canvas data-scene="${m.id}" data-fw=".62" data-fh=".6"></canvas>`}<div class="tag"><span class="num">${fmtD(m.w)}×${fmtD(m.d)} м</span><span class="num">${livingA(m)} м² дом</span>${verA(m)?`<span class="num">${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}</span>`:''}<span>${floorsOf(m)}</span></div></div>
+    <div class="stage${m.photo&&(m.gallery||[]).length?' gal':''}">${m.photo?stageGallery(m):`<canvas data-scene="${m.id}" data-fw=".62" data-fh=".6"></canvas>`}<div class="tag"><span class="num">${fmtD(m.w)}×${fmtD(m.d)} м</span><span class="num">${livingA(m)} м² дом</span>${verA(m)?`<span class="num">${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}</span>`:''}<span>${floorsOf(m)}</span></div></div>
     <div class="info">
       <h1><small class="num">Проект ${String(i+1).padStart(2,'0')} из ${MODELS.length} · ${fmtD(m.w)}×${fmtD(m.d)} м · ${String(m.area).replace('.',',')} м²</small>${m.name}</h1>
       <p style="color:var(--muted);font-size:18px;max-width:40ch">${m.lead}.</p>
@@ -4430,6 +4446,28 @@ const isOwnProject=it=>!it.module&&(it.custom||(()=>{const m=byId(it.id);return 
 const REF_MAX=4;
 const refsView=it=>(it.refs||[]).length?`<div class="ref-list ro">${it.refs.map(r=>`<button type="button" data-refview><img src="${r}" alt="Фото желаемого проекта"></button>`).join('')}</div>`:'';
 /* картинка позиции в корзине; у своего проекта по нажатию добавляется фото желаемого дома */
+/* главное фото дома и фото постройки для листания */
+function stageGallery(m){const list=[m.photo,...(m.gallery||[])];
+  if(list.length<2)return `<img src="${m.photo}" alt="Каркасный дом «${m.name}» ${fmtD(m.w)}×${fmtD(m.d)} м вечером">`;
+  const ar='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+  return `<div class="gal-track" data-galtrack>${list.map((src,i)=>`<img src="${src}" alt="${i?`Наша постройка — фото ${i} из ${list.length-1}`:`Каркасный дом «${m.name}» ${fmtD(m.w)}×${fmtD(m.d)} м вечером`}"${i?' decoding="async" fetchpriority="low"':''} draggable="false">`).join('')}</div>
+    <button type="button" class="gal-btn prev" data-galgo="-1" aria-label="Предыдущее фото" disabled>${ar}</button>
+    <button type="button" class="gal-btn next" data-galgo="1" aria-label="Следующее фото" style="transform:scaleX(-1)">${ar}</button>
+    <div class="gal-dots">${list.map((_,i)=>`<button type="button" data-galto="${i}" aria-label="Фото ${i+1}"${i?'':' class="on"'}></button>`).join('')}</div>
+    <span class="gal-count num">1 / ${list.length}</span>`}
+function galSync(tr){const st=tr.closest('.stage');if(!st)return;const n=tr.children.length,i=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));
+  st.querySelectorAll('.gal-dots button').forEach((b,k)=>b.classList.toggle('on',k===i));
+  const c=st.querySelector('.gal-count');if(c)c.textContent=`${i+1} / ${n}`;
+  const p=st.querySelector('.gal-btn.prev'),x=st.querySelector('.gal-btn.next');if(p)p.disabled=i<=0;if(x)x.disabled=i>=n-1}
+document.addEventListener('scroll',e=>{const tr=e.target&&e.target.closest&&e.target.closest('[data-galtrack]');if(tr)galSync(tr)},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-galgo],[data-galto]');if(!b)return;
+  const tr=b.closest('.stage')&&b.closest('.stage').querySelector('[data-galtrack]');if(!tr)return;
+  const cur=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth)),to='galto' in b.dataset?+b.dataset.galto:cur+ +b.dataset.galgo;
+  tr.scrollTo({left:Math.max(0,Math.min(tr.children.length-1,to))*tr.clientWidth,behavior:'smooth'})});
+document.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;const tr=document.querySelector('.stage.gal [data-galtrack]');
+  if(!tr||/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||'')||document.querySelector('.modal,.hp-panel'))return;
+  const r=tr.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;
+  const cur=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));tr.scrollTo({left:Math.max(0,Math.min(tr.children.length-1,cur+(e.key==='ArrowRight'?1:-1)))*tr.clientWidth,behavior:'smooth'})});
 function cartThumb(l,i){const pm=byId(l.m.pic||l.m.id),base=pm&&pm.photo?`<img src="${pm.photo}" alt="">`:`<canvas data-scene="${l.m.pic||l.m.id}" data-fw=".7" data-fh=".62" data-stars="0"></canvas>`;
   if(!isOwnProject(l))return base;const rs=l.refs||[];
   return `<label class="line-pic${rs.length?'':' empty'}" title="Нажмите, чтобы добавить фото проекта">${rs.length?`<img src="${rs[0]}" alt="Фото желаемого проекта">`:'<span class="pic-empty" aria-hidden="true">+</span>'}

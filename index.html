@@ -4288,8 +4288,11 @@ async function apiReq(a,opt){opt=opt||{};
   let body=null;
   if(opt.form)body=opt.form; else if(opt.json){h['Content-Type']='application/json';body=JSON.stringify(opt.json)}
   const r=await fetch(url,{method:opt.form||opt.json?'POST':'GET',headers:h,body});
-  let d=null;try{d=await r.json()}catch(e){}
-  if(!r.ok||(d&&d.error))throw new Error((d&&d.error)||'Сервер недоступен');
+  let d=null,raw='';try{raw=await r.text();d=JSON.parse(raw)}catch(e){}
+  /* непонятный ответ сервера — показываем код и начало ответа, чтобы было видно причину */
+  if(!r.ok&&!(d&&d.error)){const txt=String(raw||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,160);
+    throw new Error(`Сервер ответил ошибкой ${r.status}${txt?': '+txt:''}`)}
+  if(d&&d.error)throw new Error(d.error);
   return d}
 const apiFileUrl=id=>API_URL+(API_URL.indexOf('?')<0?'?':'&')+'a=file&id='+id+'&token='+encodeURIComponent(apiToken||'');
 /* ================= общий кабинет: Supabase =================

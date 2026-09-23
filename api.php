@@ -9,6 +9,20 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') { http_response_code(204); exit; }
 
+/* ошибки PHP не выводим в ответ (они ломают JSON), а отдаём понятным текстом */
+ini_set('display_errors', '0');
+error_reporting(E_ALL);
+set_exception_handler(function (Throwable $e) {
+  if (!headers_sent()) { http_response_code(500); header('Content-Type: application/json; charset=utf-8'); }
+  echo json_encode(['error' => 'Ошибка сервера: ' . $e->getMessage() . ' (' . basename($e->getFile()) . ':' . $e->getLine() . ')'], JSON_UNESCAPED_UNICODE);
+});
+register_shutdown_function(function () {
+  $e = error_get_last();
+  if (!$e || !in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) return;
+  if (!headers_sent()) { http_response_code(500); header('Content-Type: application/json; charset=utf-8'); }
+  echo json_encode(['error' => 'Ошибка сервера: ' . $e['message'] . ' (строка ' . $e['line'] . ')'], JSON_UNESCAPED_UNICODE);
+});
+
 const DB_FILE   = __DIR__ . '/kontur.sqlite';
 const UP_DIR    = __DIR__ . '/uploads';
 const MAX_FILE  = 20 * 1024 * 1024;   // 20 МБ на файл

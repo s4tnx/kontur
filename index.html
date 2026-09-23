@@ -792,7 +792,6 @@ footer{padding:50px 0 34px}
   background:rgba(255,255,255,.55);filter:blur(1.5px);transform:rotate(-24deg);animation:hpGloss 3.5s ease-in-out infinite}
 @keyframes hpGloss{0%,100%{transform:rotate(-24deg) scale(1)}50%{transform:rotate(-18deg) scale(1.15,.85) translateX(2px)}}
 .hp-blob .hp-face,.hp-ava .hp-face{position:relative;z-index:1}
-.hp-fab .hp-dot{z-index:3}
 .hp-fab:hover{transform:scale(1.07)}
 @keyframes hpFloat{0%,100%{translate:0 0;scale:1 1}25%{scale:1.03 .97}50%{translate:0 -4px;scale:.97 1.04}75%{scale:1.02 .98}}
 /* лицо: два глаза и улыбка */
@@ -822,8 +821,7 @@ footer{padding:50px 0 34px}
 .hp-ava .hp-smile{width:7px;height:3px;border-width:1.5px}
 .hp-ava .hp-face{gap:2px}
 .hp-head-l{display:flex;align-items:center;gap:10px}
-@media (prefers-reduced-motion:reduce){.hp-fab,.hp-blob,.hp-ava,.hp-eye,.hp-eye b,.hp-fab .hp-dot,.hp-blob::before,.hp-blob::after,.hp-ava::before,.hp-ava::after{animation:none!important}}
-.hp-fab .hp-dot{position:absolute;top:5px;right:5px;width:12px;height:12px;border-radius:50%;background:#E2553D;box-shadow:0 0 0 3px var(--bg);animation:hpPulse 2s infinite}
+@media (prefers-reduced-motion:reduce){.hp-fab,.hp-blob,.hp-ava,.hp-eye,.hp-eye b,.hp-blob::before,.hp-blob::after,.hp-ava::before,.hp-ava::after{animation:none!important}}
 @keyframes hpPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
 .hp-fab[hidden],body.hp-open .hp-fab{display:none}
 .hp-tease{position:fixed;right:22px;bottom:92px;z-index:91;max-width:270px;padding:14px 40px 14px 16px;border-radius:16px 16px 4px 16px;
@@ -5148,7 +5146,7 @@ const hpSeen=()=>{try{sessionStorage.setItem('kontur.hp','1')}catch(e){}};
 const hpSay=(html,me)=>HP.log.push({html,me:!!me});
 function helperInit(){if(!HELPER_ON||document.querySelector('.hp-fab'))return;
   const b=document.createElement('button');b.type='button';b.className='hp-fab';b.setAttribute('aria-label','Контур ИИ: подобрать дом');b.title='Контур ИИ — подобрать дом';
-  b.innerHTML='<span class="hp-blob">'+HP_FACE+'</span><i class="hp-dot"></i>';
+  b.innerHTML='<span class="hp-blob">'+HP_FACE+'</span>';
   b.onclick=()=>helperOpen();document.body.appendChild(b);helperRoute();
   addEventListener('hashchange',helperRoute);
   let seen=null;try{seen=sessionStorage.getItem('kontur.hp')}catch(e){}

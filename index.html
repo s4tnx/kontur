@@ -875,6 +875,15 @@ footer{padding:50px 0 34px}
 .hp-typing i:nth-child(2){animation-delay:.15s}.hp-typing i:nth-child(3){animation-delay:.3s}
 @keyframes hpDots{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
 .hp-hint{font-size:11.5px;color:var(--dim);padding:0 14px 8px;margin-top:-4px}
+.hp-clip{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:var(--panel2);border:1px solid var(--line2);color:var(--text)}
+.hp-clip svg{width:20px;height:20px}
+.hp-clip:hover,.hp-mic:hover{border-color:var(--lamp)}
+.hp-pics{display:flex;gap:6px;flex-wrap:wrap;padding:6px!important}
+.hp-pics img{width:86px;height:86px;object-fit:cover;border-radius:10px;display:block}
+.hp-acts{display:flex;flex-wrap:wrap;gap:8px}
+.hp-acts .btn{height:38px;font-size:13px;padding:0 14px}
+.hp-chip.act{border-color:rgba(231,163,92,.55);color:var(--lamp2)}
+@media (max-width:380px){.hp-compose{gap:6px;padding:8px}.hp-clip,.hp-mic,.hp-send{width:40px;height:40px}}
 @media (max-width:760px){.hp-compose input{font-size:16px}}
 @media (max-width:760px){
   .hp-fab{right:14px;bottom:calc(88px + env(safe-area-inset-bottom));width:56px;height:56px}
@@ -5110,7 +5119,9 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
    уточнения. Чего не понял — переспрашивает кнопками. Голос распознаёт сам браузер.
    Выключить помощника целиком: HELPER_ON = false. */
 const HELPER_ON=true;
-const HP={ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,rec:false};
+const HP={ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,rec:false,refs:[]};
+/* под приветствием и после подбора — ещё три пути: свой проект, фото, наши постройки */
+const HP_EXTRA=[['Собрать свой проект','own'],['Прикрепить фото дома','photo'],['Наши постройки','gallery']];
 const HP_FACE='<span class="hp-face"><span class="hp-eyes"><i class="hp-eye"><b></b></i><i class="hp-eye"><b></b></i></span><i class="hp-smile"></i></span>';
 /* глазки следят за курсором (на компьютере); без движения мыши снова оглядываются сами */
 let hpTrackT=0;
@@ -5155,21 +5166,24 @@ function helperOpen(){hpSeen();document.querySelector('.hp-tease')?.remove();if(
   const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Контур ИИ — помощник по выбору дома');
   document.body.appendChild(p);document.body.classList.add('hp-open');
   hpReset();ymGoal('helper')}
-function hpReset(){Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false});hpStep()}
+function hpReset(){Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:false,busy:false,last:false,refs:[]});hpStep()}
 function helperClose(){if(hpRec){try{hpRec.abort()}catch(e){}}document.querySelector('.hp-panel')?.remove();document.body.classList.remove('hp-open')}
 const hpVoiceOK=()=>!!(window.SpeechRecognition||window.webkitSpeechRecognition);
 function helperRender(){const p=document.querySelector('.hp-panel');if(!p)return;
   const keep=p.querySelector('.hp-compose input')?.value||'';
   const log=HP.log.map(m=>m.raw!=null?m.raw:`<div class="hp-msg${m.me?' me':''}">${m.html}</div>`).join('');
   const Q=!HP.busy&&HP.ask&&HP_Q[HP.ask];
-  const quick=Q?`<div class="hp-opts">${Q.opts.map(o=>`<button type="button" class="hp-opt" data-hpans="${HP.ask}:${o[0]}">${esc(o[1])}</button>`).join('')}</div>`
-    :(!HP.busy&&HP.chips.length?`<div class="hp-chips">${HP.chips.map(c=>`<button type="button" class="hp-chip" data-hpsay="${esc(c)}">${esc(c)}</button>`).join('')}</div>`:'');
+  const chipsHTML=list=>`<div class="hp-chips">${list.map(c=>Array.isArray(c)?`<button type="button" class="hp-chip act" data-hpact="${c[1]}">${esc(c[0])}</button>`
+    :`<button type="button" class="hp-chip" data-hpsay="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
+  const quick=Q?`<div class="hp-opts">${Q.opts.map(o=>`<button type="button" class="hp-opt" data-hpans="${HP.ask}:${o[0]}">${esc(o[1])}</button>`).join('')}</div>${HP.ask==='kind'?chipsHTML(HP_EXTRA):''}`
+    :(!HP.busy&&HP.chips.length?chipsHTML(HP.chips):'');
+  const clip='<label class="hp-clip" title="Прикрепить фото дома" aria-label="Прикрепить фото дома"><input type="file" accept="image/*" multiple data-hpfile hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5 12.6 19.9a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></svg></label>';
   const typing=HP.busy?'<div class="hp-msg hp-typing" aria-label="печатает"><i></i><i></i><i></i></div>':'';
   const mic=hpVoiceOK()?`<button type="button" class="hp-mic${HP.rec?' on':''}" data-hpmic aria-label="${HP.rec?'Остановить запись':'Сказать голосом'}" title="Сказать голосом — речь распознаёт браузер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>`:'';
   p.innerHTML=`<div class="hp-head"><div class="hp-head-l"><span class="hp-ava">${HP_FACE}</span><div><b>Контур ИИ</b><span>${HP.busy?'печатает…':HP.rec?'слушаю…':'подберу дом и отвечу на вопросы'}</span></div></div>
     <div class="hp-head-b">${HP.log.length>1?'<button type="button" class="hp-mini" data-hpreset>Заново</button>':''}<button type="button" class="hp-x" data-hpclose aria-label="Закрыть">✕</button></div></div>
     <div class="hp-body">${log}${typing}${quick}</div>
-    <form class="hp-compose" data-hpform>${mic}<input name="t" placeholder="${HP.rec?'Говори…':HP.ask==='place'?'Город или посёлок':'Например: дом для четверых зимой до 2 млн'}" autocomplete="off" aria-label="Сообщение помощнику"><button class="hp-send" type="submit" aria-label="Отправить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></form>`;
+    <form class="hp-compose" data-hpform>${clip}${mic}<input name="t" placeholder="${HP.rec?'Говори…':HP.ask==='place'?'Город или посёлок':'Например: дом для четверых зимой до 2 млн'}" autocomplete="off" aria-label="Сообщение помощнику"><button class="hp-send" type="submit" aria-label="Отправить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></form>`;
   const inp=p.querySelector('.hp-compose input');if(keep)inp.value=keep;
   const body=p.querySelector('.hp-body');body.scrollTop=body.scrollHeight;
   if(matchMedia('(pointer:fine)').matches&&!HP.rec)setTimeout(()=>inp.focus({preventScroll:true}),40)}
@@ -5277,7 +5291,11 @@ function hpParse(orig){
   if(/дешевле|подешевле|дорого|бюджетнее|экономнее/.test(t))follow='cheaper';
   else if(!bud&&/побольше|больше|просторн|шире|крупнее/.test(t)&&!f.size&&!f.area)follow='bigger';
   else if(/поменьше|меньше|компактн/.test(t)&&!f.size&&!f.area)follow='smaller';
-  return{f,follow,faq,city:hpCity(orig,t),t}}
+  let intent=null;
+  if(/фото|фотк|картинк|скрин|изображени|снимк|прикреп/.test(t))intent='photo';
+  else if(/свой проект|свою планировк|своя планировк|по своим размер|свой чертеж|нарисовать|собрать сам|собрать свой|индивидуальн/.test(t))intent='own';
+  else if(/построил|постройк|ваши работ|ваших работ|пример|портфолио|что вы строил|готов(ые|ый|ых) проект|похож/.test(t))intent='gallery';
+  return{f,follow,faq,city:hpCity(orig,t),t,intent}}
 /* ---------- ответы на частые вопросы ---------- */
 async function hpGeo(city){let r=null;try{r=await addrLookup(city)}catch(e){}
   if(r&&r.km){HP.ans.km=r.km;HP.ans.addr=r.name;return true}
@@ -5316,6 +5334,11 @@ async function hpUnderstand(txt){
   Object.keys(f).forEach(k=>{if(f[k]!==null&&f[k]!==undefined)HP.ans[k]=f[k];else delete HP.ans[k]});
   if(f.size)delete HP.ans.area;
   if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info)return}
+  if(g.intent==='photo'){hpSay('Пришли фото дома, который нравится: нажми на скрепку слева от строки ввода — можно до 4 снимков. Соберу проект под него, а фото уйдёт менеджеру вместе с заявкой.');
+    HP.chips=[['Прикрепить фото','photo'],['Наши постройки','gallery']];if(!info)return}
+  if(g.intent==='own'){hpSay('Свой проект собирается в «Своём размере»: любой размер с шагом 0,5 м, планировку рисуешь сам, смета считается сразу. Открою его с тем, что ты уже рассказал.');
+    HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="own">Открыть «Свой размер»</button><button type="button" class="btn" data-hpact="photo">Прикрепить фото дома</button></div>'});if(!info)return}
+  if(g.intent==='gallery'){hpGallery(g.t);if(!info)return}
   if(g.follow&&HP.last)hpFollow(g.follow);
   if(!info&&!g.faq&&HP.ask){hpSay('Не совсем понял. Выбери вариант ниже или напиши по-другому.');return}
   if(!info&&!g.faq){hpSay('Пока не понял. Я разбираю размер, бюджет, сколько человек, сезон, этажи, террасу и город. Например: «дом для троих на лето до 1,5 млн под Калугой». Ещё могу рассказать про доставку, сроки и оплату.');
@@ -5388,12 +5411,43 @@ async function hpResults(){const a=HP.ans;
   hpSay((a.km?`Доставка по адресу «${esc(a.addr)}» — ${a.km} км по дорогам, ${rub(a.km*DELIVERY_RATE)}, уже в цене.`:'Доставку посчитал условно на 50 км — напиши город, и я пересчитаю.')+
     (HP.free?' Можно уточнить словами: «подешевле», «побольше», «два этажа», «с террасой» или другой город.':' В калькуляторе можно поменять всё: размер, окна, отделку, планировку.'));
   HP.last=true;
-  HP.chips=a.kind==='mod'?['Побольше','Поменьше',a.winter==='1'?'Только на лето':'Для зимы','Связаться с менеджером']
-    :['Подешевле','Побольше',a.terrace==='1'?'Без террасы':'С террасой',a.floors===2?'Один этаж':'Два этажа','Связаться с менеджером'];
+  HP.chips=a.kind==='mod'?['Побольше','Поменьше',a.winter==='1'?'Только на лето':'Для зимы',['Наши постройки','gallery'],['Фото модуля','photo'],'Связаться с менеджером']
+    :['Подешевле','Побольше',a.terrace==='1'?'Без террасы':'С террасой',a.floors>1?'Один этаж':'Два этажа',['Свой проект','own'],['Фото дома','photo'],'Связаться с менеджером'];
   ymGoal('helper_done')}
 function helperApply(key){const x=HP.picks[+key.slice(1)];if(!x)return;
   if(key[0]==='h'){calcState[x.vm.id]={...x.cfg,addr:HP.ans.addr||''};helperClose();location.hash='#/house/'+x.vm.id}
   else{Object.assign(modState,JSON.parse(JSON.stringify(x.cfg)));helperClose();location.hash='#/modules/'+x.cfg.size}}
+/* ---------- фото дома мечты, свой проект, наши постройки ---------- */
+async function hpPhotos(files){files=[...files].filter(f=>/^image\//.test(f.type));if(!files.length){toast('Выбери файл с картинкой');return}
+  const got=[];for(const f of files){if(HP.refs.length>=REF_MAX)break;try{const u=await refShrink(f);HP.refs.push(u);got.push(u)}catch(e){}}
+  if(!got.length){toast(`Можно до ${REF_MAX} фото`);return}
+  HP.free=true;HP.log.push({raw:`<div class="hp-msg me hp-pics">${got.map(u=>`<img src="${u}" alt="Фото желаемого дома">`).join('')}</div>`});
+  hpSay('Отличное фото! По картинке сам подобрать проект я пока не умею, но соберу его под неё: открою «Свой размер» и прикреплю фото — задашь размер и комплектацию, а менеджер увидит снимок вместе с заявкой и посчитает всё точно.');
+  HP.log.push({raw:`<div class="hp-acts"><button type="button" class="btn lamp" data-hpact="own">Собрать проект с ${got.length>1||HP.refs.length>1?'этими фото':'этим фото'}</button><button type="button" class="btn" data-hpact="gallery">Похожие из наших построек</button></div>`});
+  HP.chips=[];helperRender()}
+function hpOwn(){const a=HP.ans,refs=HP.refs.slice(0,REF_MAX);
+  if(a.kind==='mod'){if(refs.length)modState.refs=[...(modState.refs||[]),...refs].slice(-REF_MAX);
+    if(a.km)Object.assign(modState,{km:a.km,addr:a.addr||''});if(a.winter==='1')modState.ins='150';
+    helperClose();location.hash='#/modules/'+(modState.size||'6x3');toast(refs.length?'Открыли конструктор модуля — фото прикрепили':'Открыли конструктор модуля');return}
+  let w=customState.w,d=customState.d;
+  if(a.size){w=a.size[0];d=a.size[1]}else if(a.area){w=a.area<=40?6:a.area<=75?8:10;d=Math.max(4,Math.round(a.area/w*2)/2)}
+  if(w!==customState.w||d!==customState.d){customState.w=w;customState.d=d;try{delete calcState['custom'];delete calcState['custom#2']}catch(e){}}
+  if(a.floors)customState.floors=a.floors===2?'2':a.floors===1.5?'1.5':'1';
+  if(a.kind==='life')customState.ins='150';
+  if(a.km){customState.km=a.km;customState.addr=a.addr||''}
+  if(refs.length)customState.refs=[...(customState.refs||[]),...refs].slice(-REF_MAX);
+  helperClose();location.hash='#/custom';
+  toast(refs.length?'Открыли «Свой размер» — фото прикрепили, настраивай под себя':'Открыли «Свой размер» — задай размер, планировку и комплектацию')}
+function hpGallery(t){const a=HP.ans;let list=PRJ.map((p,i)=>({p,i}));
+  if(a.kind==='mod')list=list.filter(x=>x.p.mod);else if(a.kind)list=[...list.filter(x=>x.p.house),...list.filter(x=>!x.p.house)];
+  const KW=[/террас|настил|веранд|навес/,/панорам|остеклен/,/профлист/,/орех|темн|покраск/,/два модуля|пара модулей/,/печ/,/перил/];
+  if(t){const hits=list.filter(x=>KW.some(re=>re.test(t)&&re.test((x.p.name+' '+x.p.txt).toLowerCase())));if(hits.length)list=hits}
+  list=list.slice(0,4);
+  hpSay('Вот что мы уже построили. Нажми «Хочу такой» — открою конструктор с этим проектом и его фото, останется подогнать под себя:');
+  HP.log.push({raw:list.map(x=>`<div class="hp-card"><img src="${esc(x.p.img)}" alt="" loading="lazy"><div><b>${esc(x.p.name)}</b><span>${esc(x.p.txt)}</span>
+    <button type="button" class="btn lamp" data-prjadd="${x.i}">Хочу такой</button></div></div>`).join('')
+    +'<a class="btn" href="#/projects" data-hpgo style="justify-self:start;height:38px;font-size:13px">Все наши постройки</a>'});
+  HP.chips=[['Собрать свой проект','own'],['Прикрепить фото дома','photo']]}
 /* ---------- голос: распознаёт браузер, сайт получает только текст ---------- */
 let hpRec=null;
 function hpMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
@@ -5406,7 +5460,16 @@ function hpMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecogniti
   r.onend=()=>{hpRec=null;HP.rec=false;const el=document.querySelector('.hp-compose input');if(el)el.value='';helperRender();if(said.trim())hpText(said)};
   try{r.start()}catch(e){hpRec=null;HP.rec=false;helperRender()}}
 /* ---------- события ---------- */
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-hpans],[data-hpclose],[data-hpreset],[data-hpopen],[data-hpsay],[data-hpmic],[data-hpcall],[data-hpcustom]');if(!t)return;
+document.addEventListener('click',e=>{
+  /* «Хочу такой» в чате — дальше работает обычная кнопка «Заказать этот проект», окно закрываем */
+  if(e.target.closest&&e.target.closest('.hp-panel [data-prjadd]')){setTimeout(helperClose,0);return}
+  const t=e.target.closest&&e.target.closest('[data-hpans],[data-hpclose],[data-hpreset],[data-hpopen],[data-hpsay],[data-hpmic],[data-hpcall],[data-hpcustom],[data-hpact],[data-hpgo]');if(!t)return;
+  if('hpgo' in t.dataset){helperClose();return}
+  if('hpact' in t.dataset){const k=t.dataset.hpact;
+    if(k==='photo'){document.querySelector('.hp-panel [data-hpfile]')?.click();return}
+    if(k==='own'){hpOwn();return}
+    if(k==='gallery'&&!HP.busy){HP.free=true;hpSay('Покажи ваши постройки',true);hpGallery('');helperRender();return}
+    return}
   if('hpclose' in t.dataset){helperClose();return}
   if('hpreset' in t.dataset){hpReset();return}
   if('hpopen' in t.dataset){helperApply(t.dataset.hpopen);return}
@@ -5425,6 +5488,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   HP.ask=null;hpStep()});
 document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('[data-hpform]');if(!f)return;e.preventDefault();
   const inp=f.querySelector('input'),v=inp.value;inp.value='';hpText(v)},true);
+document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-hpfile]');if(!f)return;const files=f.files;hpPhotos(files).finally(()=>{f.value=''})});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.hp-panel'))helperClose()});
 function footer(){return `<footer class="wrap"><div class="foot-grid">
   <div style="display:grid;gap:14px;align-content:start"><a class="logo" href="#/"><b>КОНТУР</b><i>дома</i></a><p style="color:var(--muted);font-size:14px;max-width:34ch">Каркасные дома в скандинавской эстетике для жизни круглый год.</p></div>

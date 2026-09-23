@@ -767,12 +767,34 @@ footer{padding:50px 0 34px}
 .empty{border:1px dashed var(--line2);border-radius:22px;padding:60px 24px;text-align:center;display:grid;gap:16px;justify-items:center;color:var(--muted)}
 @media (max-width:860px){.cart{grid-template-columns:1fr}.line{grid-template-columns:100px 1fr}.line canvas{width:100px;height:80px}.line .r{grid-column:1/-1;justify-items:start;text-align:left}}
 /* помощник по выбору дома */
-.hp-fab{position:fixed;right:22px;bottom:22px;z-index:90;width:62px;height:62px;border-radius:50%;border:0;color:#1a120a;
+.hp-fab{position:fixed;right:22px;bottom:22px;z-index:90;width:62px;height:62px;border-radius:50%;border:0;padding:0;color:#1a120a;background:none;
+  display:grid;place-items:center;cursor:pointer;transition:transform .2s;animation:hpFloat 3.6s ease-in-out infinite}
+/* сама капля — отдельный слой: её края перетекают и обрезают блики, а точка уведомления остаётся целой поверх */
+.hp-blob{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;overflow:hidden;isolation:isolate;
   background:radial-gradient(circle at 34% 28%,#F6D3A0 0%,var(--lamp) 55%,#C77C33 100%);
-  display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.4),inset 0 -4px 10px rgba(120,60,10,.25);
-  transition:transform .2s;animation:hpFloat 3.6s ease-in-out infinite}
+  box-shadow:0 12px 30px rgba(0,0,0,.4),inset 0 -4px 10px rgba(120,60,10,.25);animation:hpBlob 7s ease-in-out infinite}
+/* капля: форма плавно перетекает */
+@keyframes hpBlob{
+  0%,100%{border-radius:50% 50% 50% 50%/50% 50% 50% 50%}
+  20%{border-radius:62% 38% 46% 54%/42% 58% 42% 58%}
+  40%{border-radius:40% 60% 62% 38%/60% 40% 60% 40%}
+  60%{border-radius:56% 44% 36% 64%/64% 38% 62% 36%}
+  80%{border-radius:44% 56% 58% 42%/38% 62% 40% 60%}}
+/* переливы: блик и тень ходят по кругу внутри капли */
+.hp-blob::before,.hp-ava::before{content:"";position:absolute;inset:-35%;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle at 32% 28%,rgba(255,244,222,.95) 0%,rgba(255,244,222,0) 26%),
+             radial-gradient(circle at 70% 76%,rgba(150,68,12,.45) 0%,rgba(150,68,12,0) 34%),
+             radial-gradient(circle at 78% 30%,rgba(255,214,150,.55) 0%,rgba(255,214,150,0) 22%);
+  animation:hpShine 6s linear infinite}
+@keyframes hpShine{to{transform:rotate(360deg)}}
+/* глянцевый блик сверху, дрожит вместе с каплей */
+.hp-blob::after,.hp-ava::after{content:"";position:absolute;top:13%;left:20%;width:26%;height:15%;border-radius:50%;z-index:0;pointer-events:none;
+  background:rgba(255,255,255,.55);filter:blur(1.5px);transform:rotate(-24deg);animation:hpGloss 3.5s ease-in-out infinite}
+@keyframes hpGloss{0%,100%{transform:rotate(-24deg) scale(1)}50%{transform:rotate(-18deg) scale(1.15,.85) translateX(2px)}}
+.hp-blob .hp-face,.hp-ava .hp-face{position:relative;z-index:1}
+.hp-fab .hp-dot{z-index:3}
 .hp-fab:hover{transform:scale(1.07)}
-@keyframes hpFloat{0%,100%{translate:0 0}50%{translate:0 -4px}}
+@keyframes hpFloat{0%,100%{translate:0 0;scale:1 1}25%{scale:1.03 .97}50%{translate:0 -4px;scale:.97 1.04}75%{scale:1.02 .98}}
 /* лицо: два глаза и улыбка */
 .hp-face{display:grid;justify-items:center;gap:4px;pointer-events:none}
 .hp-eyes{display:flex;gap:7px}
@@ -791,8 +813,8 @@ footer{padding:50px 0 34px}
   transform:translate(calc(-50% + var(--px,0px)),calc(-50% + var(--py,0px)))}
 .hp-fab.happy .hp-smile{height:7px;width:13px}
 /* маленькая мордочка в шапке окна */
-.hp-ava{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
-  background:radial-gradient(circle at 34% 28%,#F6D3A0 0%,var(--lamp) 55%,#C77C33 100%)}
+.hp-ava{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;position:relative;overflow:hidden;isolation:isolate;
+  background:radial-gradient(circle at 34% 28%,#F6D3A0 0%,var(--lamp) 55%,#C77C33 100%);animation:hpBlob 7s ease-in-out infinite}
 .hp-ava .hp-eyes{gap:4px}
 .hp-ava .hp-eye{width:9px;height:11px}
 .hp-ava .hp-eye b{width:5px;height:6px}
@@ -800,7 +822,7 @@ footer{padding:50px 0 34px}
 .hp-ava .hp-smile{width:7px;height:3px;border-width:1.5px}
 .hp-ava .hp-face{gap:2px}
 .hp-head-l{display:flex;align-items:center;gap:10px}
-@media (prefers-reduced-motion:reduce){.hp-fab,.hp-eye,.hp-eye b,.hp-fab .hp-dot{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.hp-fab,.hp-blob,.hp-ava,.hp-eye,.hp-eye b,.hp-fab .hp-dot,.hp-blob::before,.hp-blob::after,.hp-ava::before,.hp-ava::after{animation:none!important}}
 .hp-fab .hp-dot{position:absolute;top:5px;right:5px;width:12px;height:12px;border-radius:50%;background:#E2553D;box-shadow:0 0 0 3px var(--bg);animation:hpPulse 2s infinite}
 @keyframes hpPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
 .hp-fab[hidden],body.hp-open .hp-fab{display:none}
@@ -5094,7 +5116,7 @@ const hpOrder=()=>HP.ans.kind==='mod'?['kind','use','winter','place']:['kind','p
 const hpSeen=()=>{try{sessionStorage.setItem('kontur.hp','1')}catch(e){}};
 function helperInit(){if(!HELPER_ON||document.querySelector('.hp-fab'))return;
   const b=document.createElement('button');b.type='button';b.className='hp-fab';b.setAttribute('aria-label','Контур ИИ: подобрать дом');b.title='Контур ИИ — подобрать дом';
-  b.innerHTML=HP_FACE+'<i class="hp-dot"></i>';
+  b.innerHTML='<span class="hp-blob">'+HP_FACE+'</span><i class="hp-dot"></i>';
   b.onclick=()=>helperOpen();document.body.appendChild(b);helperRoute();
   addEventListener('hashchange',helperRoute);
   let seen=null;try{seen=sessionStorage.getItem('kontur.hp')}catch(e){}

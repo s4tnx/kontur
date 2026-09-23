@@ -1113,6 +1113,7 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
   .m-burger{display:grid}
   .mnav{display:block}
 }
+@media (max-width:360px){.tools{gap:4px!important}.tools .icon-btn,.tools .m-burger,.tools .theme-btn{width:36px!important;height:36px!important}}
 @media (max-width:760px){
   html,body{overflow-x:clip}
   header.top{height:62px;gap:8px;padding:0 14px}
@@ -1120,7 +1121,9 @@ body.menu-open header.top{background:transparent!important;border-color:transpar
   header.top .logo svg{width:27px;height:24px}
   header.top .logo b{font-size:15px}
   .tools{gap:6px}
-  .tools .icon-btn[href="#/account/fav"],.tools .acct,.tools .theme-btn{display:none!important}
+  .tools .icon-btn[href="#/account/fav"],.tools .acct{display:none!important}
+  /* переключатель темы — слева от корзины */
+  .tools .theme-btn{order:-1;width:40px;height:40px;flex:none}
   .icon-btn,.m-burger{width:40px;height:40px}
   .m-call{display:grid;color:var(--lamp)!important;border-color:rgba(231,163,92,.45)!important}
   /* нижняя панель как в приложении */
@@ -2679,7 +2682,7 @@ function home(){
   </div></section>
 
   <section class="wrap" style="border:0"><div class="cta reveal"><canvas data-scene="baikal" data-hz=".6" data-gy=".78"></canvas>
-    <div class="in"><h2>Постройте дом, в котором темнота — это уют</h2><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn lamp" href="#/catalog">Смотреть дома</a><button class="btn" data-login>Личный кабинет</button></div></div>
+    <div class="in"><h2>Строим дом, в котором уют</h2><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn lamp" href="#/catalog">Смотреть дома</a><button class="btn" data-login>Личный кабинет</button></div></div>
   </div></section>`;
 }
 function wallSVG(){

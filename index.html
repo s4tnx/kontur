@@ -767,10 +767,40 @@ footer{padding:50px 0 34px}
 .empty{border:1px dashed var(--line2);border-radius:22px;padding:60px 24px;text-align:center;display:grid;gap:16px;justify-items:center;color:var(--muted)}
 @media (max-width:860px){.cart{grid-template-columns:1fr}.line{grid-template-columns:100px 1fr}.line canvas{width:100px;height:80px}.line .r{grid-column:1/-1;justify-items:start;text-align:left}}
 /* помощник по выбору дома */
-.hp-fab{position:fixed;right:22px;bottom:22px;z-index:90;width:58px;height:58px;border-radius:50%;border:0;background:var(--lamp);color:#1a120a;
-  display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.4);transition:transform .2s}
-.hp-fab:hover{transform:scale(1.06)}
-.hp-fab svg{width:26px;height:26px}
+.hp-fab{position:fixed;right:22px;bottom:22px;z-index:90;width:62px;height:62px;border-radius:50%;border:0;color:#1a120a;
+  background:radial-gradient(circle at 34% 28%,#F6D3A0 0%,var(--lamp) 55%,#C77C33 100%);
+  display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.4),inset 0 -4px 10px rgba(120,60,10,.25);
+  transition:transform .2s;animation:hpFloat 3.6s ease-in-out infinite}
+.hp-fab:hover{transform:scale(1.07)}
+@keyframes hpFloat{0%,100%{translate:0 0}50%{translate:0 -4px}}
+/* лицо: два глаза и улыбка */
+.hp-face{display:grid;justify-items:center;gap:4px;pointer-events:none}
+.hp-eyes{display:flex;gap:7px}
+.hp-eye{display:block;width:14px;height:17px;border-radius:50%;background:#fff;position:relative;overflow:hidden;
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,.12);animation:hpBlink 4.8s infinite}
+.hp-eye:nth-child(2){animation-delay:.04s}
+.hp-eye b{position:absolute;left:50%;top:50%;width:8px;height:9px;border-radius:50%;background:#1a120a;
+  transform:translate(-50%,-50%);animation:hpLook 7s ease-in-out infinite}
+.hp-eye b::after{content:"";position:absolute;top:1.5px;left:1.8px;width:2.8px;height:2.8px;border-radius:50%;background:#fff}
+.hp-smile{display:block;width:11px;height:5px;border:2px solid #1a120a;border-top:0;border-radius:0 0 10px 10px}
+@keyframes hpBlink{0%,91%,97%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+@keyframes hpLook{0%,14%{transform:translate(-50%,-50%)}20%,34%{transform:translate(-92%,-48%)}42%,56%{transform:translate(-8%,-52%)}
+  64%,74%{transform:translate(-50%,-84%)}82%,100%{transform:translate(-50%,-50%)}}
+/* на компьютере глазки следят за курсором */
+.hp-fab.track .hp-eye b,.hp-ava.track .hp-eye b{animation:none;transition:transform .12s ease-out;
+  transform:translate(calc(-50% + var(--px,0px)),calc(-50% + var(--py,0px)))}
+.hp-fab.happy .hp-smile{height:7px;width:13px}
+/* маленькая мордочка в шапке окна */
+.hp-ava{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 28%,#F6D3A0 0%,var(--lamp) 55%,#C77C33 100%)}
+.hp-ava .hp-eyes{gap:4px}
+.hp-ava .hp-eye{width:9px;height:11px}
+.hp-ava .hp-eye b{width:5px;height:6px}
+.hp-ava .hp-eye b::after{width:1.8px;height:1.8px;top:1px;left:1px}
+.hp-ava .hp-smile{width:7px;height:3px;border-width:1.5px}
+.hp-ava .hp-face{gap:2px}
+.hp-head-l{display:flex;align-items:center;gap:10px}
+@media (prefers-reduced-motion:reduce){.hp-fab,.hp-eye,.hp-eye b,.hp-fab .hp-dot{animation:none!important}}
 .hp-fab .hp-dot{position:absolute;top:5px;right:5px;width:12px;height:12px;border-radius:50%;background:#E2553D;box-shadow:0 0 0 3px var(--bg);animation:hpPulse 2s infinite}
 @keyframes hpPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
 .hp-fab[hidden],body.hp-open .hp-fab{display:none}
@@ -808,7 +838,7 @@ footer{padding:50px 0 34px}
 .hp-card .btn{height:36px;font-size:13px;padding:0 14px;justify-self:start}
 .hp-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0}
 @media (max-width:760px){
-  .hp-fab{right:14px;bottom:calc(88px + env(safe-area-inset-bottom));width:52px;height:52px}
+  .hp-fab{right:14px;bottom:calc(88px + env(safe-area-inset-bottom));width:56px;height:56px}
   body:has(.mdock.show) .hp-fab{bottom:calc(152px + env(safe-area-inset-bottom))}
   .hp-tease{right:14px;bottom:calc(150px + env(safe-area-inset-bottom))}
   .hp-panel{left:10px;right:10px;width:auto;bottom:calc(10px + env(safe-area-inset-bottom));max-height:calc(100vh - 80px)}
@@ -5039,38 +5069,47 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
    Выключить помощника целиком: HELPER_ON = false. */
 const HELPER_ON=true;
 const HP={step:0,ans:{},log:[],result:'',picks:[]};
+const HP_FACE='<span class="hp-face"><span class="hp-eyes"><i class="hp-eye"><b></b></i><i class="hp-eye"><b></b></i></span><i class="hp-smile"></i></span>';
+/* глазки следят за курсором (на компьютере); без движения мыши снова оглядываются сами */
+let hpTrackT=0;
+addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;
+  document.querySelectorAll('.hp-fab:not([hidden]),.hp-ava').forEach(f=>{const r=f.getBoundingClientRect();if(!r.width)return;
+    const dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),d=Math.hypot(dx,dy)||1,k=Math.min(1,d/200),s=f.classList.contains('hp-ava')?2:3.2;
+    f.style.setProperty('--px',(dx/d*s*k).toFixed(2)+'px');f.style.setProperty('--py',(dy/d*s*.9*k).toFixed(2)+'px');f.classList.add('track')});
+  clearTimeout(hpTrackT);hpTrackT=setTimeout(()=>document.querySelectorAll('.hp-fab,.hp-ava').forEach(f=>f.classList.remove('track')),2600)},{passive:true});
 const HELP_MOD0=JSON.parse(JSON.stringify(modState));   /* модуль «по умолчанию» — до любых правок посетителя */
 const hpHideRoute=()=>/^#\/(admin|cart|account|privacy|consent)/.test(location.hash);
 const HP_Q={
-  kind:{q:'Здравствуйте! Помогу подобрать дом и сразу посчитаю цену. Что хотите построить?',
+  kind:{q:'Привет! Я Контур ИИ. Помогу тебе подобрать дом и сразу посчитаю цену. Что хочешь построить?',
     opts:[['life','Дом, чтобы жить круглый год'],['dacha','Дачный дом на сезон'],['mod','Модуль: гостевой домик, кабинет, бытовка']]},
   people:{q:'Сколько человек будет жить в доме?',opts:[['2','1–2 человека'],['4','3–4 человека'],['6','5 и больше']]},
-  budget:{q:'На какой бюджет ориентируетесь? Вместе с доставкой.',
+  budget:{q:'На какой бюджет ориентируешься? Вместе с доставкой.',
     opts:[['1000000','До 1 млн ₽'],['1500000','До 1,5 млн ₽'],['2500000','До 2,5 млн ₽'],['4000000','До 4 млн ₽'],['0','Пока не знаю']]},
   terrace:{q:'Нужна терраса или веранда?',opts:[['1','Да, хочу'],['0','Не обязательно']]},
   use:{q:'Для чего нужен модуль?',opts:[['guest','Гостевой домик или жить летом'],['office','Кабинет или мастерская'],['site','Бытовка на стройку, для инструмента']]},
-  winter:{q:'Будете пользоваться зимой?',opts:[['1','Да, круглый год'],['0','Только в тёплое время']]},
-  place:{q:'Где участок? Напишите город или посёлок — посчитаю доставку по дорогам.',input:1}
+  winter:{q:'Будешь пользоваться им зимой?',opts:[['1','Да, круглый год'],['0','Только в тёплое время']]},
+  place:{q:'Где участок? Напиши город или посёлок — посчитаю доставку по дорогам.',input:1}
 };
 const hpOrder=()=>HP.ans.kind==='mod'?['kind','use','winter','place']:['kind','people','budget','terrace','place'];
 const hpSeen=()=>{try{sessionStorage.setItem('kontur.hp','1')}catch(e){}};
 function helperInit(){if(!HELPER_ON||document.querySelector('.hp-fab'))return;
-  const b=document.createElement('button');b.type='button';b.className='hp-fab';b.setAttribute('aria-label','Помощник: подобрать дом');b.title='Подобрать дом';
-  b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg><i class="hp-dot"></i>';
+  const b=document.createElement('button');b.type='button';b.className='hp-fab';b.setAttribute('aria-label','Контур ИИ: подобрать дом');b.title='Контур ИИ — подобрать дом';
+  b.innerHTML=HP_FACE+'<i class="hp-dot"></i>';
   b.onclick=()=>helperOpen();document.body.appendChild(b);helperRoute();
   addEventListener('hashchange',helperRoute);
   let seen=null;try{seen=sessionStorage.getItem('kontur.hp')}catch(e){}
-  if(!seen)setTimeout(helperTease,9000)}
+  if(!seen)setTimeout(helperTease,4000)}
 function helperRoute(){const f=document.querySelector('.hp-fab');if(!f)return;const hide=hpHideRoute();f.hidden=hide;
   if(hide){helperClose();document.querySelector('.hp-tease')?.remove()}}
 function helperTease(){if(document.querySelector('.hp-panel,.hp-tease,.modal,.ck-bar')||hpHideRoute())return;
   const f=document.querySelector('.hp-fab');if(!f||f.hidden)return;
   const el=document.createElement('div');el.className='hp-tease';el.setAttribute('role','button');el.tabIndex=0;
-  el.innerHTML='<button type="button" class="hp-tease-x" aria-label="Скрыть">✕</button><b>Подобрать дом за минуту?</b><span>Пара вопросов — и готовый расчёт с ценой и доставкой</span>';
+  el.innerHTML='<button type="button" class="hp-tease-x" aria-label="Скрыть">✕</button><b>Привет! Я Контур ИИ</b><span>Помогу тебе подобрать дом и сразу посчитаю цену с доставкой</span>';
+  const fab=document.querySelector('.hp-fab');if(fab){fab.classList.add('happy');setTimeout(()=>fab.classList.remove('happy'),4000)}
   el.onclick=e=>{el.remove();if(e.target.closest('.hp-tease-x')){hpSeen();return}helperOpen()};
   document.body.appendChild(el);setTimeout(()=>el.remove(),15000)}
 function helperOpen(){hpSeen();document.querySelector('.hp-tease')?.remove();if(document.querySelector('.hp-panel'))return;
-  const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Помощник по выбору дома');
+  const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Контур ИИ — помощник по выбору дома');
   document.body.appendChild(p);document.body.classList.add('hp-open');
   HP.step=0;HP.ans={};HP.log=[];HP.result='';HP.picks=[];helperAsk();ymGoal('helper')}
 function helperClose(){document.querySelector('.hp-panel')?.remove();document.body.classList.remove('hp-open')}
@@ -5080,7 +5119,7 @@ function helperAsk(){const p=document.querySelector('.hp-panel');if(!p)return;
   const tail=!Q?HP.result:`<div class="hp-msg">${esc(Q.q)}</div>`+(Q.input
     ?`<form class="hp-in" data-hpplace><input name="place" placeholder="Например: Тверь или Истра" autocomplete="off" aria-label="Город или посёлок"><button class="btn lamp" type="submit">Дальше</button></form><button type="button" class="hp-skip" data-hpskip>Пропустить</button>`
     :`<div class="hp-opts">${Q.opts.map(o=>`<button type="button" class="hp-opt" data-hpans="${key}:${o[0]}">${esc(o[1])}</button>`).join('')}</div>`);
-  p.innerHTML=`<div class="hp-head"><div><b>Помощник по выбору</b><span>${Q?`Вопрос ${HP.step+1} из ${order.length}`:'Готово'}</span></div>
+  p.innerHTML=`<div class="hp-head"><div class="hp-head-l"><span class="hp-ava">${HP_FACE}</span><div><b>Контур ИИ</b><span>${Q?`Вопрос ${HP.step+1} из ${order.length}`:'Готово'}</span></div></div>
     <div class="hp-head-b">${HP.step?'<button type="button" class="hp-mini" data-hpreset>Заново</button>':''}<button type="button" class="hp-x" data-hpclose aria-label="Закрыть">✕</button></div></div>
     <div class="hp-body">${log}${tail}</div>`;
   const body=p.querySelector('.hp-body');body.scrollTop=body.scrollHeight;
@@ -5105,7 +5144,7 @@ function hpHouses(km){const a=HP.ans,year=a.kind==='life',pp=+a.people||2,cap=+a
   if(!list.length){mode='near';list=pool.map(x=>({...x,cfg:x.cold,total:x.tc})).sort((p,q)=>p.total-q.total).slice(0,6)}
   const out=[],seen=new Set();for(const x of rank(list)){if(seen.has(x.m.id))continue;seen.add(x.m.id);out.push(x);if(out.length===3)break}
   HP.picks=out;
-  const head=mode==='warm'?`Подобрал ${out.length} ${plural(out.length,['вариант','варианта','вариантов'])} под ваши условия:`
+  const head=mode==='warm'?`Подобрал ${out.length} ${plural(out.length,['вариант','варианта','вариантов'])} под твои условия:`
     :mode==='cold'?'В тёплом контуре в этот бюджет не укладываемся, а в холодном — да. Утеплить можно позже, когда будет удобно:'
     :'В этот бюджет с доставкой пока не укладываемся. Вот самые доступные подходящие варианты:';
   return{head,cards:out.map((x,i)=>hpCard(`${x.m.name} ${fmtD(x.vm.w)}×${fmtD(x.vm.d)} м`,

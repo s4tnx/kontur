@@ -4570,6 +4570,7 @@ function chatTabView(orders,sub){
   const cur=rows.find(r=>String(r.no)===String(sub));
   if(cur)return chatRoomHTML(cur.no,'client',`Менеджер · заявка № ${cur.no}`,cur.sub,'#/account/chat');
   return notifBtn()+chatListHTML(rows,'client',r=>`href="#/account/chat/${r.no}"`)}
+const isStaff=()=>!!user&&(SB.role==='manager'||SB.role==='admin');
 function accountView(tab,sub){
   if(!user)return `<div class="wrap"><div class="page-h"><h1>Личный кабинет</h1></div><div class="empty" style="margin-bottom:80px"><p style="font-size:18px;color:var(--text)">Войдите, чтобы увидеть заявки и избранное</p><p>Здесь хранятся ваши дома, этапы стройки и контакты.</p><button class="btn solid" data-login>Войти или зарегистрироваться</button>
     ${installBtn()}
@@ -4602,7 +4603,7 @@ function accountView(tab,sub){
       <div class="track">${STAGES.map((s,i)=>`<i class="${i<=o.stage?'on':''}"></i>`).join('')}</div><div class="track-l">${STAGES.map(s=>`<span>${s}</span>`).join('')}</div>
       <p class="note">Менеджер свяжется по номеру ${esc(o.phone)} в течение рабочего дня.</p></div>`).join(''):`<div class="empty"><p style="color:var(--text);font-size:18px">Заявок пока нет</p><p>Добавьте дом в корзину и отправьте заявку — здесь появятся этапы стройки.</p><a class="btn solid" href="#/catalog">Выбрать дом</a></div>`);
   const orders_n=orders.length,unread=Math.max(unreadTotal(),orders.reduce((s,o)=>s+chatUnread(o.no,'client'),0));
-  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Личный кабинет</span><h1>Здравствуйте, ${esc(shortName(user)||'друзья')}</h1></div></div>
+  return `<div class="wrap"><div class="page-h"><div style="display:grid;gap:12px"><span class="label">Личный кабинет</span><h1>Здравствуйте, ${esc(shortName(user)||'друзья')}</h1>${isStaff()?`<p class="note" style="margin:0;color:var(--lamp2)">Это ваш личный клиентский кабинет: здесь только ваши собственные заявки. Заявки и переписка с клиентами — в <a class="link" href="#/admin">панели менеджера</a>.</p>`:''}</div></div>
   <div class="acc"><div class="acc-nav">
     <button class="${tab==='orders'?'on':''}" data-tab="orders">Мои заявки <span class="num">${orders_n}</span></button>
     <button class="${tab==='chat'?'on':''}" data-tab="chat">Сообщения <span class="tg-badge num${unread?'':' zero'}" id="accUnread" title="непрочитанных сообщений от менеджера">${unread||0}</span></button>
@@ -4611,7 +4612,8 @@ function accountView(tab,sub){
     <button class="${tab==='profile'?'on':''}" data-tab="profile">Профиль</button>
     <a class="btn" href="#/cart" style="margin-top:8px;justify-content:center">Корзина · <span class="num">${cart.length}</span></a>
     ${installBtn()}
-    <a class="link staff-in" href="#/admin" style="justify-self:center;margin-top:4px">Вход для сотрудников</a>
+    ${isStaff()?`<a class="btn lamp" href="#/admin" style="justify-content:center;margin-top:8px">Панель менеджера</a>`
+      :`<a class="link staff-in" href="#/admin" style="justify-self:center;margin-top:4px">Вход для сотрудников</a>`}
   </div><div>${body}</div></div></div>`;
 }
 let catSize=null;
@@ -5531,6 +5533,7 @@ function adminView(){
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки ${(()=>{const u=newOrders();return `<span class="tg-badge num${u?'':' zero'}" id="mgrNewOrders" title="новых заявок, которые вы ещё не открывали">${u||0}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения ${(()=>{const u=Math.max(0,Math.max(unreadTotal(),list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0))-newOrders());return `<span class="tg-badge num${u?'':' zero'}" id="mgrUnread" title="непрочитанных сообщений от клиентов">${u||0}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
+    <a class="pill" href="#/account/orders" title="ваши собственные заявки как клиента, не заявки клиентов">Мой клиентский кабинет</a>
     <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
   if(adminState.tab==='staff')return `<div class="wrap">${bar}<div class="page-h"><h1>Сотрудники</h1></div>${mgrStaffView(s)}</div>`;
   if(adminState.tab==='chats'){
@@ -5600,7 +5603,10 @@ function render(){
   else if(a==='admin'){const s=mgrSession();html=s?adminView():mgrLoginView()}
   else if(a==='house'){if(b&&migId(b)!==b)history.replaceState(null,'','#/house/'+migId(b));html=modelView(b)}
   else if(a==='cart')html=cartView();
-  else if(a==='account')html=accountView(b,hp[2]);
+  else if(a==='account'){
+    /* у сотрудника «Кабинет» — это панель менеджера. Свой клиентский кабинет — #/account/orders */
+    if(isStaff()&&(!b||b==='chat')){if(b==='chat')adminState.tab='chats';history.replaceState(null,'','#/admin');html=adminView()}
+    else html=accountView(b,hp[2])}
   else html=notFound();
   // keep home mounted when jumping to an anchor on it
   if(scrollTo&&document.getElementById('heroFront')){document.getElementById(scrollTo)?.scrollIntoView({behavior:'smooth'});return}

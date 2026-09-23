@@ -63,7 +63,7 @@
 }
 :root[data-theme="light"] .hero{background:#C8CEDA!important}
 :root[data-theme="light"] .hero::before{background:linear-gradient(rgba(20,23,30,.35),rgba(20,23,30,0))}
-:root[data-theme="light"] .wordmark h1 i{color:#F7F5F1}
+:root[data-theme="light"] .wordmark h1 i{color:#FFFFFF;text-shadow:0 14px 60px rgba(40,70,120,.35)}
 :root[data-theme="light"] .foot-big{opacity:.06}
 :root[data-theme="light"] .card .pic,:root[data-theme="light"] .stage{background:#E6E2DA}
 :root[data-theme="light"] .viz{background:radial-gradient(120% 90% at 50% 0%,#FFFFFF,#ECE8E1 70%)} 
@@ -426,6 +426,20 @@ header.top{transition:background .4s,border-color .4s}
 .photo .ph{position:absolute;inset:0;width:100%;height:100%;display:block;animation:dusk 3.2s .1s cubic-bezier(.3,.6,.2,1) both}
 .photo .ph.front{clip-path:polygon(0% 64%,3.4% 52.6%,34% 52.4%,34% 45%,47.9% 21.7%,61.8% 45%,61.8% 52.4%,95.3% 52.5%,100% 63.5%,100% 100%,0% 100%)}
 @keyframes dusk{from{filter:brightness(.42) saturate(.55);transform:scale(1.06)}to{filter:none;transform:none}}
+/* дневное фото поверх ночного: в светлой теме проявляется, как рассвет, в тёмной уходит, как закат */
+.photo .ph.day{opacity:0;filter:brightness(.5) saturate(.55) sepia(.45) hue-rotate(-14deg);animation:dayIn 3.2s .1s cubic-bezier(.3,.6,.2,1) both;
+  transition:opacity 2.6s cubic-bezier(.45,0,.2,1),filter 3.6s cubic-bezier(.3,0,.2,1)}
+@keyframes dayIn{from{transform:scale(1.06)}to{transform:none}}
+:root[data-theme="light"] .photo .ph.day{opacity:1;filter:none}
+.wordmark h1 i{transition:color 2.6s,text-shadow 2.6s}
+.sunrise{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;mix-blend-mode:screen;
+  background:radial-gradient(70% 55% at 50% 82%,rgba(255,184,110,.62) 0%,rgba(255,140,84,.24) 42%,rgba(255,140,84,0) 72%),
+             linear-gradient(to top,rgba(255,170,110,.28),rgba(255,170,110,0) 60%)}
+.hero.dawn .sunrise{animation:sunrise 3.6s cubic-bezier(.3,0,.2,1)}
+.hero.sunset .sunrise{animation:sunset 3.2s cubic-bezier(.4,0,.3,1)}
+@keyframes sunrise{0%{opacity:0;transform:translateY(22%)}38%{opacity:1}100%{opacity:0;transform:translateY(-8%)}}
+@keyframes sunset{0%{opacity:0;transform:translateY(-8%)}45%{opacity:.85}100%{opacity:0;transform:translateY(24%)}}
+@media (prefers-reduced-motion:reduce){.photo .ph.day{transition-duration:.01s}.hero .sunrise{display:none}}
 .photo .layer{position:absolute;inset:0}
 .hero::after{content:"";position:absolute;inset:auto 0 0 0;height:22%;background:linear-gradient(to bottom,rgba(12,13,14,0),var(--bg));pointer-events:none}
 .hero::before{content:"";position:absolute;inset:0 0 auto 0;height:130px;background:linear-gradient(rgba(20,23,30,.55),rgba(20,23,30,0));z-index:1;pointer-events:none}
@@ -2583,9 +2597,12 @@ function home(){
   <div class="hero">
     <div class="photo" id="heroPhoto">
       <img class="ph back" src="hero.jpg" alt="Каркасный дом «Контур» с панорамным остеклением в сумерках">
+      <img class="ph back day" src="hero-day.webp" alt="" aria-hidden="true" decoding="async">
       <div class="layer" id="layTitle"><div class="wordmark"><h1 aria-label="Контур">${[...'КОНТУР'].map((ch,i)=>`<i style="animation-delay:${.35+Math.abs(i-2.5)*.13}s">${ch}</i>`).join('')}</h1></div></div>
       <img class="ph front" src="hero.jpg" alt="" aria-hidden="true">
+      <img class="ph front day" src="hero-day.webp" alt="" aria-hidden="true" decoding="async">
     </div>
+    <div class="sunrise" aria-hidden="true"></div>
     <div class="hero-note l glass">Каркас//<br>Тепло//<br>Свет//</div>
     <div class="hero-note r glass">Каркасные дома, <b>спроектированные</b> для <b>света</b>, тепла и жизни круглый год.</div>
     <div class="socials" aria-label="Мессенджеры">
@@ -6163,6 +6180,9 @@ function setTheme(mode){
   if(mode==='light')document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.removeAttribute('data-theme');
   try{localStorage.setItem('kontur-theme',mode)}catch(e){}
+  /* главное фото: тёплый отсвет восходящего или заходящего солнца на время перехода */
+  const hr=document.querySelector('.hero');if(hr){hr.classList.remove('dawn','sunset');void hr.offsetWidth;hr.classList.add(mode==='light'?'dawn':'sunset');
+    clearTimeout(hr._sun);hr._sun=setTimeout(()=>hr.classList.remove('dawn','sunset'),3800)}
   if(P3.host&&P3.host.isConnected&&P3.o)mountPlan3(P3.o);else if(typeof draw3D==='function')draw3D();
   document.querySelectorAll('canvas[data-scene]').forEach(c=>{const m=byId(c.dataset.scene);if(m)
     scene(c,m,{fixed:!!c.dataset.fixed,hz:+c.dataset.hz||.64,gy:+c.dataset.gy||.84,fw:+c.dataset.fw||.6,fh:+c.dataset.fh||.6,stars:c.dataset.stars!=='0',seed:m.w*13+m.d*7})});

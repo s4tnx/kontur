@@ -4346,7 +4346,7 @@ const CHAT={},CHAT_DRAFT={};
 const chatKey=no=>'chat.'+no;
 const chatOrder=no=>SB.orders.find(o=>o.no===String(no));
 async function chatLoad(no){
-  if(SB.on&&SB.kind==='api'){const o=chatOrder(no);if(!o)return CHAT[no]||[];
+  if(SB.on&&SB.kind==='api'){let o=chatOrder(no);if(!o){try{await sbLoadOrders()}catch(e){}o=chatOrder(no)}if(!o)return CHAT[no]||[];
     try{const d=await apiReq('msgs',{q:'&order='+o._id});CHAT[no]=d.msgs||[]}catch(e){}
     return CHAT[no]||[]}
   if(SB.on&&SB.kind==='sb'){const o=chatOrder(no);if(!o)return CHAT[no]||[];
@@ -4366,7 +4366,7 @@ function msgItemHTML(it,i,no){const m=lineModel(it);if(!m)return '';
 async function chatSend(no,text,files,role,item){
   const mgr=(()=>{try{const s=mgrSession();return s&&mgrAccounts()[s.login]?mgrAccounts()[s.login].name:''}catch(e){return ''}})();
   const who=role==='manager'?(mgr||(user?user.name:'Менеджер')):(user?user.name:'Клиент');
-  if(SB.on&&SB.kind==='api'){const o=chatOrder(no);if(!o)throw new Error('Заявка не найдена');
+  if(SB.on&&SB.kind==='api'){let o=chatOrder(no);if(!o){try{await sbLoadOrders()}catch(e){}o=chatOrder(no)}if(!o)throw new Error('Заявка не найдена');
     await apiReq('msg',{json:{order:o._id,text,files,item:item||null}});return chatLoad(no)}
   if(SB.on&&SB.kind==='sb'){const o=chatOrder(no);if(!o)throw new Error('Заявка не найдена');
     const {error}=await SB.c.from('messages').insert({order_id:o._id,role,who,text,files,item:item||null});if(error)throw error;return chatLoad(no)}
@@ -4442,6 +4442,36 @@ document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('[
     else toast('Уведомления не разрешены — включить можно в настройках браузера')})});
 async function unreadSync(fresh){await unreadLoad();unreadTick(!!fresh)}
 setInterval(()=>{if(document.visibilityState==='visible'&&(user||(()=>{try{return !!mgrSession()}catch(e){return false}})()))unreadSync(true)},45000);
+/* открытая переписка подгружает новые сообщения сама. Обновляем только ленту,
+   форму не трогаем — набранный текст и приложенные фото не пропадают. */
+const chatSig=no=>{const ms=CHAT[no]||[],l=ms[ms.length-1];return ms.length+':'+(l?l.id+'/'+l.at:'')};
+let chatLiveBusy=false;
+async function chatLive(){
+  if(chatLiveBusy||document.visibilityState!=='visible')return;chatLiveBusy=true;
+  try{const nos=[...new Set([...document.querySelectorAll('[data-chat]')].filter(el=>el.dataset.room||el.open).map(el=>el.dataset.chat))];
+    for(const no of nos){const before=chatSig(no);await chatLoad(no);if(chatSig(no)===before)continue;
+      document.querySelectorAll(`[data-chat="${no}"]`).forEach(box=>{const role=box.dataset.role,list=box.querySelector('.chat-list');
+        if(!list||!(CHAT[no]||[]).length)return;
+        const nearBottom=list.scrollHeight-list.scrollTop-list.clientHeight<140;
+        list.innerHTML=(CHAT[no]||[]).map(m=>msgHTML({...m,no},role)).join('');
+        if(box.dataset.room){chatMarkSeen(no,role);if(nearBottom)list.scrollTop=list.scrollHeight}});
+      paintUnread()}}
+  finally{chatLiveBusy=false}}
+setInterval(chatLive,12000);
+/* у менеджера список заявок сверяется с сервером: новая заявка или новый статус видны без перезагрузки */
+const ordersSig=()=>SB.orders.map(o=>o._id+':'+(o.status||'')+':'+(o.stage||0)).join('|');
+let ordersLiveBusy=false;
+async function ordersLive(){
+  if(ordersLiveBusy||!SB.on||SB.kind!=='api'||typeof isStaff!=='function'||!isStaff()||document.visibilityState!=='visible')return;
+  ordersLiveBusy=true;
+  try{const before=ordersSig();await sbLoadOrders();if(ordersSig()===before)return;
+    const typing=document.activeElement&&/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+    if(/^#\/admin/.test(location.hash)&&!typing&&!adminState.chat&&!document.querySelector('.modal')){
+      const y=scrollY;render();window.scrollTo({top:y,left:0,behavior:'instant'})}
+    else paintUnread()}
+  catch(e){}finally{ordersLiveBusy=false}}
+setInterval(ordersLive,30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){chatLive();ordersLive()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')unreadSync(true)});
 const chatSeenMap=role=>store.get('chatseen.'+role,{});
 function chatMarkSeen(no,role){const s=chatSeenMap(role);s[no]=Date.now();store.set('chatseen.'+role,s)}
@@ -5540,9 +5570,9 @@ function adminView(){
     const cur=adminState.chat&&list.find(o=>String(o.no)===String(adminState.chat));
     if(cur)return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Переписка</span><h1>${esc(cur.fio||'Клиент')}</h1></div>
       <p style="color:var(--muted);max-width:44ch">${esc(cur.phone||'')}${cur.email?' · '+esc(cur.email):''}</p></div>
-      <div style="margin-bottom:90px">${chatRoomHTML(cur.no,'manager',`${esc(cur.fio||'Клиент')} · заявка № ${cur.no}`,orderTitleOf(cur),'data-mgrchat=""')}</div></div>`;
+      <div style="margin-bottom:90px">${chatRoomHTML(cur.no,'manager',`${esc(cur.fio||'Клиент')} · заявка № ${cur.no}`,`${cur.phone?cur.phone+' · ':''}${orderTitleOf(cur)}`,'data-mgrchat=""')}</div></div>`;
     const rows=list.slice().sort((a,b)=>{const la=chatLastMsg(a.no),lb=chatLastMsg(b.no);return (lb?lb.at:b.at)-(la?la.at:a.at)})
-      .map(o=>({no:o.no,title:o.fio||'Без имени',sub:`Заявка № ${o.no} · ${orderTitleOf(o)}`,ava:String(o.fio||'К').trim().charAt(0).toUpperCase()}));
+      .map(o=>({no:o.no,title:o.fio||o.phone||'Без имени',sub:`${o.phone?o.phone+' · ':''}Заявка № ${o.no} · ${orderTitleOf(o)}`,ava:String(o.fio||'К').trim().charAt(0).toUpperCase()}));
     return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Переписка</span><h1>Сообщения</h1></div>
       <p style="color:var(--muted);max-width:44ch">Каждая заявка — отдельный диалог. Откройте клиента, чтобы написать ему, приложить фото или отправить собранный в калькуляторе дом.</p></div>
       <div style="margin-bottom:90px">${notifBtn()}${rows.length?chatListHTML(rows,'manager',r=>`data-mgrchat="${r.no}"`):`<div class="empty"><p style="color:var(--text)">Заявок пока нет</p><p>Как только клиент оформит заказ, здесь появится диалог.</p></div>`}</div></div>`}
@@ -5558,7 +5588,7 @@ function adminView(){
           <span class="num" style="color:var(--muted)">${os.length} ${plural(os.length,['заявка','заявки','заявок'])}</span></header>
         ${os.map(o=>`<div class="adm-order st-${esc(o.status||'new')}"><div class="adm-row">
             <b class="num adm-no">№ ${o.no}</b><span class="num adm-when">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
-            <span>${o.items&&o.items.length?esc(o.region||'участок не указан'):'<b style="color:var(--lamp2);font-weight:500">Обратный звонок</b>'} <span class="adm-mark">новая</span></span>
+            <span>${o.items&&o.items.length?esc(o.region||'участок не указан')+(o.phone?' · '+`<a class="num" href="tel:${esc(String(o.phone||'').replace(/[^+\d]/g,''))}">${esc(o.phone)}</a>`:''):'<b style="color:var(--lamp2);font-weight:500">Обратный звонок</b>'} <span class="adm-mark">новая</span></span>
             <b class="num adm-sum">${o.items&&o.items.length?rub(orderPay(o)):`<a class="num" href="tel:${esc(String(o.phone||'').replace(/[^+\d]/g,''))}">${esc(o.phone||'')}</a>`}</b>
             <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select>
             <button type="button" class="link" data-adorderdel="${SB.on?o._id:o._key+'|'+o._idx}" data-no="${esc(o.no)}">Удалить</button></div>

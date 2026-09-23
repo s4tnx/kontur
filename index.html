@@ -112,6 +112,16 @@
 .theme-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:.2s}
 .theme-btn:hover{color:var(--lamp);border-color:var(--lamp)}
 .theme-btn svg{width:17px;height:17px}
+/* подсказка при первом заходе: этой кнопкой меняется тема */
+.theme-tip{position:fixed;z-index:70;box-sizing:border-box;padding:12px 14px 12px 14px;border-radius:14px;background:var(--text);color:var(--bg);
+  font-size:13.5px;line-height:1.45;box-shadow:0 14px 40px rgba(0,0,0,.35);animation:themeTipIn .35s cubic-bezier(.2,.8,.2,1)}
+.theme-tip::before{content:"";position:absolute;top:-6px;left:var(--ax,16px);width:12px;height:12px;background:inherit;transform:rotate(45deg);border-radius:2px}
+.theme-tip b{display:block;font-size:14px;margin-bottom:2px}
+.theme-tip button{margin-top:8px;border:0;border-radius:9px;padding:6px 12px;background:var(--lamp);color:#1B1A18;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+@keyframes themeTipIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.theme-btn.tip-glow{color:var(--lamp)!important;border-color:var(--lamp)!important;animation:themeGlow 1.6s ease-out infinite}
+@keyframes themeGlow{0%{box-shadow:0 0 0 0 rgba(231,163,92,.55)}100%{box-shadow:0 0 0 12px rgba(231,163,92,0)}}
+@media (prefers-reduced-motion:reduce){.theme-tip,.theme-btn.tip-glow{animation:none}}
 /* всплывающие пояснения терминов */
 .term{position:relative;display:inline;border-bottom:1px dashed var(--line2);cursor:help}
 .cg,.wall-res,.est-total,.how,.pirog,.step-body,.mat{overflow:visible}
@@ -6495,7 +6505,7 @@ document.addEventListener('click',e=>{
   const ads=e.target.closest('[data-adst]');
   if(ads){adminState.st=ads.dataset.adst;app.innerHTML=adminView()+footer();paint();bind();return}
   const tg=e.target.closest('[data-theme-toggle]');
-  if(tg){const light=document.documentElement.getAttribute('data-theme')==='light';
+  if(tg){themeTipHide(true);const light=document.documentElement.getAttribute('data-theme')==='light';
     setTheme(light?'dark':'light');return}
   if(e.target.closest('.tipbox'))return;
   const tq=e.target.closest('.term');
@@ -6878,6 +6888,24 @@ document.addEventListener('click',async e=>{if(!e.target.closest||!e.target.clos
 let toastT;function toast(msg){document.querySelector('.toast')?.remove();const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);clearTimeout(toastT);toastT=setTimeout(()=>t.remove(),2200)}
 let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{window.__heroResize?.();document.querySelectorAll('canvas[data-scene]').forEach(c=>{const m=byId(c.dataset.scene);scene(c,m,{fixed:!!c.dataset.fixed,hz:+c.dataset.hz||.64,gy:+c.dataset.gy||.84,fw:+c.dataset.fw||.6,fh:+c.dataset.fh||.6,stars:c.dataset.stars!=='0',seed:m.w*13+m.d*7})})},150)});
 addEventListener('hashchange',render);
+/* подсказка про кнопку темы — один раз, при первом заходе */
+function themeTipHide(seen){document.querySelector('.theme-tip')?.remove();document.querySelectorAll('.theme-btn.tip-glow').forEach(b=>b.classList.remove('tip-glow'));
+  if(seen)try{store.set('themeTip',1)}catch(e){}}
+function themeTip(){try{if(store.get('themeTip',0))return}catch(e){return}
+  if(document.querySelector('.modal,.hp-panel')||document.body.classList.contains('menu-open')||/^#\/admin/.test(location.hash)){setTimeout(themeTip,4000);return}
+  const b=[...document.querySelectorAll('header.top .theme-btn')].find(x=>x.offsetParent);if(!b)return;
+  const r=b.getBoundingClientRect(),light=document.documentElement.getAttribute('data-theme')==='light';
+  const el=document.createElement('div');el.className='theme-tip';el.setAttribute('role','status');
+  el.innerHTML=`<b>${light?'Тёмная тема':'Светлая тема'}</b>Нажми на эту кнопку, чтобы сделать сайт ${light?'тёмным':'светлым'}. Нажмёшь ещё раз — вернётся как было.<br><button type="button">Понятно</button>`;
+  /* ширина до 270 px, с отступом 12 px от краёв экрана; стрелка — точно под кнопкой */
+  const w=Math.min(270,innerWidth-24),cx=r.left+r.width/2,left=Math.round(Math.min(Math.max(12,cx-w+34),innerWidth-w-12));
+  el.style.top=Math.round(r.bottom+12)+'px';el.style.left=left+'px';el.style.width=w+'px';
+  el.style.setProperty('--ax',Math.round(Math.min(Math.max(10,cx-left-6),w-22))+'px');
+  el.onclick=()=>themeTipHide(true);document.body.appendChild(el);b.classList.add('tip-glow');
+  try{store.set('themeTip',1)}catch(e){}
+  setTimeout(()=>themeTipHide(false),9000)}
+addEventListener('hashchange',()=>themeTipHide(false));
+setTimeout(themeTip,1800);
 cookieInit();
 appInit();
 helperInit();

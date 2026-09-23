@@ -95,7 +95,9 @@
 :root[data-theme="light"] .stats{background:rgba(255,255,255,.72)}
 :root[data-theme="light"] .hero-cta p,:root[data-theme="light"] .hero-note{color:rgba(27,26,24,.82)}
 :root[data-theme="light"] .hero-note b,:root[data-theme="light"] .hero-cta b{color:#1B1A18}
-:root[data-theme="light"] .socials button{border-color:rgba(255,255,255,.5);color:#F7F5F1}
+:root[data-theme="light"] .socials button,:root[data-theme="light"] .socials a{border-color:rgba(255,255,255,.55);color:#FFFFFF;background:rgba(22,28,40,.66);
+  backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);box-shadow:0 6px 18px rgba(20,30,50,.22)}
+:root[data-theme="light"] .socials button:hover,:root[data-theme="light"] .socials a:hover{background:#FFFFFF;color:#1B1A18;border-color:#FFFFFF}
 :root[data-theme="light"] .scroll-cue{color:#F7F5F1;border-color:rgba(255,255,255,.5)} 
 :root[data-theme="light"] .card .size,:root[data-theme="light"] .fav,:root[data-theme="light"] .stage .tag span{background:rgba(255,255,255,.78);color:var(--text)} 
 :root[data-theme="light"] .viz-modes,:root[data-theme="light"] .viz-ctl button{background:rgba(255,255,255,.8)} 
@@ -458,8 +460,8 @@ header.top{transition:background .4s,border-color .4s}
 .hero-cta p{font-size:14px;color:rgba(236,232,225,.8);line-height:1.4}
 .hero-cta b{display:block;font-family:var(--display);font-weight:600;font-size:22px;color:#fff;letter-spacing:-.01em}
 .socials{position:absolute;right:clamp(16px,3vw,44px);top:96px;display:grid;gap:10px;animation:fade 1s 1.4s both}
-.socials button{width:42px;height:42px;border-radius:50%;border:1px solid rgba(236,232,225,.35);display:grid;place-items:center;transition:.25s}
-.socials button:hover{background:#EDEBE8;color:#111}
+.socials button,.socials a{width:42px;height:42px;border-radius:50%;border:1px solid rgba(236,232,225,.35);display:grid;place-items:center;transition:.25s;color:inherit}
+.socials button:hover,.socials a:hover{background:#EDEBE8;color:#111}
 .socials svg{width:17px;height:17px}
 .stats{position:absolute;right:0;bottom:0;height:72px;padding:0 clamp(18px,3vw,40px);display:flex;align-items:center;gap:clamp(18px,3vw,40px);border-radius:16px 0 0 0;animation:fade 1s 1.7s both}
 .stat{display:flex;align-items:center;gap:10px}
@@ -2606,7 +2608,7 @@ function home(){
     <div class="hero-note l glass">Каркас//<br>Тепло//<br>Свет//</div>
     <div class="hero-note r glass">Каркасные дома, <b>спроектированные</b> для <b>света</b>, тепла и жизни круглый год.</div>
     <div class="socials" aria-label="Мессенджеры">
-      <button data-contact aria-label="Написать в Telegram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M21 4 3 11l6 2.2L18 7l-6.8 7.3V20l3.2-3.6L19 19z"/></svg></button>
+      <a href="https://t.me/+79998886099" target="_blank" rel="noopener" aria-label="Написать в Telegram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M21 4 3 11l6 2.2L18 7l-6.8 7.3V20l3.2-3.6L19 19z"/></svg></a>
       <button data-contact aria-label="Написать в WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l1.2-3.8A8 8 0 1 1 8 19z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.6-2-1-1 .8a4 4 0 0 1-1.9-1.9l.8-1-1-2z"/></svg></button>
       <button data-contact aria-label="Заказать звонок"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></button>
     </div>

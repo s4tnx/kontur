@@ -305,6 +305,19 @@ def fit_title(s, lim=70):
     return cut(s, lim)
 
 
+# откуда пришёл посетитель (метки рекламы, поиск) — тот же ключ, что у основного сайта:
+# заявка, оставленная потом на главной, уйдёт с источником
+SRC_JS = ("<script>(function(){try{var q=new URLSearchParams(location.search),s={},n=0;"
+  "['utm_source','utm_medium','utm_campaign','utm_content','utm_term','yclid','gclid'].forEach(function(k){var v=q.get(k);if(v){s[k]=v.slice(0,200);n++}});"
+  "var ref='';try{if(document.referrer){var r=new URL(document.referrer);if(r.host!==location.host)ref=r.host.replace(/^www\./,'')}}catch(e){}"
+  "var land=location.pathname.slice(0,80),old=null;try{old=JSON.parse(localStorage.getItem('kontur.src')||'null')}catch(e){}"
+  "var fresh=old&&Date.now()-(old.at||0)<2592e6,v=null;"
+  "if(n){s.land=land;s.at=Date.now();if(ref)s.ref=ref;v=s}"
+  "else if(ref&&!(fresh&&(old.utm_source||old.yclid)))v={ref:ref,land:land,at:Date.now()};"
+  "else if(!fresh)v={land:land,at:Date.now()};"
+  "if(v)localStorage.setItem('kontur.src',JSON.stringify(v))}catch(e){}})()</script>")
+
+
 def page(slug, title, desc, body, nav, extra_ld=''):
     title = fit_title(title)
     desc = cut(desc, 178) + '.' if len(desc) > 178 else desc
@@ -327,6 +340,7 @@ def page(slug, title, desc, body, nav, extra_ld=''):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Onest:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
 <style>{CSS}</style>
+{SRC_JS}
 {extra_ld}
 </head>
 <body>

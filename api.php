@@ -90,6 +90,10 @@ function db(): PDO {
   if (!in_array('promo', $cols, true)) $pdo->exec('ALTER TABLE orders ADD COLUMN promo TEXT');
   /* ключ гостевой заявки: по нему клиент забирает её в свой кабинет */
   if (!in_array('claim', $cols, true)) $pdo->exec('ALTER TABLE orders ADD COLUMN claim TEXT');
+  /* откуда пришёл клиент: метки рекламы, поиск, сайт (видят только сотрудники) */
+  if (!in_array('src', $cols, true)) $pdo->exec('ALTER TABLE orders ADD COLUMN src TEXT');
+  /* настройки сайта (ключ бота Telegram и чат для уведомлений) — в базе, она закрыта от скачивания */
+  $pdo->exec('CREATE TABLE IF NOT EXISTS settings(k TEXT PRIMARY KEY, v TEXT)');
   return $pdo;
 }
 
@@ -128,13 +132,84 @@ function need(): array { $u = me(); if (!$u) fail('Нужно войти в ак
 function staff(array $u): bool { return in_array($u['role'], ['manager', 'admin'], true); }
 function pub(array $u): array { return ['id' => (int)$u['id'], 'email' => $u['email'], 'name' => $u['name'], 'phone' => $u['phone'], 'role' => $u['role'],
   'pdok' => !empty($u['pd_ok']) ? (int)$u['pd_ok'] * 1000 : 0]; }
-function orderRow(array $o): array {
+function orderRow(array $o, bool $staff = false): array {
   return ['id' => (int)$o['id'], 'no' => $o['no'], 'fio' => $o['fio'], 'phone' => $o['phone'], 'email' => $o['email'],
     'region' => $o['region'], 'comment' => $o['comment'], 'items' => json_decode($o['items'] ?: '[]', true),
     'total' => (float)$o['total'], 'stage' => (int)$o['stage'], 'status' => $o['status'], 'created' => (int)$o['created'] * 1000,
     'promo' => !empty($o['promo']) ? json_decode($o['promo'], true) : null,
-    'guest' => empty($o['user_id'])];
+    'guest' => empty($o['user_id']),
+    'src' => $staff && !empty($o['src']) ? json_decode($o['src'], true) : null];
 }
+
+/* ---------- уведомления в Telegram ---------- */
+function setting(string $k): string {
+  $st = db()->prepare('SELECT v FROM settings WHERE k=?'); $st->execute([$k]);
+  return (string)($st->fetchColumn() ?: '');
+}
+function setSetting(string $k, string $v): void {
+  if ($v === '') db()->prepare('DELETE FROM settings WHERE k=?')->execute([$k]);
+  else db()->prepare('INSERT OR REPLACE INTO settings(k,v) VALUES(?,?)')->execute([$k, $v]);
+}
+function tgApi(string $token, string $method, array $params = []): ?array {
+  $url = 'https://api.telegram.org/bot' . $token . '/' . $method;
+  $body = http_build_query($params);
+  if (function_exists('curl_init')) {
+    $c = curl_init($url);
+    curl_setopt_array($c, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_TIMEOUT => 8, CURLOPT_CONNECTTIMEOUT => 5]);
+    $r = curl_exec($c); curl_close($c);
+  } else {
+    $r = @file_get_contents($url, false, stream_context_create(['http' => ['method' => 'POST', 'timeout' => 8, 'ignore_errors' => true,
+      'header' => "Content-Type: application/x-www-form-urlencoded\r\n", 'content' => $body]]));
+  }
+  if (!is_string($r) || $r === '') return null;
+  $j = json_decode($r, true);
+  return is_array($j) ? $j : null;
+}
+function tgOn(): bool { return setting('tg_token') !== '' && setting('tg_chat') !== ''; }
+function tgNotify(string $html): void {
+  if (!tgOn()) return;
+  tgApi(setting('tg_token'), 'sendMessage', ['chat_id' => setting('tg_chat'), 'text' => $html,
+    'parse_mode' => 'HTML', 'disable_web_page_preview' => 'true']);
+}
+/* ответ сайту — сразу, уведомление уходит уже после: посетитель не ждёт Telegram */
+function outThen($data, callable $after): void {
+  http_response_code(200);
+  echo json_encode($data, JSON_UNESCAPED_UNICODE);
+  if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+  else { @ob_end_flush(); @flush(); }
+  try { $after(); } catch (Throwable $e) {}
+  exit;
+}
+function hx(string $s): string { return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+function rubs(float $v): string { return number_format(round($v), 0, ',', ' ') . ' ₽'; }
+const HOUSE_NAMES = ['ladoga' => 'Ладога', 'onega' => 'Онега', 'seliger' => 'Селигер', 'valdai' => 'Валдай',
+  'vuoksa' => 'Вуокса', 'karelia' => 'Карелия', 'altai' => 'Алтай', 'baikal' => 'Байкал'];
+function itemName(array $it): string {
+  $cfg = is_array($it['cfg'] ?? null) ? $it['cfg'] : [];
+  if (!empty($it['module'])) return 'Модуль ' . str_replace('x', '×', (string)($cfg['size'] ?? ''));
+  if (!empty($it['custom'])) return 'Свой проект ' . ($cfg['w'] ?? '?') . '×' . ($cfg['d'] ?? '?') . ' м';
+  $id = (string)($it['id'] ?? ''); $p = explode('@', $id, 2);
+  return (HOUSE_NAMES[$p[0]] ?? $p[0]) . (isset($p[1]) ? ' ' . str_replace('x', '×', $p[1]) : '');
+}
+/* источник заявки человеческими словами */
+function srcText(?array $s): string {
+  if (!$s) return '';
+  $src = (string)($s['utm_source'] ?? ''); $med = (string)($s['utm_medium'] ?? ''); $ref = (string)($s['ref'] ?? '');
+  if (!empty($s['yclid']) || ($src === 'yandex' && in_array($med, ['cpc', 'ppc', 'paid'], true))) $w = 'Яндекс Директ';
+  elseif ($src !== '') $w = $src . ($med !== '' ? ' / ' . $med : '');
+  elseif (preg_match('/(^|\.)yandex\.|^ya\.ru$/', $ref)) $w = 'поиск Яндекса';
+  elseif (preg_match('/(^|\.)google\./', $ref)) $w = 'поиск Google';
+  elseif ($ref !== '') $w = 'переход с ' . $ref;
+  else $w = 'прямой заход';
+  $p = [$w];
+  if (!empty($s['utm_campaign'])) $p[] = 'кампания ' . $s['utm_campaign'];
+  if (!empty($s['utm_content'])) $p[] = 'объявление ' . $s['utm_content'];
+  if (!empty($s['utm_term'])) $p[] = 'запрос «' . $s['utm_term'] . '»';
+  if (!empty($s['land'])) $p[] = 'страница входа ' . $s['land'];
+  return implode(' · ', $p);
+}
+function adminOnly(): array { $u = need(); if ($u['role'] !== 'admin') fail('Только для администратора', 403); return $u; }
 
 $a = $_GET['a'] ?? '';
 
@@ -212,7 +287,8 @@ if ($a === 'orders') {
   if (!$u) out(['orders' => []]);
   if (staff($u)) $rows = db()->query('SELECT * FROM orders ORDER BY created DESC')->fetchAll(PDO::FETCH_ASSOC);
   else { $st = db()->prepare('SELECT * FROM orders WHERE user_id=? ORDER BY created DESC'); $st->execute([(int)$u['id']]); $rows = $st->fetchAll(PDO::FETCH_ASSOC); }
-  out(['orders' => array_map('orderRow', $rows)]);
+  $isStaff = staff($u);
+  out(['orders' => array_map(fn($o) => orderRow($o, $isStaff), $rows)]);
 }
 
 if ($a === 'order') {
@@ -226,11 +302,44 @@ if ($a === 'order') {
   $promo = (isset($b['promo']['code'], $b['promo']['pct']) && in_array((int)$b['promo']['pct'], [5, 10, 15, 20], true))
     ? json_encode(['code' => substr((string)$b['promo']['code'], 0, 40), 'pct' => (int)$b['promo']['pct']], JSON_UNESCAPED_UNICODE) : null;
   $claim = $u ? null : bin2hex(random_bytes(16));
-  $st = db()->prepare('INSERT INTO orders(no,user_id,fio,phone,email,region,comment,items,total,stage,status,created,promo,claim) VALUES(?,?,?,?,?,?,?,?,?,0,"new",?,?,?)');
+  $src = null;
+  if (isset($b['src']) && is_array($b['src'])) {
+    $s = [];
+    foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'yclid', 'gclid', 'ref', 'land'] as $k)
+      if (isset($b['src'][$k]) && is_scalar($b['src'][$k]) && (string)$b['src'][$k] !== '') $s[$k] = mb_substr((string)$b['src'][$k], 0, 200);
+    if (isset($b['src']['at']) && is_numeric($b['src']['at'])) $s['at'] = (int)$b['src']['at'];
+    if ($s) $src = json_encode($s, JSON_UNESCAPED_UNICODE);
+  }
+  $st = db()->prepare('INSERT INTO orders(no,user_id,fio,phone,email,region,comment,items,total,stage,status,created,promo,claim,src) VALUES(?,?,?,?,?,?,?,?,?,0,"new",?,?,?,?)');
   $st->execute([(string)($b['no'] ?? ''), $u ? (int)$u['id'] : null, (string)($b['fio'] ?? ''), (string)($b['phone'] ?? ''),
     $u ? $u['email'] : (string)($b['email'] ?? ''), (string)($b['region'] ?? ''), (string)($b['comment'] ?? ''),
-    json_encode($items, JSON_UNESCAPED_UNICODE), (float)($b['total'] ?? 0), time(), $promo, $claim]);
-  out(['id' => (int)db()->lastInsertId(), 'claim' => $claim]);
+    json_encode($items, JSON_UNESCAPED_UNICODE), (float)($b['total'] ?? 0), time(), $promo, $claim, $src]);
+  $newId = (int)db()->lastInsertId();
+  outThen(['id' => $newId, 'claim' => $claim], function () use ($b, $u, $items, $isCall, $src) {
+    if (!tgOn()) return;
+    $comment = trim((string)($b['comment'] ?? ''));
+    $pd = setting('tg_pd') !== 'off';
+    $head = $isCall ? (strpos($comment, 'помощника') !== false ? '🤖 Заявка из помощника' : '📞 Заказ звонка') : '🏠 Новая заявка';
+    $L = ['<b>' . $head . ' № ' . hx((string)($b['no'] ?? '')) . '</b>'];
+    if ($pd) {
+      if (trim((string)($b['fio'] ?? '')) !== '') $L[] = 'Имя: ' . hx((string)$b['fio']);
+      if (trim((string)($b['phone'] ?? '')) !== '') $L[] = 'Телефон: ' . hx((string)$b['phone']);
+    } else $L[] = 'Контакты — в панели менеджера';
+    $sum = 0.0;
+    foreach (array_slice($items, 0, 6) as $it) if (is_array($it)) {
+      $t = (float)($it['total'] ?? 0); $sum += $t;
+      $L[] = '• ' . hx(itemName($it)) . ($t > 0 ? ' — ' . rubs($t) : '');
+    }
+    $tot = (float)($b['total'] ?? 0); if ($tot <= 0) $tot = $sum;
+    if (count($items)) $L[] = 'Итого: <b>' . rubs($tot) . '</b>';
+    if (trim((string)($b['region'] ?? '')) !== '') $L[] = 'Участок: ' . hx((string)$b['region']);
+    if ($comment !== '') $L[] = 'Комментарий: ' . hx(mb_substr($comment, 0, 700));
+    $sText = srcText($src ? json_decode($src, true) : null);
+    if ($sText !== '') $L[] = 'Источник: ' . hx($sText);
+    $L[] = $u ? 'Кабинет: ' . hx((string)$u['email']) : 'Без кабинета (гость)';
+    $L[] = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'konturhouse.ru') . '/#/admin';
+    tgNotify(implode("\n", $L));
+  });
 }
 
 if ($a === 'status') {
@@ -335,7 +444,17 @@ if ($a === 'msg') {
   $st = db()->prepare('INSERT INTO msgs(order_id,user_id,role,who,text,files,item,created) VALUES(?,?,?,?,?,?,?,?)');
   $st->execute([$orderId, (int)$u['id'], staff($u) ? 'manager' : 'client', (string)$u['name'],
     mb_substr($text, 0, 4000), json_encode($files, JSON_UNESCAPED_UNICODE), $item, time()]);
-  out(['id' => (int)db()->lastInsertId()]);
+  $msgId = (int)db()->lastInsertId();
+  if (staff($u)) out(['id' => $msgId]);
+  /* клиент написал — сотрудникам уведомление */
+  outThen(['id' => $msgId], function () use ($orderId, $u, $text, $files, $item) {
+    if (!tgOn()) return;
+    $st = db()->prepare('SELECT no FROM orders WHERE id=?'); $st->execute([$orderId]);
+    $no = (string)($st->fetchColumn() ?: '');
+    $extra = (count($files) ? ' 📎 фото: ' . count($files) : '') . ($item ? ' 🏠 дом из корзины' : '');
+    tgNotify('<b>💬 Сообщение по заявке № ' . hx($no) . '</b>' . "\n" . hx((string)$u['name']) . ': ' . hx(mb_substr($text, 0, 600)) . $extra .
+      "\n" . 'https://' . ($_SERVER['HTTP_HOST'] ?? 'konturhouse.ru') . '/#/admin');
+  });
 }
 
 /* вместе с заявкой удаляем и переписку */
@@ -437,6 +556,51 @@ if ($a === 'reviewdel') {
   if (!staff($u) && (int)$row['user_id'] !== (int)$u['id']) fail('Нет доступа', 403);
   db()->prepare('DELETE FROM reviews WHERE id=?')->execute([$id]);
   out(['ok' => true]);
+}
+
+/* ---------- настройка уведомлений в Telegram (только администратор) ---------- */
+if ($a === 'tgget') {
+  adminOnly();
+  out(['on' => tgOn(), 'title' => setting('tg_title'), 'bot' => setting('tg_bot'), 'pd' => setting('tg_pd') !== 'off']);
+}
+if ($a === 'tgfind') {
+  adminOnly(); $b = body(); $tok = trim((string)($b['token'] ?? ''));
+  if (!preg_match('/^\d{5,}:[A-Za-z0-9_-]{30,}$/', $tok)) fail('Ключ бота выглядит иначе: цифры, двоеточие и длинный набор букв. Скопируйте его из @BotFather целиком');
+  $me = tgApi($tok, 'getMe');
+  if (!$me) fail('Сервер не смог связаться с Telegram — попробуйте ещё раз через минуту');
+  if (empty($me['ok'])) fail('Telegram не принял ключ — проверьте, что скопировали его целиком');
+  $up = tgApi($tok, 'getUpdates', ['limit' => 100]);
+  $chats = [];
+  foreach ((array)($up['result'] ?? []) as $r) {
+    if (!is_array($r)) continue;
+    foreach (['message', 'edited_message', 'channel_post', 'my_chat_member'] as $k) {
+      $c = $r[$k]['chat'] ?? null; if (!is_array($c) || !isset($c['id'])) continue;
+      $name = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+      $title = (string)($c['title'] ?? ($name !== '' ? $name : ($c['username'] ?? 'чат')));
+      $chats[(string)$c['id']] = ['id' => (string)$c['id'], 'title' => $title, 'type' => (string)($c['type'] ?? '')];
+    }
+  }
+  out(['bot' => (string)($me['result']['username'] ?? ''), 'chats' => array_values($chats)]);
+}
+if ($a === 'tgsave') {
+  adminOnly(); $b = body();
+  $tok = trim((string)($b['token'] ?? '')); $chat = trim((string)($b['chat'] ?? ''));
+  if (!preg_match('/^\d{5,}:[A-Za-z0-9_-]{30,}$/', $tok) || !preg_match('/^-?\d+$/', $chat)) fail('Не хватает ключа бота или чата');
+  $r = tgApi($tok, 'sendMessage', ['chat_id' => $chat, 'parse_mode' => 'HTML',
+    'text' => "✅ <b>Уведомления с сайта подключены</b>\nСюда будут приходить новые заявки, заказы звонков и сообщения клиентов."]);
+  if (!$r || empty($r['ok'])) fail('Не получилось написать в этот чат' . (!empty($r['description']) ? ': ' . $r['description'] : '') . '. Если это группа — проверьте, что бот в ней состоит');
+  setSetting('tg_token', $tok); setSetting('tg_chat', $chat);
+  setSetting('tg_title', mb_substr(trim((string)($b['title'] ?? '')), 0, 80));
+  setSetting('tg_bot', mb_substr(trim((string)($b['bot'] ?? '')), 0, 60));
+  out(['ok' => true]);
+}
+if ($a === 'tgpd') { adminOnly(); $b = body(); setSetting('tg_pd', empty($b['on']) ? 'off' : ''); out(['ok' => true]); }
+if ($a === 'tgtest') {
+  adminOnly(); if (!tgOn()) fail('Уведомления ещё не подключены');
+  tgNotify('🔔 Проверка: уведомления о заявках работают'); out(['ok' => true]);
+}
+if ($a === 'tgoff') {
+  adminOnly(); foreach (['tg_token', 'tg_chat', 'tg_title', 'tg_bot'] as $k) setSetting($k, ''); out(['ok' => true]);
 }
 
 /* короткая сводка о состоянии: сколько аккаунтов и заявок в базе.

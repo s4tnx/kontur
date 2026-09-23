@@ -933,6 +933,14 @@ footer{padding:50px 0 34px}
 .hp-pics{display:flex;gap:6px;flex-wrap:wrap;padding:6px!important}
 .hp-pics img{width:86px;height:86px;object-fit:cover;border-radius:10px;display:block}
 .hp-acts{display:flex;flex-wrap:wrap;gap:8px}
+.src-note{color:var(--lamp2)!important}
+.tg-set{padding-bottom:18px}
+.tg-set>:not(header){margin-left:18px;margin-right:18px}
+.tg-steps{margin:14px 0;padding-left:22px;display:grid;gap:10px;font-size:14.5px;line-height:1.55;color:var(--muted)}
+.tg-steps b,.tg-steps a{color:var(--text)}.tg-steps a{text-decoration:underline;text-underline-offset:3px}
+.tg-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;max-width:620px}
+@media (max-width:560px){.tg-form{grid-template-columns:1fr}}
+.tg-chats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .hp-lead{display:grid;gap:8px;padding:12px;border-radius:16px;background:var(--panel2);border:1px solid var(--line)}
 .hp-lead b{font-size:14px}
 .hp-lead input[name=name],.hp-lead input[name=phone]{height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);color:var(--text);font:inherit;font-size:14px;min-width:0}
@@ -1733,6 +1741,23 @@ const store={
   get(k,d){try{const v=localStorage.getItem('kontur.'+k);return v?JSON.parse(v):d}catch(e){return d}},
   set(k,v){try{localStorage.setItem('kontur.'+k,JSON.stringify(v))}catch(e){}}
 };
+/* откуда пришёл посетитель — уходит с заявкой, видят только сотрудники.
+   Рекламный переход (utm-метки, yclid) важнее, иначе — сайт, с которого пришли, иначе — прямой заход. */
+(function(){try{
+  const q=new URLSearchParams(location.search),s={};
+  ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','yclid','gclid'].forEach(k=>{const v=q.get(k);if(v)s[k]=v.slice(0,200)});
+  let ref='';try{if(document.referrer){const r=new URL(document.referrer);if(r.host!==location.host)ref=r.host.replace(/^www\./,'')}}catch(e){}
+  const land=(location.pathname+(location.hash||'')).slice(0,80),old=store.get('src',null),fresh=old&&Date.now()-(old.at||0)<30*864e5;
+  if(Object.keys(s).length)store.set('src',{...s,...(ref?{ref}:{}),land,at:Date.now()});
+  else if(ref&&!(fresh&&(old.utm_source||old.yclid)))store.set('src',{ref,land,at:Date.now()});
+  else if(!fresh)store.set('src',{land,at:Date.now()});
+}catch(e){}})();
+const visitSrc=()=>{const s=store.get('src',null);return s&&Date.now()-(s.at||0)<30*864e5?s:null};
+/* источник заявки человеческими словами — для панели менеджера */
+function srcLine(s){if(!s)return '';const src=s.utm_source||'',med=s.utm_medium||'',ref=s.ref||'';
+  const w=s.yclid||(src==='yandex'&&/^(cpc|ppc|paid)$/.test(med))?'Яндекс Директ':src?src+(med?' / '+med:''):
+    /(^|\.)yandex\.|^ya\.ru$/.test(ref)?'поиск Яндекса':/(^|\.)google\./.test(ref)?'поиск Google':ref?'переход с '+ref:'прямой заход';
+  return [w,s.utm_campaign&&'кампания '+s.utm_campaign,s.utm_content&&'объявление '+s.utm_content,s.utm_term&&`запрос «${s.utm_term}»`,s.land&&'страница входа '+s.land].filter(Boolean).join(' · ')}
 const migId=id=>{if(typeof id!=='string')return id;const p=id.split('@');return LEGACY[p[0]]?LEGACY[p[0]]+(p[1]?'@'+p[1]:''):id};
 (()=>{try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!/^kontur\.(favs|cart|orders)/.test(k))continue;
   const v=JSON.parse(localStorage.getItem(k));if(!Array.isArray(v))continue;
@@ -4255,6 +4280,7 @@ let apiToken=null;
 try{apiToken=localStorage.getItem('kontur.token')||null}catch(e){}
 function apiSetToken(tk){apiToken=tk;try{tk?localStorage.setItem('kontur.token',tk):localStorage.removeItem('kontur.token')}catch(e){}}
 async function apiReq(a,opt){opt=opt||{};
+  if(a==='order'&&opt.json&&!opt.json.src){const s=visitSrc();if(s)opt={...opt,json:{...opt.json,src:s}}}
   const url=API_URL+(API_URL.indexOf('?')<0?'?':'&')+'a='+a+(opt.q||'');
   /* Authorization на части хостингов (Apache + PHP-FPM) до PHP не доходит,
      поэтому дублируем токен своим заголовком — он проходит всегда */
@@ -4372,7 +4398,7 @@ async function sbUser(u){
 async function sbLoadOrders(){
   if(!SB.on)return;
   if(SB.kind==='api'){try{const d=await apiReq('orders');
-      SB.orders=(d.orders||[]).map(o=>({no:o.no,at:o.created,items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,region:o.region,
+      SB.orders=(d.orders||[]).map(o=>({src:o.src||null,no:o.no,at:o.created,items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,region:o.region,
         comment:o.comment,stage:o.stage,status:o.status,promo:o.promo||null,_id:o.id,_owner:o.email||'гость',guest:!!o.guest}))}catch(e){SB.orders=[]}return}
   try{let q=SB.c.from('orders').select('*').order('created_at',{ascending:false});
     const {data,error}=await q;if(error)throw error;
@@ -5136,7 +5162,7 @@ const LEGAL={
   address:'',     /* почтовый адрес для письменных обращений */
   email:''        /* почта для обращений по персональным данным */
 };
-const LEGAL_DATE='23 сентября 2026 г.';
+const LEGAL_DATE='24 сентября 2026 г.';
 const legalWho=()=>LEGAL.name?[LEGAL.name,LEGAL.inn&&`ИНН ${LEGAL.inn}`,LEGAL.ogrn&&`${LEGAL.ogrn.length>13?'ОГРНИП':'ОГРН'} ${LEGAL.ogrn}`].filter(Boolean).join(', ')
   :'владелец сайта konturhouse.ru, работающий под названием «Контур Дома»';
 const legalContacts=()=>[LEGAL.email&&`электронная почта <a class="link" href="mailto:${LEGAL.email}">${LEGAL.email}</a>`,
@@ -5172,8 +5198,9 @@ function privacyView(){
   <p>Мы не продаём и не передаём ваши данные для рекламы третьих лиц. Доступ к данным получают только:</p>
   <ul><li>хостинг-провайдер, на серверах которого работает сайт, — для хранения данных;</li>
     <li>ООО «ЯНДЕКС» — сервис Яндекс Метрика, только если вы разрешили аналитические cookie;</li>
+    <li>мессенджер Telegram — через него наши сотрудники получают уведомления о новых заявках и сообщениях (имя, телефон, состав заявки, сумма, текст сообщения), чтобы быстро перезвонить;</li>
     <li>государственные органы — в случаях, прямо предусмотренных законом.</li></ul>
-  <p>Трансграничная передача данных не ведётся.</p>
+  <p>Серверы Telegram находятся за пределами Российской Федерации, поэтому уведомления сотрудникам о заявках — это трансграничная передача данных. Она ведётся только для этой цели и в объёме, указанном выше. Другой трансграничной передачи нет.</p>
   <p>Голосовой ввод в помощнике «Контур ИИ» распознаёт сам браузер посетителя средствами своего разработчика (например, Google или Яндекс) по его правилам. Сайт получает только готовый текст, аудио не записывает и не хранит. Сообщения помощнику обрабатываются в браузере и на наш сервер не отправляются, пока посетитель сам не оформит заявку. Чтобы посчитать доставку, название населённого пункта или адрес, которые посетитель вписал в помощнике или калькуляторе, передаются картографическим сервисам OpenStreetMap — только сам адрес, без имени и телефона.</p>
   <h2>7. Файлы cookie</h2>
   <p>Cookie — небольшие файлы, которые сайт сохраняет в вашем браузере. Мы используем два вида:</p>
@@ -5200,7 +5227,7 @@ function consentView(){
   <h2>Для чего</h2>
   <p>Регистрация и работа личного кабинета; приём и обработка заявок; расчёт стоимости и доставки; связь со мной по заявке; подготовка, заключение и исполнение договора; ответы на мои обращения.</p>
   <h2>Какие действия</h2>
-  <p>Сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, передача (предоставление, доступ) хостинг-провайдеру для хранения данных, обезличивание, блокирование, удаление, уничтожение. С использованием средств автоматизации и без них.</p>
+  <p>Сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, передача (предоставление, доступ) хостинг-провайдеру для хранения данных, передача сотрудникам Оператора через мессенджер Telegram для уведомления о заявке (в том числе трансграничная), обезличивание, блокирование, удаление, уничтожение. С использованием средств автоматизации и без них.</p>
   <h2>Срок и отзыв</h2>
   <p>Согласие действует до достижения целей обработки или до его отзыва. Отозвать согласие можно в любой момент, написав Оператору:</p>
   <ul>${legalContacts().map(c=>`<li>${c};</li>`).join('')}</ul>
@@ -6392,6 +6419,39 @@ function mgrLoginLocal(){
     ${first?'':`<small class="note">Логин главного администратора — <b class="num" style="color:var(--text)">admin</b>, пароль выдан вместе с сайтом. Сменить его можно здесь же, во вкладке «Сотрудники». Эта страница — для сотрудников; клиенты входят в личный кабинет по почте.</small>`}
     </div></div>`}
 /* сотрудники: администратор добавляет и удаляет менеджеров */
+/* ---------- уведомления в Telegram: настройка администратором ---------- */
+const TG={st:null,token:'',bot:'',chats:null,busy:false};
+function tgView(){const st=TG.st;
+  if(!st)return '<div class="adm-client"><p class="note">Загружаем настройки…</p></div>';
+  if(st.on)return `<div class="adm-client tg-set"><header><div><b>✅ Подключено</b><span>${esc(st.title||'чат')}${st.bot?' · бот @'+esc(st.bot):''}</span></div></header>
+    <label class="chk" style="margin:14px 0"><input type="checkbox" data-tgpd ${st.pd?'checked':''}><span><b>Имя и телефон клиента в уведомлении</b><small>Если выключить — в Telegram придёт только номер заявки, состав и сумма, а контакты менеджер посмотрит в панели.</small></span></label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" class="btn" data-tgtest>Отправить проверку</button><button type="button" class="btn" data-tgoff>Отключить</button></div>
+    <p class="note" style="margin-top:14px">Чтобы уведомления приходили нескольким сотрудникам, подключите группу: добавьте в неё бота и сотрудников, затем отключите и подключите заново, выбрав группу.</p></div>`;
+  const chats=TG.chats;
+  return `<div class="adm-client tg-set"><header><div><b>Как подключить — 3 шага, около 3 минут</b><span>ключ бота вводится только здесь и хранится на вашем сервере</span></div></header>
+    <ol class="tg-steps">
+      <li>Откройте в Telegram <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>, отправьте <b class="num">/newbot</b>, придумайте имя (например, «Контур заявки») и адрес бота, который заканчивается на <b class="num">bot</b>. BotFather пришлёт ключ вида <span class="num">123456789:AAH…</span> — скопируйте его.</li>
+      <li>Куда присылать: <b>себе</b> — откройте своего бота и нажмите «Старт»; <b>нескольким сотрудникам</b> — создайте группу, добавьте в неё бота и сотрудников и напишите в группе <b class="num">/start</b>.</li>
+      <li>Вставьте ключ ниже и нажмите «Найти чаты».</li></ol>
+    <form id="tgForm" class="tg-form"><div class="field"><label for="tgTok">Ключ бота</label><input id="tgTok" name="token" type="password" autocomplete="off" spellcheck="false" placeholder="123456789:AAH…" value="${esc(TG.token)}" required></div>
+      <button class="btn solid" type="submit"${TG.busy?' disabled':''}>${TG.busy?'Ищем…':'Найти чаты'}</button></form>
+    ${chats?chats.length?`<div class="tg-chats"><p class="note" style="margin:0 0 8px">Бот @${esc(TG.bot)} нашёл, куда писать. Выберите чат:</p>${chats.map(c=>`<button type="button" class="btn" data-tgchat="${esc(c.id)}" data-title="${esc(c.title)}">${c.type==='private'?'👤':'👥'} ${esc(c.title)}</button>`).join('')}</div>`
+      :`<p class="note" style="color:var(--lamp2)">Бот @${esc(TG.bot)} пока никого не видит. Откройте его в Telegram и нажмите «Старт» (или напишите /start в группе, где он есть), потом снова нажмите «Найти чаты».</p>`:''}
+    <p class="note" style="margin-top:14px">В уведомлении будут имя и телефон клиента, состав заявки, сумма и источник. Telegram — сервис с серверами за рубежом: упомяните в уведомлении в Роскомнадзор трансграничную передачу данных. Имя и телефон можно выключить после подключения.</p></div>`}
+async function tgSync(){try{TG.st=await apiReq('tgget')}catch(e){TG.st={on:false}}const b=document.getElementById('tgBox');if(b)b.innerHTML=tgView()}
+const tgPaint=()=>{const b=document.getElementById('tgBox');if(b)b.innerHTML=tgView()};
+document.addEventListener('submit',async e=>{if(e.target.id!=='tgForm')return;e.preventDefault();
+  TG.token=String(new FormData(e.target).get('token')||'').trim();TG.busy=true;TG.chats=null;tgPaint();
+  try{const d=await apiReq('tgfind',{json:{token:TG.token}});TG.bot=d.bot||'';TG.chats=d.chats||[]}catch(ex){toast(ex.message||'Не получилось')}
+  TG.busy=false;tgPaint()});
+document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-tgchat],[data-tgtest],[data-tgoff]');if(!t)return;
+  try{if('tgchat' in t.dataset){t.disabled=true;await apiReq('tgsave',{json:{token:TG.token,chat:t.dataset.tgchat,title:t.dataset.title,bot:TG.bot}});
+      TG.token='';TG.chats=null;toast('Подключено — в Telegram пришло проверочное сообщение');await tgSync()}
+    else if('tgtest' in t.dataset){await apiReq('tgtest',{json:{}});toast('Проверка отправлена — посмотрите в Telegram')}
+    else if('tgoff' in t.dataset){if(!confirm('Отключить уведомления в Telegram?'))return;await apiReq('tgoff',{json:{}});toast('Уведомления отключены');await tgSync()}}
+  catch(ex){t.disabled=false;toast(ex.message||'Не получилось')}});
+document.addEventListener('change',async e=>{const c=e.target.closest&&e.target.closest('[data-tgpd]');if(!c)return;
+  try{await apiReq('tgpd',{json:{on:c.checked}});toast(c.checked?'Имя и телефон будут в уведомлениях':'В уведомлениях — без имени и телефона')}catch(ex){c.checked=!c.checked;toast(ex.message||'Не получилось')}});
 let staffList=[];
 function mgrStaffApi(){
   return `<div class="adm-client" style="margin-bottom:90px"><header><div><b>Сотрудники и клиенты</b><span>роль открывает панель</span></div></header>
@@ -6438,9 +6498,13 @@ function adminView(){
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="pill ${adminState.tab==='orders'?'on':''}" data-mgrtab="orders">Заявки ${(()=>{const u=newOrders();return `<span class="tg-badge num${u?'':' zero'}" id="mgrNewOrders" title="новых заявок, которые вы ещё не открывали">${u||0}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='chats'?'on':''}" data-mgrtab="chats">Сообщения ${(()=>{const u=Math.max(0,Math.max(unreadTotal(),list.reduce((s,o)=>s+chatUnread(o.no,'manager'),0))-newOrders());return `<span class="tg-badge num${u?'':' zero'}" id="mgrUnread" title="непрочитанных сообщений от клиентов">${u||0}</span>`})()}</button>
     <button type="button" class="pill ${adminState.tab==='staff'?'on':''}" data-mgrtab="staff">Сотрудники</button>
+    ${SB.kind==='api'&&SB.role==='admin'?`<button type="button" class="pill ${adminState.tab==='tg'?'on':''}" data-mgrtab="tg">Telegram</button>`:''}
     <a class="pill" href="#/account/orders" title="ваши собственные заявки как клиента, не заявки клиентов">Мой клиентский кабинет</a>
     <button type="button" class="pill" data-mgrout>Выйти</button></div></div>`;
   if(adminState.tab==='staff')return `<div class="wrap">${bar}<div class="page-h"><h1>Сотрудники</h1></div>${mgrStaffView(s)}</div>`;
+  if(adminState.tab==='tg'&&SB.kind==='api'&&SB.role==='admin'){setTimeout(tgSync,30);return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Уведомления</span><h1>Заявки в Telegram</h1></div>
+    <p style="color:var(--muted);max-width:46ch">Новая заявка, заказ звонка, заявка из помощника или сообщение клиента — сразу приходят в Telegram, чтобы перезвонить за минуты.</p></div>
+    <div id="tgBox" style="margin-bottom:90px">${tgView()}</div></div>`}
   if(adminState.tab==='chats'){
     const cur=adminState.chat&&list.find(o=>String(o.no)===String(adminState.chat));
     if(cur)return `<div class="wrap">${bar}<div class="page-h"><div style="display:grid;gap:12px"><span class="label">Переписка</span><h1>${esc(cur.fio||'Клиент')}</h1></div>
@@ -6469,6 +6533,7 @@ function adminView(){
             <button type="button" class="link" data-adorderdel="${SB.on?o._id:o._key+'|'+o._idx}" data-no="${esc(o.no)}">Удалить</button></div>
           ${o.guest?`<p class="note" style="color:var(--lamp2)">Клиент оформил заявку без личного кабинета. Ваши сообщения он увидит, когда зарегистрируется или войдёт на сайт с того же устройства — надёжнее позвонить: <a class="num" href="tel:${esc(String(o.phone||'').replace(/[^+\d]/g,''))}">${esc(o.phone||'')}</a></p>`:''}
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}${promoLine(o)}
+          ${o.src?`<p class="note src-note">Источник: ${esc(srcLine(o.src))}</p>`:''}
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
             return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
               <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>

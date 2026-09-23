@@ -215,7 +215,11 @@ if ($a === 'orders') {
 if ($a === 'order') {
   $u = me(); $b = body();
   $items = $b['items'] ?? [];
-  if (!is_array($items) || !count($items)) fail('Корзина пуста');
+  if (!is_array($items)) $items = [];
+  /* обратный звонок — заявка без домов, но с телефоном */
+  $isCall = !empty($b['callback']);
+  if (!count($items) && !$isCall) fail('Корзина пуста');
+  if ($isCall && trim((string)($b['phone'] ?? '')) === '') fail('Укажите телефон');
   $promo = (isset($b['promo']['code'], $b['promo']['pct']) && in_array((int)$b['promo']['pct'], [5, 10, 15, 20], true))
     ? json_encode(['code' => substr((string)$b['promo']['code'], 0, 40), 'pct' => (int)$b['promo']['pct']], JSON_UNESCAPED_UNICODE) : null;
   $st = db()->prepare('INSERT INTO orders(no,user_id,fio,phone,email,region,comment,items,total,stage,status,created,promo) VALUES(?,?,?,?,?,?,?,?,?,0,"new",?,?)');

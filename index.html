@@ -4070,6 +4070,17 @@ async function apiDetect(){
     const d=await r.json();
     if(d&&d.ok){API_URL='api.php';return true}}catch(e){}
   return false}
+/* рабочий сайт: здесь заявка обязана уйти на сервер, демо-режима быть не должно */
+const isProd=()=>/(^|\.)konturhouse\.ru$/.test(location.hostname);
+/* сервер не нашёлся при открытии страницы (оборвалась связь) — пробуем ещё раз перед отправкой */
+async function ensureApi(){
+  if(SB.on)return true;
+  for(let i=0;i<3&&!SB.on;i++){
+    if(await apiDetect()&&API_URL){SB.on=true;SB.kind='api';
+      try{if(apiToken){const d=await apiReq('me');srvUser(d.user)}}catch(e){}
+      return true}
+    await new Promise(r=>setTimeout(r,700))}
+  return SB.on}
 async function sbInit(){
   await apiDetect();
   if(API_URL){SB.on=true;SB.kind='api';
@@ -4397,7 +4408,7 @@ const chatPreview=(no,role)=>{const m=chatLastMsg(no);if(!m)return '';
   const txt=m.text||(m.item?'вариант дома из конструктора':'')||((m.files||[]).length?`${m.files.length} ${plural(m.files.length,['фото','фото','фото'])}`:'сообщение');
   return (m.role===role?'Вы: ':'')+txt};
 const orderTitleOf=o=>{const it=(o.items||[])[0],m=it&&lineModel(it);
-  return m?`${m.name} ${fmtD(m.w)}×${fmtD(m.d)}${o.items.length>1?` и ещё ${o.items.length-1}`:''}`:'Заявка'};
+  return m?`${m.name} ${fmtD(m.w)}×${fmtD(m.d)}${o.items.length>1?` и ещё ${o.items.length-1}`:''}`:(o.items&&o.items.length?'Заявка':'Обратный звонок')};
 /* список диалогов */
 let CHAT_LIST=null;
 function chatListHTML(rows,role,attrOf){CHAT_LIST={rows,role,attrOf};
@@ -4531,7 +4542,7 @@ function accountView(tab,sub){
       <p class="note">Эти данные подставятся в заявку — в корзине не придётся заполнять их заново.</p>`})()}
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn solid" type="submit">Сохранить</button><button class="btn" type="button" id="logout">Выйти</button></div></form>`
    :tab==='chat'?chatTabView(orders,sub)
-   :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">Заявка № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span style="display:flex;gap:10px;align-items:center"><span class="status">${STAGES[o.stage]}</span>${canClientDel(o)?`<button type="button" class="link" data-orderdel="${esc(o.no)}">Удалить</button>`:''}</span></header>
+   :(orders.length?orders.slice().reverse().map(o=>`<div class="order"><header><div><b class="num">${o.items&&o.items.length?'Заявка':'Звонок'} № ${o.no}</b> <span style="color:var(--muted);font-size:14px" class="num">от ${new Date(o.at).toLocaleDateString('ru-RU')}</span></div><span style="display:flex;gap:10px;align-items:center"><span class="status">${STAGES[o.stage]}</span>${canClientDel(o)?`<button type="button" class="link" data-orderdel="${esc(o.no)}">Удалить</button>`:''}</span></header>
       <div style="display:grid;gap:10px">${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
         return `<div style="display:grid;gap:6px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · <span style="color:var(--muted)">${itemDesc(it)}</span></span><b class="num" style="font-weight:500">${rub(itemTotal(it))}</b></div>
         ${refsView(it)}<details class="spec-det"><summary>Спецификация и планировка</summary>
@@ -5494,8 +5505,8 @@ function adminView(){
           <span class="num" style="color:var(--muted)">${os.length} ${plural(os.length,['заявка','заявки','заявок'])}</span></header>
         ${os.map(o=>`<div class="adm-order st-${esc(o.status||'new')}"><div class="adm-row">
             <b class="num adm-no">№ ${o.no}</b><span class="num adm-when">${new Date(o.at).toLocaleDateString('ru-RU')}</span>
-            <span>${esc(o.region||'участок не указан')} <span class="adm-mark">новая</span></span>
-            <b class="num adm-sum">${rub(orderPay(o))}</b>
+            <span>${o.items&&o.items.length?esc(o.region||'участок не указан'):'<b style="color:var(--lamp2);font-weight:500">Обратный звонок</b>'} <span class="adm-mark">новая</span></span>
+            <b class="num adm-sum">${o.items&&o.items.length?rub(orderPay(o)):`<a class="num" href="tel:${esc(String(o.phone||'').replace(/[^+\d]/g,''))}">${esc(o.phone||'')}</a>`}</b>
             <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select>
             <button type="button" class="link" data-adorderdel="${SB.on?o._id:o._key+'|'+o._idx}" data-no="${esc(o.no)}">Удалить</button></div>
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}${promoLine(o)}
@@ -5606,6 +5617,8 @@ function bind(){
   document.getElementById('checkout')?.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(e.target);
     const order={no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:cart.slice(),fio:f.get('fio'),email:user?user.email:'',
       phone:f.get('phone'),region:f.get('region'),comment:f.get('comment'),stage:0,status:'new',promo:myPromo()};
+    if(!SB.on)await ensureApi();
+    if(!SB.on&&isProd()){toast('Не удалось отправить заявку: нет связи с сервером. Попробуйте ещё раз или позвоните +7 999 888-60-99');return}
     if(SB.on){const btn=e.target.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
       try{await sbSaveOrder(order);await sbLoadOrders()}
       catch(ex){if(btn){btn.disabled=false;btn.textContent='Отправить заявку'}toast('Не удалось отправить заявку: '+(ex.message||'ошибка связи'));return}}
@@ -5863,7 +5876,21 @@ function openContact(){
     <button class="btn lamp" type="submit" style="justify-content:center">Жду звонка</button>
     <p class="note">${SB.on?'Перезвоним в рабочее время.':'Демо-форма: номер сохраняется только в этом браузере.'}</p></form>`;
   el.querySelector('.x').onclick=()=>el.remove();el.addEventListener('click',e=>{if(e.target===el)el.remove()});
-  el.querySelector('form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const l=store.get('callbacks',[]);l.push({name:f.get('name'),phone:f.get('phone'),time:f.get('time'),at:Date.now()});store.set('callbacks',l);el.remove();toast('Заявка на звонок принята')};
+  el.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);
+    const btn=e.target.querySelector('button[type=submit]');
+    const cb={no:String(1000+Math.floor(Math.random()*9000)),at:Date.now(),items:[],fio:String(f.get('name')||'').trim(),
+      phone:String(f.get('phone')||'').trim(),email:user?user.email:'',region:'',
+      comment:`Обратный звонок · удобное время: ${f.get('time')}`,stage:0,status:'new',callback:1};
+    if(!SB.on)await ensureApi();
+    if(SB.on&&SB.kind==='api'){
+      if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
+      try{await apiReq('order',{json:{...cb,total:0}});await sbLoadOrders()}
+      catch(ex){if(btn){btn.disabled=false;btn.textContent='Жду звонка'}
+        toast('Не удалось отправить: '+(ex.message||'нет связи')+'. Позвоните нам: +7 999 888-60-99');return}}
+    else if(isProd()){toast('Нет связи с сервером. Позвоните нам: +7 999 888-60-99');return}
+    else{const l=store.get('callbacks',[]);l.push({name:cb.fio,phone:cb.phone,time:f.get('time'),at:cb.at});store.set('callbacks',l)}
+    ymGoal('call');
+    el.remove();toast('Заявка на звонок принята — перезвоним в рабочее время')};
   document.body.appendChild(el);setTimeout(()=>el.querySelector('input')?.focus(),50);
 }
 document.getElementById('acctBtn').onclick=()=>user?location.hash='#/account':openAuth();

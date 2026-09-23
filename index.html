@@ -5152,14 +5152,15 @@ function helperInit(){if(!HELPER_ON||document.querySelector('.hp-fab'))return;
   b.onclick=()=>helperOpen();document.body.appendChild(b);helperRoute();
   addEventListener('hashchange',helperRoute);
   let seen=null;try{seen=sessionStorage.getItem('kontur.hp')}catch(e){}
-  if(!seen)setTimeout(helperTease,4000)}
+  if(!seen)setTimeout(helperTease,4000);
+  setInterval(hpCtxTick,700)}
 function helperRoute(){const f=document.querySelector('.hp-fab');if(!f)return;const hide=hpHideRoute();f.hidden=hide;
   if(hide){helperClose();document.querySelector('.hp-tease')?.remove()}}
 function helperTease(){if(document.querySelector('.hp-panel,.hp-tease,.modal,.ck-bar')||hpHideRoute())return;
   const f=document.querySelector('.hp-fab');if(!f||f.hidden)return;
   const el=document.createElement('div');el.className='hp-tease';el.setAttribute('role','button');el.tabIndex=0;
   el.innerHTML='<button type="button" class="hp-tease-x" aria-label="Скрыть">✕</button><b>Привет! Я Контур ИИ</b><span>Напиши или скажи, какой дом нужен, — подберу и посчитаю цену с доставкой</span>';
-  f.classList.add('happy');setTimeout(()=>f.classList.remove('happy'),4000);
+  f.classList.add('happy');setTimeout(()=>f.classList.remove('happy'),4000);hpCtxLast=Date.now();
   el.onclick=e=>{el.remove();if(e.target.closest('.hp-tease-x')){hpSeen();return}helperOpen()};
   document.body.appendChild(el);setTimeout(()=>el.remove(),15000)}
 function helperOpen(){hpSeen();document.querySelector('.hp-tease')?.remove();if(document.querySelector('.hp-panel'))return;
@@ -5170,7 +5171,7 @@ function hpReset(){Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],fr
 function helperClose(){if(hpRec){try{hpRec.abort()}catch(e){}}document.querySelector('.hp-panel')?.remove();document.body.classList.remove('hp-open')}
 const hpVoiceOK=()=>!!(window.SpeechRecognition||window.webkitSpeechRecognition);
 function helperRender(){const p=document.querySelector('.hp-panel');if(!p)return;
-  const keep=p.querySelector('.hp-compose input')?.value||'';
+  const keep=p.querySelector('.hp-compose input[name=t]')?.value||'';
   const log=HP.log.map(m=>m.raw!=null?m.raw:`<div class="hp-msg${m.me?' me':''}">${m.html}</div>`).join('');
   const Q=!HP.busy&&HP.ask&&HP_Q[HP.ask];
   const chipsHTML=list=>`<div class="hp-chips">${list.map(c=>Array.isArray(c)?`<button type="button" class="hp-chip act" data-hpact="${c[1]}">${esc(c[0])}</button>`
@@ -5184,7 +5185,7 @@ function helperRender(){const p=document.querySelector('.hp-panel');if(!p)return
     <div class="hp-head-b">${HP.log.length>1?'<button type="button" class="hp-mini" data-hpreset>Заново</button>':''}<button type="button" class="hp-x" data-hpclose aria-label="Закрыть">✕</button></div></div>
     <div class="hp-body">${log}${typing}${quick}</div>
     <form class="hp-compose" data-hpform>${clip}${mic}<input name="t" placeholder="${HP.rec?'Говори…':HP.ask==='place'?'Город или посёлок':'Например: дом для четверых зимой до 2 млн'}" autocomplete="off" aria-label="Сообщение помощнику"><button class="hp-send" type="submit" aria-label="Отправить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></form>`;
-  const inp=p.querySelector('.hp-compose input');if(keep)inp.value=keep;
+  const inp=p.querySelector('.hp-compose input[name=t]');if(keep)inp.value=keep;
   const body=p.querySelector('.hp-body');body.scrollTop=body.scrollHeight;
   if(matchMedia('(pointer:fine)').matches&&!HP.rec)setTimeout(()=>inp.focus({preventScroll:true}),40)}
 /* что спросить дальше; при свободном тексте необязательное не спрашиваем */
@@ -5244,7 +5245,7 @@ function hpFaqKey(t){
   if(/доставк|привез|довез/.test(t))return 'delivery';
   if(/разрешени|уведомлени|документ|оформит/.test(t))return 'permit';
   if(/ипотек|кредит|рассрочк/.test(t))return 'mortgage';
-  if(/фундамент|свая|сваи|сваях|ушп/.test(t))return 'foundation';
+  if(/фундамент|сва[йиюяе]|ушп|опор[ыау]? /.test(t))return 'foundation';
   if(/утепл|тепл(ый|о) ли|холодно ли|не замерз/.test(t))return 'insulation';
   if(/менеджер|позвони|перезвон|связаться|свяжитесь|живой человек|оператор/.test(t))return 'manager';
   if(/сколько стоит|цена|цены|стоимость|почем|почём/.test(t))return 'price';
@@ -5316,6 +5317,8 @@ async function hpFaq(k,got){
     hpSay(`Доставка — ${DELIVERY_RATE} ₽ за каждый километр от производства. Напиши город — посчитаю точно.`);if(!HP.ask)HP.ask='place';return}
   if(k==='price'){hpSay(`Дома — от ${rub(Math.min(...MODELS.map(minPrice)))} за холодный контур, модули — от ${rub(Math.min(...MOD_SIZES.map(modBase)))}. Скажи, что нужно, — посчитаю точную цену с доставкой.`);return}
   if(k==='manager'){HP.log.push({raw:`<div class="hp-msg">Передам менеджеру — оставь телефон, он перезвонит в рабочее время. Или позвони сам: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.</div><button type="button" class="btn lamp" data-hpcall style="justify-self:start">Заказать звонок</button>`});return}
+  if(k==='insulation'){hpInsAns(hpScope());return}
+  if(k==='foundation'){hpFoundAns(hpScope());return}
   hpSay(A[k])}
 /* ---------- обработка сообщения ---------- */
 async function hpText(txt){txt=String(txt||'').trim();if(!txt||HP.busy)return;
@@ -5333,7 +5336,8 @@ async function hpUnderstand(txt){
   if(g.city){HP.ans.city=g.city;HP.ans.km=null;HP.ans.place='city'}
   Object.keys(f).forEach(k=>{if(f[k]!==null&&f[k]!==undefined)HP.ans[k]=f[k];else delete HP.ans[k]});
   if(f.size)delete HP.ans.area;
-  if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info)return}
+  const onlyKind=Object.keys(f).every(k=>k==='kind'||k==='houseWord')&&!g.city&&!(g.follow&&HP.last);
+  if(g.faq&&!(info&&(g.faq==='price'||g.faq==='delivery'||g.faq==='hello'))){await hpFaq(g.faq,g);if(!info||(onlyKind&&(g.faq==='insulation'||g.faq==='foundation')))return}
   if(g.intent==='photo'){hpSay('Пришли фото дома, который нравится: нажми на скрепку слева от строки ввода — можно до 4 снимков. Соберу проект под него, а фото уйдёт менеджеру вместе с заявкой.');
     HP.chips=[['Прикрепить фото','photo'],['Наши постройки','gallery']];if(!info)return}
   if(g.intent==='own'){hpSay('Свой проект собирается в «Своём размере»: любой размер с шагом 0,5 м, планировку рисуешь сам, смета считается сразу. Открою его с тем, что ты уже рассказал.');
@@ -5448,22 +5452,105 @@ function hpGallery(t){const a=HP.ans;let list=PRJ.map((p,i)=>({p,i}));
     <button type="button" class="btn lamp" data-prjadd="${x.i}">Хочу такой</button></div></div>`).join('')
     +'<a class="btn" href="#/projects" data-hpgo style="justify-self:start;height:38px;font-size:13px">Все наши постройки</a>'});
   HP.chips=[['Собрать свой проект','own'],['Прикрепить фото дома','photo']]}
+/* ---------- ответы про открытый дом: утепление и фундамент ---------- */
+const hpScope=()=>{const h=location.hash;return /^#\/house\//.test(h)?'house':/^#\/custom/.test(h)?'custom':/^#\/modules/.test(h)?'mod':'info'};
+const hpPageModel=()=>byId((location.hash.split('/')[2])||'');
+const hpGroup=re=>{const h=[...document.querySelectorAll('.cg h3,.wrap h3')].find(x=>re.test(x.textContent.trim()));return h?(h.closest('.cg')||h.parentElement):null};
+const hpActs=list=>{if(list.length)HP.log.push({raw:`<div class="hp-acts">${list.map(([l,v],i)=>`<button type="button" class="btn${i===0?' lamp':''}" data-hpset="${v}">${esc(l)}</button>`).join('')}</div>`})};
+const hpDelta=v=>v?(v>0?'+ ':'− ')+rub(Math.abs(v)):'в цене';
+const HP_INS_TXT='Ориентир такой: 100 мм — дача с весны до осени; 150 мм — жить круглый год в средней полосе, до −25 °C; 200 мм — с запасом на сильные морозы и меньше платить за отопление, хорошо для севера ЦФО; 250 мм — Урал и Сибирь.';
+function hpInsAns(scope){
+  if(scope==='house'){const m=hpPageModel();if(!m){hpSay(esc(HP_INS_TXT));return}const cfg=getCfg(m);
+    if(cfg.pkg==='cold'){hpSay('Сейчас выбран холодный контур — утеплителя в нём нет: это коробка для лета или чтобы утеплить потом. Для жизни круглый год нужен тёплый контур с утеплителем от 150 мм.');
+      hpActs([['Тёплый контур и 150 мм','house:pkgins:150']]);return}
+    const cur=cfg.ins;hpSay(esc(HP_INS_TXT)+` Для «${esc(m.name)}» ${fmtD(m.w)}×${fmtD(m.d)} сейчас стоит ${cur} мм. Поставить другой:`);
+    hpActs(['150','200','100'].filter(id=>id!==cur).map(id=>[`${id} мм · ${hpDelta(optDelta(m,'ins',id,cfg)-optDelta(m,'ins',cur,cfg))}`,`house:ins:${id}`]));return}
+  if(scope==='custom'){const c=customState;
+    if(c.contour==='cold'){hpSay('Сейчас выбран холодный контур — утеплителя в нём нет. Для жизни круглый год нужен тёплый контур с утеплителем от 150 мм.');hpActs([['Тёплый контур и 150 мм','custom:pkgins:150']]);return}
+    const cur=INS.find(x=>x.id===c.ins)||INS[0];hpSay(esc(HP_INS_TXT)+` Для дома ${fmtD(c.w)}×${fmtD(c.d)} сейчас стоит ${cur.mm} мм. Поставить другой:`);
+    hpActs(INS.filter(i=>i.id!==c.ins&&i.mm<=200).sort((a,b)=>(b.mm===150)-(a.mm===150)).map(i=>[`${i.mm} мм · ${hpDelta((i.mm-cur.mm)/50*INS_STEP*cWallA(c))}`,`custom:ins:${i.id}`]));return}
+  if(scope==='mod'){const c=modState,g=MOD_GROUPS[0],cur=g.items.find(i=>i.id===c.ins)||g.items[1];
+    hpSay(`Для модуля ориентир такой: 50 мм — лето и межсезонье; 100 мм — весна–осень и короткие выезды зимой; 150 мм — жить круглый год. Сейчас стоит: ${cur.id==='none'?'без утепления':cur.name}. Поставить другой:`);
+    hpActs(g.items.filter(i=>i.id!==c.ins&&i.id!=='none').sort((a,b)=>(b.id==='150')-(a.id==='150')).map(i=>[`${i.name} · ${hpDelta(Math.round((i.rate-cur.rate)*modPer(c,'env')))}`,`mod:ins:${i.id}`]));return}
+  hpSay(esc(HP_INS_TXT)+' Скажи, как будешь жить и где участок, — подберу дом с нужным утеплением.');HP.chips=['Дом для жизни','Дачный дом']}
+const HP_FOUND_TXT='Как выбрать: бетонные блоки уже в цене — подходят для ровного сухого участка с плотным грунтом. Винтовые сваи — если есть уклон, торф, глина или близко грунтовые воды; на пучинистом грунте берут длину 2,5 м, чтобы уйти ниже промерзания. УШП — утеплённая плита, если хочешь тёплый пол. Точно тип основания инженер определит на выезде — он бесплатный.';
+const hpPileName=id=>id==='blocks'?'Бетонные блоки':id==='ushp'?'УШП':(PILES.find(p=>p[0]===id)||[0,id])[1];
+function hpFoundAns(scope){
+  if(scope==='house'){const m=hpPageModel();if(!m){hpSay(esc(HP_FOUND_TXT));return}const cfg=getCfg(m),n=pileCount(m),two=m.floors>1||!!m.upper||m.roofShape==='mansard';
+    hpSay(`Для «${esc(m.name)}» ${fmtD(m.w)}×${fmtD(m.d)} нужно ${n} опор. ${two?'У дома второй этаж или мансарда, поэтому сваи нужны потолще — Ø108.':'Для одноэтажного дома обычно хватает свай Ø89.'} ${esc(HP_FOUND_TXT)}`);
+    const d=id=>optDelta(m,'found',id,cfg)-optDelta(m,'found',cfg.found,cfg);
+    hpActs([two?'p108x2':'p89x2',two?'p108x25':'p89x25','blocks','ushp'].filter(id=>id!==cfg.found).map(id=>[`${hpPileName(id)} · ${hpDelta(d(id))}`,`house:found:${id}`]));return}
+  if(scope==='custom'){const c=customState,n=pilesCount(c),two=c.floors!=='1';
+    const price=id=>id==='blocks'?0:id==='ushp'?c.w*c.d*9200:n*(PILES.find(p=>p[0]===id)||[0,0,0])[2],cur=price(c.pile);
+    hpSay(`Для дома ${fmtD(c.w)}×${fmtD(c.d)} нужно ${n} опор. ${two?'Дом со вторым этажом или мансардой — берут сваи Ø108.':'Для одноэтажного дома обычно хватает свай Ø89.'} ${esc(HP_FOUND_TXT)}`);
+    hpActs([two?'p108x2':'p89x2',two?'p108x25':'p89x25','blocks','ushp'].filter(id=>id!==c.pile).map(id=>[`${hpPileName(id)} · ${hpDelta(price(id)-cur)}`,`custom:found:${id}`]));return}
+  if(scope==='mod'){const c=modState,n=modPiles(c),pl=c.pile||'blocks',price=id=>id==='blocks'?0:n*(MOD_PILES.find(p=>p[0]===id)||[0,0,0])[2],cur=price(pl);
+    hpSay(`Модуль лёгкий, для него нужно ${n} опор. На ровном плотном участке хватит бетонных блоков — они уже в цене. На уклоне, торфе или глине лучше винтовые сваи Ø89, на пучинистом грунте — длиной 2,5 м. Точно скажет инженер на выезде.`);
+    hpActs(['p89x2','p89x25','blocks'].filter(id=>id!==pl).map(id=>[`${hpPileName(id)} · ${hpDelta(price(id)-cur)}`,`mod:found:${id}`]));return}
+  hpSay(esc(HP_FOUND_TXT))}
+function hpSet(v){const [scope,key,val]=v.split(':');
+  if(scope==='house'){const m=hpPageModel();if(!m)return;const cfg=getCfg(m);if(key==='pkgins'){cfg.pkg='warm';cfg.ins=val}else cfg[key]=val;refreshCalc(m,true)}
+  else if(scope==='custom'){if(key==='pkgins'){customState.contour='warm';customState.ins=val}else if(key==='found')customState.pile=val;else customState[key]=val;refreshCustom(true)}
+  else if(scope==='mod'){if(key==='found')modState.pile=val;else modState[key]=val;refreshModule(true)}
+  helperClose();
+  const re=key==='found'?(scope==='mod'?/^Опоры$/:/^Фундамент$/):(scope==='mod'?/^Утепление$/:/^Утепление стен/);
+  setTimeout(()=>{const g=hpGroup(re);if(g)g.scrollIntoView({behavior:'smooth',block:'center'})},150);
+  toast('Готово — поменял в расчёте, смета пересчитана')}
+/* ---------- подсказки по ходу прокрутки ---------- */
+const HP_CTX=[
+ {id:'house-ins',route:h=>/^#\/house\//.test(h),el:()=>hpGroup(/^Утепление стен/),q:'Сколько утеплителя нужно, чтобы жить круглый год?',sub:'Нажми — расскажу и посчитаю для этого дома',ans:()=>hpInsAns('house')},
+ {id:'house-found',route:h=>/^#\/house\//.test(h),el:()=>hpGroup(/^Фундамент$/),q:'Какие сваи подойдут этому дому?',sub:'Подскажу, сколько опор и какие взять',ans:()=>hpFoundAns('house')},
+ {id:'custom-ins',route:h=>/^#\/custom/.test(h),el:()=>hpGroup(/^Утепление стен/),q:'Сколько утеплителя нужно, чтобы жить круглый год?',sub:'Нажми — расскажу и посчитаю для твоего размера',ans:()=>hpInsAns('custom')},
+ {id:'custom-found',route:h=>/^#\/custom/.test(h),el:()=>hpGroup(/^Фундамент$/),q:'Какие сваи подойдут этому дому?',sub:'Подскажу, сколько опор и какие взять',ans:()=>hpFoundAns('custom')},
+ {id:'mod-ins',route:h=>/^#\/modules/.test(h),el:()=>hpGroup(/^Утепление$/),q:'Какое утепление нужно, чтобы жить в модуле зимой?',sub:'Подскажу и посчитаю',ans:()=>hpInsAns('mod')},
+ {id:'mod-found',route:h=>/^#\/modules/.test(h),el:()=>hpGroup(/^Опоры$/),q:'Блоки или сваи — на что ставить модуль?',sub:'Подскажу по участку',ans:()=>hpFoundAns('mod')},
+ {id:'tech-ins',route:h=>/^#\/how/.test(h),el:()=>hpGroup(/утеплитель$/i),q:'Сколько утеплителя нужно именно тебе?',sub:'Подскажу по сезону и региону',ans:()=>hpInsAns('info')},
+ {id:'home-sizes',route:h=>!h||h==='#'||h==='#/'||h==='#/sizes',el:()=>document.getElementById('sizes'),q:'Не знаешь, какой размер нужен?',sub:'Скажи, сколько вас, — подберу дом',ans:null}
+];
+let hpCtxDwell={},hpCtxLast=0;
+const hpCtxSeen=()=>{try{return JSON.parse(sessionStorage.getItem('kontur.hpctx')||'[]')}catch(e){return[]}};
+const hpCtxMark=id=>{try{const s=hpCtxSeen();s.push(id);sessionStorage.setItem('kontur.hpctx',JSON.stringify(s))}catch(e){}};
+function hpCtxTick(){
+  if(!HELPER_ON||document.visibilityState!=='visible')return;
+  if(document.querySelector('.hp-panel,.hp-tease,.modal,.ck-bar,.mnav.open')||hpHideRoute())return;
+  const f=document.querySelector('.hp-fab');if(!f||f.hidden)return;
+  if(Date.now()-hpCtxLast<60000)return;
+  const seen=hpCtxSeen();if(seen.length>=3)return;
+  const h=location.hash;
+  for(const c of HP_CTX){if(seen.includes(c.id)||!c.route(h))continue;
+    const el=c.el();if(!el){hpCtxDwell[c.id]=0;continue}
+    const r=el.getBoundingClientRect(),vis=r.top<innerHeight*.72&&r.bottom>innerHeight*.2;
+    hpCtxDwell[c.id]=vis?(hpCtxDwell[c.id]||0)+700:0;
+    if(hpCtxDwell[c.id]>=2100){hpCtxDwell={};hpCtxLast=Date.now();hpCtxMark(c.id);hpCtxTease(c);return}}}
+function hpCtxTease(c){const f=document.querySelector('.hp-fab');if(!f)return;
+  const el=document.createElement('div');el.className='hp-tease';el.setAttribute('role','button');el.tabIndex=0;
+  el.innerHTML=`<button type="button" class="hp-tease-x" aria-label="Скрыть">✕</button><b>${esc(c.q)}</b><span>${esc(c.sub)}</span>`;
+  f.classList.add('happy');setTimeout(()=>f.classList.remove('happy'),4000);
+  el.onclick=e=>{el.remove();if(e.target.closest('.hp-tease-x'))return;helperOpenCtx(c)};
+  document.body.appendChild(el);setTimeout(()=>el.remove(),14000)}
+function helperOpenCtx(c){if(!c.ans){helperOpen();return}
+  hpSeen();document.querySelector('.hp-tease')?.remove();
+  if(!document.querySelector('.hp-panel')){const p=document.createElement('div');p.className='hp-panel';p.setAttribute('role','dialog');p.setAttribute('aria-label','Контур ИИ — помощник');
+    document.body.appendChild(p);document.body.classList.add('hp-open');
+    Object.assign(HP,{ans:{},log:[],ask:null,picks:[],chips:[],free:true,busy:false,last:false,refs:[]})}
+  hpSay(esc(c.q),true);c.ans();HP.ask=null;helperRender();ymGoal('helper')}
 /* ---------- голос: распознаёт браузер, сайт получает только текст ---------- */
 let hpRec=null;
 function hpMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
   if(hpRec){try{hpRec.stop()}catch(e){}return}
   const r=new SR();r.lang='ru-RU';r.interimResults=true;r.maxAlternatives=1;hpRec=r;HP.rec=true;helperRender();
   let said='';
-  r.onresult=e=>{let s='';for(let k=0;k<e.results.length;k++)s+=e.results[k][0].transcript;said=s;const el=document.querySelector('.hp-compose input');if(el)el.value=s};
+  r.onresult=e=>{let s='';for(let k=0;k<e.results.length;k++)s+=e.results[k][0].transcript;said=s;const el=document.querySelector('.hp-compose input[name=t]');if(el)el.value=s};
   r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('Разреши доступ к микрофону в браузере, чтобы говорить с помощником');
     else if(e.error==='no-speech')toast('Ничего не услышал — попробуй ещё раз')};
-  r.onend=()=>{hpRec=null;HP.rec=false;const el=document.querySelector('.hp-compose input');if(el)el.value='';helperRender();if(said.trim())hpText(said)};
+  r.onend=()=>{hpRec=null;HP.rec=false;const el=document.querySelector('.hp-compose input[name=t]');if(el)el.value='';helperRender();if(said.trim())hpText(said)};
   try{r.start()}catch(e){hpRec=null;HP.rec=false;helperRender()}}
 /* ---------- события ---------- */
 document.addEventListener('click',e=>{
   /* «Хочу такой» в чате — дальше работает обычная кнопка «Заказать этот проект», окно закрываем */
   if(e.target.closest&&e.target.closest('.hp-panel [data-prjadd]')){setTimeout(helperClose,0);return}
-  const t=e.target.closest&&e.target.closest('[data-hpans],[data-hpclose],[data-hpreset],[data-hpopen],[data-hpsay],[data-hpmic],[data-hpcall],[data-hpcustom],[data-hpact],[data-hpgo]');if(!t)return;
+  const t=e.target.closest&&e.target.closest('[data-hpans],[data-hpclose],[data-hpreset],[data-hpopen],[data-hpsay],[data-hpmic],[data-hpcall],[data-hpcustom],[data-hpact],[data-hpgo],[data-hpset]');if(!t)return;
+  if('hpset' in t.dataset){hpSet(t.dataset.hpset);return}
   if('hpgo' in t.dataset){helperClose();return}
   if('hpact' in t.dataset){const k=t.dataset.hpact;
     if(k==='photo'){document.querySelector('.hp-panel [data-hpfile]')?.click();return}
@@ -5487,7 +5574,8 @@ document.addEventListener('click',e=>{
   else HP.ans[k]=v;
   HP.ask=null;hpStep()});
 document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('[data-hpform]');if(!f)return;e.preventDefault();
-  const inp=f.querySelector('input'),v=inp.value;inp.value='';hpText(v)},true);
+  /* текстовое поле — по имени: первым в форме стоит скрытое поле для фото */
+  const inp=f.querySelector('input[name=t]'),v=inp?inp.value:'';if(inp)inp.value='';hpText(v)},true);
 document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-hpfile]');if(!f)return;const files=f.files;hpPhotos(files).finally(()=>{f.value=''})});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.hp-panel'))helperClose()});
 function footer(){return `<footer class="wrap"><div class="foot-grid">

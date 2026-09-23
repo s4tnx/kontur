@@ -5288,6 +5288,7 @@ function hpBudget(t){let m,v=0;
   else if(m=t.match(/(\d[\d ]{5,11}\d)/)){const n=+m[1].replace(/ /g,'');if(n>=100000)v=n}
   return v>=100000&&v<=50000000?v:0}
 function hpFaqKey(t){
+  if(/без (утепл|утеплит|внутренн|отделк|обшивк|внутрянк|пароизол)|голый каркас|только (каркас|коробк)|коробк[ау]? без|холодн(ый|ом|ого|ую) контур|(утепл|отдела|обошь|обшью|обшива)[а-я]* (сам|сами|потом|позже)|(сам|сами|потом|позже) (утепл|отдела|обошь|обшью|обшива)|внутренн[а-я]* (обшивк|отделк)[а-я]* (не нужн|не надо)/.test(t))return 'bare';
   if(/перепланир|(измен|поменя|передела|переделк|перенес|перестав|сдвин|подвин|убра|добав|объедин|раздел|расшир|увелич|уменьш|друг(ую|ая|ой|ие)|сво(ю|я|ей)|индивидуальн)[а-я]* [^.?!]*(планировк|перегородк|комнат|спальн|санузел|туалет|ванн|кухн|гостин|прихож|тамбур|двер[ьи]|стенк)|планировк[а-я]* [^.?!]*(измен|поменя|передела|друг|не нрав|не подход|свою|под себя|по-своему|по своему)|не нрав[а-я]* [^.?!]*планировк|планировк[а-я]* не нрав/.test(t))return 'layout';
   if(/окончательн|финальн|итогов(ая|ую|ой) (цен|сумм|стоимост)|(цен[аыу]|сумм[аы]|стоимост[ьи]) (потом |еще |может |не |точно )*(измен|поменя|выраст|выше|увелич|выйдет|фиксир|точн|окончат|оконч)|(измени?т|поменяет|вырастет|увеличит)[а-я]* (ли )?(потом )?(цен|сумм|стоимост)|фиксир|доплат[а-я]* потом|потом доплат|скрыт[а-я]* (платеж|доплат|расход)|это (вся|полная|конечная) (цен|сумм)|точная цена|цена точная/.test(t))return 'fixed';
   if(/не знаю[^.?!]*(как|какой|какую|какая|что|чего)|не могу (выбрать|определ|решить)|помоги[а-я]* (мне )?(выбрать|определ|подобрать планир)|сложно выбрать|трудно выбрать|затрудняюсь|не определил|не решил|посоветуй|какую планировку|какая планировка|что (мне )?выбрать|консультац/.test(t))return 'unsure';
@@ -5371,6 +5372,7 @@ async function hpFaq(k,got){
   if(k==='price'){hpSay(`Дома — от ${rub(Math.min(...MODELS.map(minPrice)))} за холодный контур, модули — от ${rub(Math.min(...MOD_SIZES.map(modBase)))}. Скажи, что нужно, — посчитаю точную цену с доставкой.`);return}
   if(k==='manager'){hpSay('Передам менеджеру — оставь телефон, он перезвонит в рабочее время.');hpLeadOpen('попросил связаться с менеджером');return}
   if(k==='fixed'){hpFixedAns();return}
+  if(k==='bare'){hpBareAns();return}
   if(k==='layout'){hpLayoutAns();return}
   if(k==='unsure'){hpSay('Так бывает у многих, это нормально. Оставь заявку: менеджер позвонит, расспросит, как будете жить, какой участок и бюджет, и поможет выбрать дом и планировку. Это бесплатно и ни к чему не обязывает.');
     hpLeadOpen('не знает, какой дом или планировку выбрать — нужна помощь с выбором');return}
@@ -5403,7 +5405,7 @@ async function hpUnderstand(txt){
   const skipFaq=(g.faq==='hello'&&info)||((g.faq==='price'||g.faq==='delivery')&&specs)||(g.faq==='price'&&f.kind);
   /* только город («а в Дмитров?») — это вопрос про доставку, если подбор ещё не начат */
   if(g.city&&!specs&&!f.kind&&!g.faq&&!g.intent&&!HP.last&&!HP.ans.kind)return hpFaq('delivery',g);
-  if(g.faq&&!skipFaq){await hpFaq(g.faq,g);if(!specs||['unsure','fixed','manager','layout','delivery','pay','warranty','time','permit','mortgage','winterbuild'].includes(g.faq))return}
+  if(g.faq&&!skipFaq){await hpFaq(g.faq,g);if(!specs||['bare','unsure','fixed','manager','layout','delivery','pay','warranty','time','permit','mortgage','winterbuild'].includes(g.faq))return}
   if(g.intent==='photo'){hpSay('Пришли фото дома, который нравится: нажми на скрепку слева от строки ввода — можно до 4 снимков. Соберу проект под него, а фото уйдёт менеджеру вместе с заявкой.');
     HP.chips=[['Прикрепить фото','photo'],['Наши постройки','gallery']];if(!info)return}
   if(g.intent==='own'){hpSay('Свой проект собирается в «Своём размере»: любой размер с шагом 0,5 м, планировку рисуешь сам, смета считается сразу. Открою его с тем, что ты уже рассказал.');
@@ -5557,11 +5559,29 @@ function hpFoundAns(scope){
 function hpSet(v){const [scope,key,val]=v.split(':');
   if(scope==='house'){const m=hpPageModel();if(!m)return;const cfg=getCfg(m);if(key==='pkgins'){cfg.pkg='warm';cfg.ins=val}else cfg[key]=val;refreshCalc(m,true)}
   else if(scope==='custom'){if(key==='pkgins'){customState.contour='warm';customState.ins=val}else if(key==='found')customState.pile=val;else customState[key]=val;refreshCustom(true)}
-  else if(scope==='mod'){if(key==='found')modState.pile=val;else modState[key]=val;refreshModule(true)}
+  else if(scope==='mod'){if(key==='found')modState.pile=val;else if(key==='bare'){modState.ins='none';modState.inner='none'}else modState[key]=val;refreshModule(true)}
   helperClose();
-  const re=key==='found'?(scope==='mod'?/^Опоры$/:/^Фундамент$/):(scope==='mod'?/^Утепление$/:/^Утепление стен/);
+  const re=key==='found'?(scope==='mod'?/^Опоры$/:/^Фундамент$/):key==='pkg'||key==='contour'?/^Комплектация$/:key==='inner'?/^Внутренняя отделка$/:(scope==='mod'?/^Утепление$/:/^Утепление стен/);
   setTimeout(()=>{const g=hpGroup(re);if(g)g.scrollIntoView({behavior:'smooth',block:'center'})},150);
   toast('Готово — поменял в расчёте, смета пересчитана')}
+/* ---------- без утепления и внутренней обшивки ---------- */
+const HP_COLD_TXT='Да, делаем. Это холодный контур: каркас, наружная обшивка, ветро-влагозащита, кровля, окна и дверь — без утеплителя, пароизоляции и внутренней обшивки. Подходит для летнего дома или если хочешь утеплить и отделать сам. Утеплить можно и позже — подскажем, какой утеплитель и толщина подойдут.';
+function hpBareAns(){const s=hpScope();
+  if(s==='house'){const m=hpPageModel();if(m){const cfg=getCfg(m),cold=computeCalc(m,{...cfg,pkg:'cold'}).total,cur=computeCalc(m,cfg).total;
+    if(cfg.pkg==='cold'){hpSay(esc(HP_COLD_TXT)+` Для «${esc(m.name)}» холодный контур уже выбран — <b class="num">${rub(cur)}</b> с доставкой.`);return}
+    hpSay(esc(HP_COLD_TXT)+` Для «${esc(m.name)}» ${fmtD(m.w)}×${fmtD(m.d)} холодный контур — <b class="num">${rub(cold)}</b> вместо ${rub(cur)} сейчас, дешевле на ${rub(cur-cold)}.`);
+    hpActs([[`Поставить холодный контур · − ${rub(cur-cold)}`,'house:pkg:cold']]);return}}
+  if(s==='custom'){const c=customState,cold=computeCustom({...c,contour:'cold'}).total,cur=computeCustom(c).total;
+    if(c.contour==='cold'){hpSay(esc(HP_COLD_TXT)+` Холодный контур уже выбран — <b class="num">${rub(cur)}</b> с доставкой.`);return}
+    hpSay(esc(HP_COLD_TXT)+` Для дома ${fmtD(c.w)}×${fmtD(c.d)} холодный контур — <b class="num">${rub(cold)}</b> вместо ${rub(cur)} сейчас, дешевле на ${rub(cur-cold)}.`);
+    hpActs([[`Поставить холодный контур · − ${rub(cur-cold)}`,'custom:contour:cold']]);return}
+  if(s==='mod'){const c=modState,cur=computeModule(c).total,noIns=cur-computeModule({...c,ins:'none'}).total,noIn=cur-computeModule({...c,inner:'none'}).total,both=cur-computeModule({...c,ins:'none',inner:'none'}).total;
+    hpSay('Да. В модуле утепление и внутреннюю отделку можно убрать по отдельности: без утепления остаются каркас и обшивка — летний вариант или утеплишь сам; без внутренней отделки каркас изнутри открыт — отделаешь сам.'+
+      (c.ins==='none'&&c.inner==='none'?' Сейчас в расчёте уже и то и другое убрано.':''));
+    const a=[];if(c.ins!=='none'&&noIns>0)a.push([`Без утепления · − ${rub(noIns)}`,'mod:ins:none']);if(c.inner!=='none'&&noIn>0)a.push([`Без внутренней отделки · − ${rub(noIn)}`,'mod:inner:none']);
+    if(a.length===2&&both>0)a.push([`Без того и другого · − ${rub(both)}`,'mod:bare:1']);hpActs(a);return}
+  hpSay(esc(HP_COLD_TXT)+` Цены «от» в каталоге — как раз за холодный контур: дома от ${rub(Math.min(...MODELS.map(minPrice)))}. В модулях утепление и внутреннюю отделку можно убрать по отдельности.`);
+  HP.chips=[['Наши постройки','gallery'],['Собрать свой проект','own']]}
 /* ---------- цена окончательная? ---------- */
 function hpCurTotal(){const s=hpScope();
   try{if(s==='house'){const m=hpPageModel();if(!m)return null;const cfg=getCfg(m);return{what:`«${m.name}» ${fmtD(m.w)}×${fmtD(m.d)}`,total:computeCalc(m,cfg).total,km:cfg.km}}

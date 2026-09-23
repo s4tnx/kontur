@@ -88,6 +88,8 @@ function db(): PDO {
   /* промокод заявки — колонка появилась позже, добавляем в старые базы */
   $cols = array_column($pdo->query('PRAGMA table_info(orders)')->fetchAll(PDO::FETCH_ASSOC), 'name');
   if (!in_array('promo', $cols, true)) $pdo->exec('ALTER TABLE orders ADD COLUMN promo TEXT');
+  /* ключ гостевой заявки: по нему клиент забирает её в свой кабинет */
+  if (!in_array('claim', $cols, true)) $pdo->exec('ALTER TABLE orders ADD COLUMN claim TEXT');
   return $pdo;
 }
 
@@ -130,7 +132,8 @@ function orderRow(array $o): array {
   return ['id' => (int)$o['id'], 'no' => $o['no'], 'fio' => $o['fio'], 'phone' => $o['phone'], 'email' => $o['email'],
     'region' => $o['region'], 'comment' => $o['comment'], 'items' => json_decode($o['items'] ?: '[]', true),
     'total' => (float)$o['total'], 'stage' => (int)$o['stage'], 'status' => $o['status'], 'created' => (int)$o['created'] * 1000,
-    'promo' => !empty($o['promo']) ? json_decode($o['promo'], true) : null];
+    'promo' => !empty($o['promo']) ? json_decode($o['promo'], true) : null,
+    'guest' => empty($o['user_id'])];
 }
 
 $a = $_GET['a'] ?? '';
@@ -222,11 +225,12 @@ if ($a === 'order') {
   if ($isCall && trim((string)($b['phone'] ?? '')) === '') fail('Укажите телефон');
   $promo = (isset($b['promo']['code'], $b['promo']['pct']) && in_array((int)$b['promo']['pct'], [5, 10, 15, 20], true))
     ? json_encode(['code' => substr((string)$b['promo']['code'], 0, 40), 'pct' => (int)$b['promo']['pct']], JSON_UNESCAPED_UNICODE) : null;
-  $st = db()->prepare('INSERT INTO orders(no,user_id,fio,phone,email,region,comment,items,total,stage,status,created,promo) VALUES(?,?,?,?,?,?,?,?,?,0,"new",?,?)');
+  $claim = $u ? null : bin2hex(random_bytes(16));
+  $st = db()->prepare('INSERT INTO orders(no,user_id,fio,phone,email,region,comment,items,total,stage,status,created,promo,claim) VALUES(?,?,?,?,?,?,?,?,?,0,"new",?,?,?)');
   $st->execute([(string)($b['no'] ?? ''), $u ? (int)$u['id'] : null, (string)($b['fio'] ?? ''), (string)($b['phone'] ?? ''),
     $u ? $u['email'] : (string)($b['email'] ?? ''), (string)($b['region'] ?? ''), (string)($b['comment'] ?? ''),
-    json_encode($items, JSON_UNESCAPED_UNICODE), (float)($b['total'] ?? 0), time(), $promo]);
-  out(['id' => (int)db()->lastInsertId()]);
+    json_encode($items, JSON_UNESCAPED_UNICODE), (float)($b['total'] ?? 0), time(), $promo, $claim]);
+  out(['id' => (int)db()->lastInsertId(), 'claim' => $claim]);
 }
 
 if ($a === 'status') {
@@ -235,6 +239,19 @@ if ($a === 'status') {
   $st = db()->prepare('UPDATE orders SET status=?, stage=COALESCE(?,stage) WHERE id=?');
   $st->execute([(string)($b['status'] ?? 'new'), isset($b['stage']) ? (int)$b['stage'] : null, $id]);
   out(['ok' => true]);
+}
+
+/* клиент вошёл в кабинет: забираем его гостевые заявки (подтверждение — ключ, выданный при оформлении) */
+if ($a === 'claim') {
+  $u = need(); $b = body(); $n = 0;
+  $st = db()->prepare("UPDATE orders SET user_id=?, email=CASE WHEN IFNULL(email,'')='' THEN ? ELSE email END, claim=NULL
+                       WHERE id=? AND claim=? AND user_id IS NULL");
+  foreach (array_slice((array)($b['list'] ?? []), 0, 20) as $g) {
+    if (!is_array($g) || empty($g['claim']) || !preg_match('/^[0-9a-f]{32}$/', (string)$g['claim'])) continue;
+    $st->execute([(int)$u['id'], $u['email'], (int)($g['id'] ?? 0), (string)$g['claim']]);
+    $n += $st->rowCount();
+  }
+  out(['claimed' => $n]);
 }
 
 /* ---------- документы ---------- */

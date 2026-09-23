@@ -4060,7 +4060,8 @@ const SB_ANON='';
 const SB={c:null,on:false,kind:'',orders:[],docs:{},role:'client',loading:false};
 /* пользователь пришёл с сервера — раскладываем по местам */
 function srvUser(u){if(!u){user=null;SB.role='client';SB.orders=[];store.set('user',null);loadUserData();updateHeader();return}
-  SB.role=u.role||'client';user={name:u.name||u.email,email:u.email,id:u.id,role:SB.role,pdok:u.pdok||0};store.set('user',user);loadUserData();updateHeader()}
+  SB.role=u.role||'client';user={name:u.name||u.email,email:u.email,id:u.id,role:SB.role,pdok:u.pdok||0};store.set('user',user);loadUserData();updateHeader();
+  setTimeout(guestClaim,0)}
 const API_FIXED=API_URL;
 async function apiDetect(){
   if(API_FIXED)return true;
@@ -4071,6 +4072,24 @@ async function apiDetect(){
     if(d&&d.ok){API_URL='api.php';return true}}catch(e){}
   return false}
 /* рабочий сайт: здесь заявка обязана уйти на сервер, демо-режима быть не должно */
+/* гостевые заявки: сервер выдаёт ключ, после входа заявки с перепиской переезжают в кабинет */
+function guestKeep(res,no){if(user||!res||!res.claim)return;
+  try{const g=store.get('guestOrders',[]);g.push({id:res.id,claim:res.claim,no});store.set('guestOrders',g.slice(-20))}catch(e){}}
+async function guestClaim(){let g=[];try{g=store.get('guestOrders',[])}catch(e){}
+  if(!user||!g.length||SB.kind!=='api')return;
+  try{const d=await apiReq('claim',{json:{list:g}});store.set('guestOrders',[]);
+    if(d&&d.claimed){await sbLoadOrders();toast(d.claimed>1?`${d.claimed} заявки перенесены в ваш кабинет`:'Ваша заявка перенесена в кабинет — переписка с менеджером здесь');render()}}catch(e){}}
+function guestAfterOrder(no){document.querySelector('.modal')?.remove();
+  const el=document.createElement('div');el.className='modal';
+  el.innerHTML=`<div class="dialog"><button type="button" class="x" aria-label="Закрыть">✕</button>
+    <div style="display:grid;gap:8px"><span class="label">Заявка № ${esc(no)}</span><h2>Заявка принята</h2>
+      <p style="color:var(--muted);font-size:14.5px;line-height:1.6">Менеджер позвонит по указанному номеру. Чтобы видеть его ответы в переписке, документы и этапы стройки, создайте личный кабинет — эта заявка перенесётся туда сама.</p></div>
+    <button type="button" class="btn lamp" data-guestreg style="justify-content:center">Создать кабинет</button>
+    <button type="button" class="link" data-guestin style="justify-self:center">У меня уже есть кабинет — войти</button></div>`;
+  const close=()=>el.remove();el.querySelector('.x').onclick=close;el.addEventListener('click',e=>{if(e.target===el)close()});
+  el.querySelector('[data-guestreg]').onclick=()=>{close();openAuth('up')};
+  el.querySelector('[data-guestin]').onclick=()=>{close();openAuth('in')};
+  document.body.appendChild(el)}
 const isProd=()=>/(^|\.)konturhouse\.ru$/.test(location.hostname);
 /* сервер не нашёлся при открытии страницы (оборвалась связь) — пробуем ещё раз перед отправкой */
 async function ensureApi(){
@@ -4106,7 +4125,7 @@ async function sbLoadOrders(){
   if(!SB.on)return;
   if(SB.kind==='api'){try{const d=await apiReq('orders');
       SB.orders=(d.orders||[]).map(o=>({no:o.no,at:o.created,items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,region:o.region,
-        comment:o.comment,stage:o.stage,status:o.status,promo:o.promo||null,_id:o.id,_owner:o.email||'гость'}))}catch(e){SB.orders=[]}return}
+        comment:o.comment,stage:o.stage,status:o.status,promo:o.promo||null,_id:o.id,_owner:o.email||'гость',guest:!!o.guest}))}catch(e){SB.orders=[]}return}
   try{let q=SB.c.from('orders').select('*').order('created_at',{ascending:false});
     const {data,error}=await q;if(error)throw error;
     SB.orders=(data||[]).map(o=>({no:o.no,at:new Date(o.created_at).getTime(),items:o.items||[],fio:o.fio,phone:o.phone,email:o.email,
@@ -4423,10 +4442,11 @@ function chatListSync(){const el=document.querySelector('[data-chatlist]');if(!e
     if(cur&&L){cur.outerHTML=chatListHTML(L.rows,L.role,L.attrOf);const n2=document.querySelector('[data-chatlist]');if(n2)n2.dataset.sync='1'}})()}
 /* окно переписки */
 function chatRoomHTML(no,role,title,sub,back){chatMarkSeen(no,role);setTimeout(paintUnread,0);const ms=chatOf(no);
+  const go=role==='manager'&&SB.on?chatOrder(no):null,guestNote=go&&go.guest?`<p class="note" style="margin:0 0 10px;color:var(--lamp2)">Клиент без личного кабинета: сообщения он увидит, только когда зарегистрируется на сайте. Надёжнее позвонить: <a class="num" href="tel:${esc(String(go.phone||'').replace(/[^+\d]/g,''))}">${esc(go.phone||'')}</a></p>`:'';
   return `<div class="tg-room" data-chat="${no}" data-role="${role}" data-room="1" data-title="${esc(title)}" data-sub="${esc(sub||'')}" data-back="${esc(back)}">
     <div class="tg-head"><a class="tg-back" ${/^#/.test(back)?`href="${back}"`:`${back} tabindex="0"`} aria-label="Назад к списку">←</a>
       <div><b>${esc(title)}</b><span>${esc(sub||'')}</span></div></div>
-    <div class="chat-list">${ms.length?ms.map(m=>msgHTML({...m,no},role)).join(''):`<p class="note">${role==='manager'?'Напишите клиенту: пришлите планировку, спецификацию, фото — или соберите дом в калькуляторе и отправьте карточкой.':'Напишите менеджеру. Он пришлёт варианты домов, планировки и фотографии — а собранный дом можно будет сразу положить в корзину.'}</p>`}</div>
+    ${guestNote}<div class="chat-list">${ms.length?ms.map(m=>msgHTML({...m,no},role)).join(''):`<p class="note">${role==='manager'?'Напишите клиенту: пришлите планировку, спецификацию, фото — или соберите дом в калькуляторе и отправьте карточкой.':'Напишите менеджеру. Он пришлёт варианты домов, планировки и фотографии — а собранный дом можно будет сразу положить в корзину.'}</p>`}</div>
     ${chatFormHTML(no,role)}</div>`}
 const chatLink=(no,role,attr)=>{const u=chatUnread(no,role),pv=chatPreview(no,role);
   return `<a class="tg-link" ${attr} tabindex="0"><span class="tg-main"><b>Переписка с ${role==='manager'?'клиентом':'менеджером'}</b><i>${pv?esc(pv):'Сообщений пока нет'}</i></span>
@@ -5509,6 +5529,7 @@ function adminView(){
             <b class="num adm-sum">${o.items&&o.items.length?rub(orderPay(o)):`<a class="num" href="tel:${esc(String(o.phone||'').replace(/[^+\d]/g,''))}">${esc(o.phone||'')}</a>`}</b>
             <select data-adstatus="${SB.on?o._id:o._key+'|'+o._idx}" aria-label="Статус заявки">${ORDER_ST.map(s=>`<option value="${s[0]}" ${(o.status||'new')===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select>
             <button type="button" class="link" data-adorderdel="${SB.on?o._id:o._key+'|'+o._idx}" data-no="${esc(o.no)}">Удалить</button></div>
+          ${o.guest?`<p class="note" style="color:var(--lamp2)">Клиент оформил заявку без личного кабинета. Ваши сообщения он увидит, когда зарегистрируется или войдёт на сайт с того же устройства — надёжнее позвонить: <a class="num" href="tel:${esc(String(o.phone||'').replace(/[^+\d]/g,''))}">${esc(o.phone||'')}</a></p>`:''}
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}${promoLine(o)}
           ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
             return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
@@ -5620,7 +5641,7 @@ function bind(){
     if(!SB.on)await ensureApi();
     if(!SB.on&&isProd()){toast('Не удалось отправить заявку: нет связи с сервером. Попробуйте ещё раз или позвоните +7 999 888-60-99');return}
     if(SB.on){const btn=e.target.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
-      try{await sbSaveOrder(order);await sbLoadOrders()}
+      try{const res=await sbSaveOrder(order);guestKeep(res,order.no);await sbLoadOrders()}
       catch(ex){if(btn){btn.disabled=false;btn.textContent='Отправить заявку'}toast('Не удалось отправить заявку: '+(ex.message||'ошибка связи'));return}}
     else{const key='orders.'+(user?user.email:'guest'),orders=store.get(key,[]);orders.push(order);store.set(key,orders)}
     if(user)store.set('contact.'+user.email,{fio:order.fio,phone:order.phone,region:order.region});
@@ -5631,8 +5652,8 @@ function bind(){
     if(user){try{await chatSend(order.no,
       `Оставил заявку${nItems>1?` на ${nItems} ${plural(nItems,['дом','дома','домов'])}`:''}. Жду расчёт и сроки.`,
       [],'client',firstItem)}catch(ex){}}
-    toast(user?'Заявка отправлена — менеджер ответит в переписке':'Заявка принята — менеджер позвонит по указанному номеру');
-    location.hash=user?'#/account/chat/'+order.no:'#/'});
+    if(user){toast('Заявка отправлена — менеджер ответит в переписке');location.hash='#/account/chat/'+order.no}
+    else{location.hash='#/';if(SB.on&&SB.kind==='api')setTimeout(()=>guestAfterOrder(order.no),250);else toast('Заявка принята — менеджер позвонит по указанному номеру')}});
   document.getElementById('profile')?.addEventListener('submit',async e=>{e.preventDefault();const pf=new FormData(e.target);user.name=String(pf.get('name')||'').trim()||user.name;store.set('user',user);
     store.set('contact.'+user.email,{fio:user.name,phone:String(pf.get('phone')||'').trim(),region:String(pf.get('region')||'').trim()});
     if(SB.kind==='api'){try{await apiReq('profile',{json:{name:user.name}})}catch(ex){}}
@@ -5884,7 +5905,7 @@ function openContact(){
     if(!SB.on)await ensureApi();
     if(SB.on&&SB.kind==='api'){
       if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
-      try{await apiReq('order',{json:{...cb,total:0}});await sbLoadOrders()}
+      try{const res=await apiReq('order',{json:{...cb,total:0}});guestKeep(res,cb.no);await sbLoadOrders()}
       catch(ex){if(btn){btn.disabled=false;btn.textContent='Жду звонка'}
         toast('Не удалось отправить: '+(ex.message||'нет связи')+'. Позвоните нам: +7 999 888-60-99');return}}
     else if(isProd()){toast('Нет связи с сервером. Позвоните нам: +7 999 888-60-99');return}

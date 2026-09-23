@@ -51,9 +51,7 @@
 })()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- шрифты не держат первую отрисовку: пока грузятся — системные, потом подменяются -->
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Onest:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Onest:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Onest:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <!-- главное фото — на главной качаем первым -->
 <script>(function(){var h=location.hash;if(!h||h==='#'||h==='#/'){var l=document.createElement('link');l.rel='preload';l.as='image';l.href='hero.jpg';l.setAttribute('fetchpriority','high');document.head.appendChild(l)}})()</script>
 <style>
@@ -7034,6 +7032,10 @@ appInit();
 helperInit();
 updateHeader();
 sbInit();
-(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{});
-render();
+/* первая отрисовка — когда фирменные шрифты готовы (не дольше 1,5 с): заставка появляется один раз
+   и сразу своим шрифтом, без перерисовки «запасной шрифт → фирменный» */
+(function(){let go=false;const run=()=>{if(go)return;go=true;render()};
+  try{Promise.all(['800 100px Unbounded','600 24px Unbounded','400 16px Onest','500 16px Onest','400 12px "IBM Plex Mono"']
+    .map(f=>document.fonts.load(f,'КОНТУР от 0,72 млн ₽ Каркас'))).then(run,run)}catch(e){run()}
+  setTimeout(run,1500)})();
 </script>

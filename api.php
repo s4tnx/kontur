@@ -201,7 +201,11 @@ const HOUSE_NAMES = ['ladoga' => 'Ладога', 'onega' => 'Онега', 'selig
   'vuoksa' => 'Вуокса', 'karelia' => 'Карелия', 'altai' => 'Алтай', 'baikal' => 'Байкал'];
 function itemName(array $it): string {
   $cfg = is_array($it['cfg'] ?? null) ? $it['cfg'] : [];
-  if (!empty($it['module'])) return 'Модуль ' . str_replace('x', '×', (string)($cfg['size'] ?? ''));
+  if (!empty($it['module'])) {
+    $ml = ['pion' => 'Пион', 'kedr' => 'Кедр', 'iva' => 'Ива', 'dubrava' => 'Дубрава', 'bereg' => 'Берег'];
+    $ln = $ml[(string)($cfg['line'] ?? '')] ?? '';
+    return 'Модуль ' . ($ln !== '' ? '«' . $ln . '» ' : '') . str_replace('x', '×', (string)($cfg['size'] ?? ''));
+  }
   if (!empty($it['custom'])) return 'Свой проект ' . ($cfg['w'] ?? '?') . '×' . ($cfg['d'] ?? '?') . ' м';
   $id = (string)($it['id'] ?? ''); $p = explode('@', $id, 2);
   return (HOUSE_NAMES[$p[0]] ?? $p[0]) . (isset($p[1]) ? ' ' . str_replace('x', '×', $p[1]) : '');

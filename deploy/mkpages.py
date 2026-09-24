@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Контур Дома — сборка отдельных страниц для поисковиков.
+"""Контур Хаус — сборка отдельных страниц для поисковиков.
 
 Зачем: адреса разделов сайта идут через решётку (#/house/ladoga), и Яндекс с Google
 считают весь сайт одной страницей. Этот скрипт делает настоящие страницы —
@@ -289,7 +289,7 @@ def esc(s):
     return (str(s).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;'))
 
 
-BRAND = ' | Контур Дома'
+BRAND = ' | Контур Хаус'
 
 
 def fit_title(s, lim=70):
@@ -331,7 +331,7 @@ def page(slug, title, desc, body, nav, extra_ld=''):
 <link rel="canonical" href="{DOMAIN}/{slug}">
 <meta name="theme-color" content="#0C0D0E">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Контур Дома">
+<meta property="og:site_name" content="Контур Хаус">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{DOMAIN}/{slug}">
@@ -345,7 +345,7 @@ def page(slug, title, desc, body, nav, extra_ld=''):
 </head>
 <body>
 <header><div class="wrap">
-  <a class="logo" href="/"><svg width="30" height="27" viewBox="0 0 34 30" fill="none" stroke="#E7A35C" stroke-width="1.6"><path d="M2 28V13L17 2l15 11v15"/><path d="M8 28V16l9-6.5 9 6.5v12"/><path d="M14 28v-7h6v7"/></svg><b>КОНТУР</b><i>дома</i></a>
+  <a class="logo" href="/"><svg width="30" height="27" viewBox="0 0 34 30" fill="none" stroke="#E7A35C" stroke-width="1.6"><path d="M2 28V13L17 2l15 11v15"/><path d="M8 28V16l9-6.5 9 6.5v12"/><path d="M14 28v-7h6v7"/></svg><b>КОНТУР</b><i>хаус</i></a>
   <a class="tel" href="tel:{PHONE_HREF}">{PHONE}</a>
 </div></header>
 <main class="wrap">
@@ -353,7 +353,7 @@ def page(slug, title, desc, body, nav, extra_ld=''):
 <div class="nav-all">{nav}</div>
 </main>
 <footer><div class="wrap">
-  <p>«Контур Дома» — каркасные дома и утеплённые модули под ключ. Работаем по всему Центральному федеральному округу.
+  <p>«Контур Хаус» — каркасные дома и утеплённые модули под ключ. Работаем по всему Центральному федеральному округу.
   Сборка на участке входит в цену, гарантия 3 года, оплата частями: аванс 10–30%, остальное после приёмки.</p>
   <p><a href="tel:{PHONE_HREF}">{PHONE}</a> · <a href="/">Калькулятор и каталог</a></p>
 </div></footer>
@@ -366,7 +366,7 @@ def house_page(h, all_houses):
     slug = 'dom-%s.html' % h['id']
     nm = h['name']
     size = '%s×%s' % (fmt(h['w']), fmt(h['d']))
-    title = f"Каркасный дом «{nm}» {size} м под ключ — цена от {rub(h['price'])} | Контур Дома"
+    title = f"Каркасный дом «{nm}» {size} м под ключ — цена от {rub(h['price'])} | Контур Хаус"
     desc = (f"Каркасный дом «{nm}» {size} м, {fmt(h['area'])} м². {cut(h['lead'], 95)}. "
             f"Холодный контур от {rub(h['price'])}, под ключ {rub(h['key'])}, сборка {h['days']} дн.")
     rooms = ', '.join('%s %s×%s м' % (r['n'].lower(), fmt(r['w']), fmt(r['d'])) for r in h['plan'])
@@ -381,7 +381,7 @@ def house_page(h, all_houses):
     ld = f"""<script type="application/ld+json">
 {{"@context":"https://schema.org","@type":"Product","name":"Каркасный дом «{nm}» {size} м",
  "description":"{esc(h['lead'])}","category":"Каркасные дома",
- "brand":{{"@type":"Brand","name":"Контур Дома"}},
+ "brand":{{"@type":"Brand","name":"Контур Хаус"}},
  "offers":{{"@type":"AggregateOffer","priceCurrency":"RUB","lowPrice":"{h['price']}","highPrice":"{h['key']}",
   "offerCount":"{len(h['sizes'])}","availability":"https://schema.org/InStock"}}}}
 </script>"""
@@ -446,7 +446,7 @@ def min_house(houses):
 
 def houses_hub(houses):
     slug = 'karkasnye-doma.html'
-    title = 'Каркасные дома под ключ — 8 проектов от 6×4 до 12×10 м | Контур Дома'
+    title = 'Каркасные дома под ключ — 8 проектов от 6×4 до 12×10 м | Контур Хаус'
     desc = ('Каркасные дома под ключ: восемь проектов от %s. Свой размер с шагом 0,5 м, расчёт сметы онлайн, '
             'сборка на участке за 3–14 дней, гарантия 3 года, оплата частями, остаток после приёмки.'
             % rub(min_house(houses)))
@@ -480,7 +480,7 @@ def houses_hub(houses):
 def mods_page(mods):
     slug = 'moduli-dlya-prozhivaniya.html'
     lo = min(s['price'] for m in mods for s in m['sizes'])
-    title = 'Модули для проживания — утеплённые бытовки от %s | Контур Дома' % rub(lo)
+    title = 'Модули для проживания — утеплённые бытовки от %s | Контур Хаус' % rub(lo)
     desc = ('Утеплённые модули для дачи, стройки и постоянной жизни: пять линеек от 5×2 до 6×6 м. '
             'Собираем на вашем участке, сборка входит в цену, гарантия 3 года.')
     cards = ''.join(
@@ -514,7 +514,7 @@ def mods_page(mods):
 
 def prices_page(houses, mods):
     slug = 'tseny.html'
-    title = 'Цены на каркасные дома и модули 2026 — прайс | Контур Дома'
+    title = 'Цены на каркасные дома и модули 2026 — прайс | Контур Хаус'
     desc = ('Актуальные цены: каркасные дома от %s, модули от %s. Три комплектации, '
             'сборка на участке включена, доставка 300 ₽ за км, аванс 10–30%%, остальное после приёмки.'
             % (rub(min_house(houses)), rub(min(s['price'] for m in mods for s in m['sizes']))))
@@ -545,7 +545,7 @@ def prices_page(houses, mods):
 
 def projects_page(prj):
     slug = 'nashi-proekty.html'
-    title = 'Наши работы — построенные дома и модули | Контур Дома'
+    title = 'Наши работы — построенные дома и модули | Контур Хаус'
     desc = 'Фотографии построенных домов и модулей: что именно мы собираем на участках клиентов. Понравился объект — считаем такой же в калькуляторе.'
     cards = ''.join(
         f"""<a class="card" href="/#/projects">
@@ -565,11 +565,11 @@ def projects_page(prj):
 
 def about_page():
     slug = 'o-kompanii.html'
-    title = 'О компании «Контур Дома» — каркасные дома в ЦФО'
-    desc = ('«Контур Дома» строит каркасные дома и модули пятый год. Прозрачная смета до рубля, '
+    title = 'О компании «Контур Хаус» — каркасные дома в ЦФО'
+    desc = ('«Контур Хаус» строит каркасные дома и модули пятый год. Прозрачная смета до рубля, '
             'сборка на участке, гарантия 3 года, оплата частями. Работаем по Центральному федеральному округу.')
     body = f"""<p class="crumbs"><a href="/">Главная</a> / О компании</p>
-<h1>О компании «Контур Дома»</h1>
+<h1>О компании «Контур Хаус»</h1>
 <p class="lead">Строим каркасные дома и утеплённые модули пятый год. Основатель — Никита Соловьёв.</p>
 <p>Мы начинали с простой мысли: частный дом должен быть доступным и понятным. Не «договоритесь на месте»,
 а честная смета, в которой видно каждую строку — от количества свай до метров вагонки. Поэтому весь расчёт
@@ -625,7 +625,7 @@ def size_pages(houses):
             continue
         lo = min(x['price'] for _, x in fit)
         slug = 'karkasnyy-dom-%s.html' % sid
-        title = 'Каркасный дом %s м под ключ — цена от %s | Контур Дома' % (size, rub(lo))
+        title = 'Каркасный дом %s м под ключ — цена от %s | Контур Хаус' % (size, rub(lo))
         desc = ('Каркасный дом %s м (%s м²) под ключ: %d проекта на выбор, цены от %s. '
                 'Планировка на ваш вкус, сборка на участке, оплата частями.'
                 % (size, fmt(s['area']), len(fit), rub(lo)))
@@ -657,7 +657,7 @@ def mod_pages(mods):
         slug = 'modul-%s.html' % m['id']
         lo = min(s['price'] for s in m['sizes'])
         sizes = ', '.join('%s×%s м' % (fmt(s['w']), fmt(s['d'])) for s in m['sizes'])
-        title = 'Модуль «%s» %s — утеплённая бытовка от %s | Контур Дома' % (m['name'], sizes, rub(lo))
+        title = 'Модуль «%s» %s — утеплённая бытовка от %s | Контур Хаус' % (m['name'], sizes, rub(lo))
         desc = ('Модуль «%s»: %s. Размеры %s, цена от %s. Собираем на вашем участке, '
                 'сборка входит в цену, гарантия 3 года.' % (m['name'], m['txt'].lower(), sizes, rub(lo)))
         rows = ''.join('<tr><td>%s × %s м</td><td>%s м²</td><td>%s</td></tr>'
@@ -684,7 +684,7 @@ REGIONS = [('Москва и Московская область', 50), ('Тве
 
 def delivery_page(cities=None):
     slug = 'dostavka-i-sborka.html'
-    title = 'Доставка и сборка каркасных домов по ЦФО — расчёт по километрам | Контур Дома'
+    title = 'Доставка и сборка каркасных домов по ЦФО — расчёт по километрам | Контур Хаус'
     desc = ('Строим и доставляем по всему Центральному федеральному округу. Сборка на участке входит '
             'в цену, доставка — 300 ₽ за километр от производства. Таблица по областям.')
     if cities:
@@ -882,7 +882,7 @@ QA = [
 
 def faq_page(houses=None):
     slug = 'voprosy.html'
-    title = 'Вопросы о каркасных домах — отвечаем честно | Контур Дома'
+    title = 'Вопросы о каркасных домах — отвечаем честно | Контур Хаус'
     desc = ('Можно ли жить зимой, сколько стоит под ключ, нужно ли разрешение, когда платить, '
             'куда доставляем — ответы на частые вопросы о каркасных домах и модулях.')
     mh = rub(min_house(houses)) if houses else ''
@@ -908,17 +908,17 @@ def article_pages(houses):
            '<a href="voprosy.html">Вопросы</a>')
     arts = [
       ('uteplenie-karkasnogo-doma.html',
-       'Утепление каркасного дома: 100, 150, 200 или 250 мм | Контур Дома',
+       'Утепление каркасного дома: 100, 150, 200 или 250 мм | Контур Хаус',
        'Сколько миллиметров утеплителя нужно каркасному дому: 100 мм для дачи, 150 для круглогодичной жизни, '
        '200–250 для холодных регионов. Как от этого меняются каркас и цена.',
        ART_INS % {'phref': PHONE_HREF}),
       ('fundament-dlya-karkasnogo-doma.html',
-       'Фундамент для каркасного дома: блоки, винтовые сваи или УШП | Контур Дома',
+       'Фундамент для каркасного дома: блоки, винтовые сваи или УШП | Контур Хаус',
        'Какой фундамент нужен каркасному дому: бетонные блоки, винтовые сваи или утеплённая шведская плита. '
        'Как выбрать по грунту и сколько это стоит.',
        ART_FOUND % {'phref': PHONE_HREF}),
       ('karkasnyy-dom-zimoy.html',
-       'Можно ли строить каркасный дом зимой — сроки и особенности | Контур Дома',
+       'Можно ли строить каркасный дом зимой — сроки и особенности | Контур Хаус',
        'Каркасный дом строится зимой так же, как летом: нет мокрых процессов, сваи завинчиваются в мёрзлый '
        'грунт. Что реально меняется и почему зимой бригады свободнее.',
        ART_WINTER % {'phref': PHONE_HREF}),
@@ -947,7 +947,7 @@ def err404_page():
 </div>
 <p><a class="btn" href="/">На главную</a>
 <a class="btn ghost" href="tel:%(phref)s">Позвонить %(phone)s</a></p>""" % {'phref': PHONE_HREF, 'phone': PHONE}
-    return slug, page(slug, 'Страница не найдена | Контур Дома',
+    return slug, page(slug, 'Страница не найдена | Контур Хаус',
                       'Такой страницы на сайте нет. Каталог каркасных домов, модули, цены и калькулятор — по ссылкам ниже.',
                       body, '')
 

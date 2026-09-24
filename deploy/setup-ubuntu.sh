@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Контур Дома — установка сайта на чистую Ubuntu 22.04/24.04 (Яндекс Облако, Compute Cloud).
+# Контур Хаус — установка сайта на чистую Ubuntu 22.04/24.04 (Яндекс Облако, Compute Cloud).
 # Запускать на самой машине:
 #   sudo bash setup-ubuntu.sh kontur-doma.ru                        # сайт, кабинет и бесплатный HTTPS
 #   sudo bash setup-ubuntu.sh kontur-doma.ru 98765432 vy@mail.ru    # плюс счётчик Метрики и почта для сертификата

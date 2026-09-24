@@ -12,7 +12,7 @@
 import io, json, sys, os, datetime
 
 DOMAIN = 'https://konturhouse.ru'
-SHOP = 'Контур Дома'
+SHOP = 'Контур Хаус'
 
 CATS = [(1, 'Каркасные дома'), (2, 'Модули для проживания'), (3, 'Услуги')]
 

@@ -5509,6 +5509,7 @@ function hpFaqKey(t){
   if(/перепланир|(измен|поменя|передела|переделк|перенес|перестав|сдвин|подвин|убра|добав|объедин|раздел|расшир|увелич|уменьш|друг(ую|ая|ой|ие)|сво(ю|я|ей)|индивидуальн)[а-я]* [^.?!]*(планировк|перегородк|комнат|спальн|санузел|туалет|ванн|кухн|гостин|прихож|тамбур|двер[ьи]|стенк)|планировк[а-я]* [^.?!]*(измен|поменя|передела|друг|не нрав|не подход|свою|под себя|по-своему|по своему)|не нрав[а-я]* [^.?!]*планировк|планировк[а-я]* не нрав/.test(t))return 'layout';
   if(/окончательн|финальн|итогов(ая|ую|ой) (цен|сумм|стоимост)|(цен[аыу]|сумм[аы]|стоимост[ьи]) (потом |еще |может |не |точно )*(измен|поменя|выраст|выше|увелич|выйдет|фиксир|точн|окончат|оконч)|(измени?т|поменяет|вырастет|увеличит)[а-я]* (ли )?(потом )?(цен|сумм|стоимост)|фиксир|доплат[а-я]* потом|потом доплат|скрыт[а-я]* (платеж|доплат|расход)|это (вся|полная|конечная) (цен|сумм)|точная цена|цена точная/.test(t))return 'fixed';
   if(/не знаю[^.?!]*(как|какой|какую|какая|что|чего)|не могу (выбрать|определ|решить)|помоги[а-я]* (мне )?(выбрать|определ|подобрать планир)|сложно выбрать|трудно выбрать|затрудняюсь|не определил|не решил|посоветуй|какую планировку|какая планировка|что (мне )?выбрать|консультац/.test(t))return 'unsure';
+  if(/скидк|скидоч|промокод|промо код|акци[яиюйе]|льгот|пенсионер|ветеран|многодет|инвалид|распродаж/.test(t))return 'discount';
   if(/когда плат|оплат|предоплат|платить|аванс/.test(t))return 'pay';
   if(/гарант/.test(t))return 'warranty';
   if(/строит[еь]? .*зим|строите .*зим|зимой стро|строите ли|собираете .*зим/.test(t))return 'winterbuild';
@@ -5590,6 +5591,10 @@ async function hpFaq(k,got){
   if(k==='manager'){hpSay('Передам менеджеру — оставь телефон, он перезвонит в рабочее время.');hpLeadOpen('попросил связаться с менеджером');return}
   if(k==='fixed'){hpFixedAns();return}
   if(k==='bare'){hpBareAns();return}
+  if(k==='discount'){hpSay('Да, скидки есть — промокодом от 5 до 20%. Их даём по льготам и индивидуальным условиям: ветеранам, людям с инвалидностью, пенсионерам, многодетным семьям, а в других случаях обсуждаем с менеджером. Промокод вводится в личном кабинете, в разделе «Промокод», — скидка сразу учитывается в корзине и заявке.');
+    if(user)HP.log.push({raw:'<div class="hp-acts"><button type="button" class="btn" data-hpact="promo">Ввести промокод</button></div>'});
+    hpSay('Оставь телефон — менеджер уточнит условия и пришлёт промокод. Или позвони: <a class="num" href="tel:+79998886099">+7 999 888-60-99</a>.');
+    hpLeadOpen('спрашивает про скидку или промокод');return}
   if(k==='layout'){hpLayoutAns();return}
   if(k==='unsure'){hpSay('Так бывает у многих, это нормально. Оставь заявку: менеджер позвонит, расспросит, как будете жить, какой участок и бюджет, и поможет выбрать дом и планировку. Это бесплатно и ни к чему не обязывает.');
     hpLeadOpen('не знает, какой дом или планировку выбрать — нужна помощь с выбором');return}
@@ -5622,7 +5627,7 @@ async function hpUnderstand(txt){
   const skipFaq=(g.faq==='hello'&&info)||((g.faq==='price'||g.faq==='delivery')&&specs)||(g.faq==='price'&&f.kind);
   /* только город («а в Дмитров?») — это вопрос про доставку, если подбор ещё не начат */
   if(g.city&&!specs&&!f.kind&&!g.faq&&!g.intent&&!HP.last&&!HP.ans.kind)return hpFaq('delivery',g);
-  if(g.faq&&!skipFaq){await hpFaq(g.faq,g);if(!specs||['bare','unsure','fixed','manager','layout','delivery','pay','warranty','time','permit','mortgage','winterbuild'].includes(g.faq))return}
+  if(g.faq&&!skipFaq){await hpFaq(g.faq,g);if(!specs||['discount','bare','unsure','fixed','manager','layout','delivery','pay','warranty','time','permit','mortgage','winterbuild'].includes(g.faq))return}
   if(g.intent==='photo'){hpSay('Пришли фото дома, который нравится: нажми на скрепку слева от строки ввода — можно до 4 снимков. Соберу проект под него, а фото уйдёт менеджеру вместе с заявкой.');
     HP.chips=[['Прикрепить фото','photo'],['Наши постройки','gallery']];if(!info)return}
   if(g.intent==='own'){hpSay('Свой проект собирается в «Своём размере»: любой размер с шагом 0,5 м, планировку рисуешь сам, смета считается сразу. Открою его с тем, что ты уже рассказал.');
@@ -5967,6 +5972,7 @@ document.addEventListener('click',e=>{
     if(k==='reg'){helperClose();openAuth('up');return}
     if(k==='login'){helperClose();openAuth('in');return}
     if(k==='acct'){helperClose();location.hash='#/account';return}
+    if(k==='promo'){helperClose();location.hash='#/account/promo';return}
     if(k.indexOf('chat:')===0){helperClose();location.hash='#/account/chat/'+k.slice(5);return}
     if(k==='regkeep'){const f=document.querySelector('.hp-lead');if(f){HP.leadV={...(HP.leadV||{}),name:f.elements.name.value,phone:f.elements.phone.value,wish:f.elements.wish?f.elements.wish.value:''}}
       HP.keep=true;helperClose();openAuth('up');return}

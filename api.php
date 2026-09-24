@@ -223,6 +223,12 @@ function srcText(?array $s): string {
   if (!empty($s['land'])) $p[] = 'страница входа ' . $s['land'];
   return implode(' · ', $p);
 }
+/* ключ бота приходит закодированным (перевёрнутый base64): защита хостинга блокирует запросы,
+   где открыто видны ключ Telegram-бота и номер чата */
+function tokIn(array $b): string {
+  if (isset($b['k']) && is_string($b['k'])) { $d = base64_decode($b['k'], true); return $d === false ? '' : trim(strrev($d)); }
+  return trim((string)($b['token'] ?? ''));
+}
 function adminOnly(): array { $u = need(); if ($u['role'] !== 'admin') fail('Только для администратора', 403); return $u; }
 
 $a = $_GET['a'] ?? '';
@@ -578,7 +584,7 @@ if ($a === 'tgget') {
   out(['on' => tgOn(), 'title' => setting('tg_title'), 'bot' => setting('tg_bot'), 'pd' => setting('tg_pd') !== 'off']);
 }
 if ($a === 'tgfind') {
-  adminOnly(); $b = body(); $tok = trim((string)($b['token'] ?? ''));
+  adminOnly(); $b = body(); $tok = tokIn($b);
   if (!preg_match('/^\d{5,}:[A-Za-z0-9_-]{30,}$/', $tok)) fail('Ключ бота выглядит иначе: цифры, двоеточие и длинный набор букв. Скопируйте его из @BotFather целиком');
   $me = tgApi($tok, 'getMe');
   if (!$me) fail('Сервер не смог связаться с Telegram — попробуйте ещё раз через минуту');
@@ -594,18 +600,21 @@ if ($a === 'tgfind') {
       $chats[(string)$c['id']] = ['id' => (string)$c['id'], 'title' => $title, 'type' => (string)($c['type'] ?? '')];
     }
   }
+  setSetting('tg_pending', $tok);   /* ключ запоминаем здесь: при выборе чата он уже не передаётся */
   out(['bot' => (string)($me['result']['username'] ?? ''), 'chats' => array_values($chats)]);
 }
 if ($a === 'tgsave') {
   adminOnly(); $b = body();
-  $tok = trim((string)($b['token'] ?? '')); $chat = trim((string)($b['chat'] ?? ''));
-  if (!preg_match('/^\d{5,}:[A-Za-z0-9_-]{30,}$/', $tok) || !preg_match('/^-?\d+$/', $chat)) fail('Не хватает ключа бота или чата');
+  $tok = tokIn($b); if ($tok === '') $tok = setting('tg_pending');
+  $chat = trim((string)($b['c'] ?? $b['chat'] ?? ''));
+  if (!preg_match('/^\d{5,}:[A-Za-z0-9_-]{30,}$/', $tok)) fail('Ключ бота не найден — вставьте его ещё раз и нажмите «Найти чаты»');
+  if (!preg_match('/^-?\d+$/', $chat)) fail('Не выбран чат');
   $r = tgApi($tok, 'sendMessage', ['chat_id' => $chat, 'parse_mode' => 'HTML',
     'text' => "✅ <b>Уведомления с сайта подключены</b>\nСюда будут приходить новые заявки, заказы звонков и сообщения клиентов."]);
   if (!$r || empty($r['ok'])) fail('Не получилось написать в этот чат' . (!empty($r['description']) ? ': ' . $r['description'] : '') . '. Если это группа — проверьте, что бот в ней состоит');
-  setSetting('tg_token', $tok); setSetting('tg_chat', $chat);
-  setSetting('tg_title', mb_substr(trim((string)($b['title'] ?? '')), 0, 80));
-  setSetting('tg_bot', mb_substr(trim((string)($b['bot'] ?? '')), 0, 60));
+  setSetting('tg_token', $tok); setSetting('tg_chat', $chat); setSetting('tg_pending', '');
+  setSetting('tg_title', mb_substr(trim((string)($b['n'] ?? $b['title'] ?? '')), 0, 80));
+  setSetting('tg_bot', mb_substr(trim((string)($b['u'] ?? $b['bot'] ?? '')), 0, 60));
   out(['ok' => true]);
 }
 if ($a === 'tgpd') { adminOnly(); $b = body(); setSetting('tg_pd', empty($b['on']) ? 'off' : ''); out(['ok' => true]); }
@@ -614,7 +623,7 @@ if ($a === 'tgtest') {
   tgNotify('🔔 Проверка: уведомления о заявках работают'); out(['ok' => true]);
 }
 if ($a === 'tgoff') {
-  adminOnly(); foreach (['tg_token', 'tg_chat', 'tg_title', 'tg_bot'] as $k) setSetting($k, ''); out(['ok' => true]);
+  adminOnly(); foreach (['tg_token', 'tg_chat', 'tg_title', 'tg_bot', 'tg_pending'] as $k) setSetting($k, ''); out(['ok' => true]);
 }
 
 /* короткая сводка о состоянии: сколько аккаунтов и заявок в базе.

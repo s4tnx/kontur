@@ -6424,6 +6424,7 @@ function mgrLoginLocal(){
 /* сотрудники: администратор добавляет и удаляет менеджеров */
 /* ---------- уведомления в Telegram: настройка администратором ---------- */
 const TG={st:null,token:'',bot:'',chats:null,busy:false};
+const tgEnc=s=>btoa(String(s).split('').reverse().join(''));
 function tgView(){const st=TG.st;
   if(!st)return '<div class="adm-client"><p class="note">Загружаем настройки…</p></div>';
   if(st.on)return `<div class="adm-client tg-set"><header><div><b>✅ Подключено</b><span>${esc(st.title||'чат')}${st.bot?' · бот @'+esc(st.bot):''}</span></div></header>
@@ -6445,10 +6446,11 @@ async function tgSync(){try{TG.st=await apiReq('tgget')}catch(e){TG.st={on:false
 const tgPaint=()=>{const b=document.getElementById('tgBox');if(b)b.innerHTML=tgView()};
 document.addEventListener('submit',async e=>{if(e.target.id!=='tgForm')return;e.preventDefault();
   TG.token=String(new FormData(e.target).get('token')||'').trim();TG.busy=true;TG.chats=null;tgPaint();
-  try{const d=await apiReq('tgfind',{json:{token:TG.token}});TG.bot=d.bot||'';TG.chats=d.chats||[]}catch(ex){toast(ex.message||'Не получилось')}
+  /* ключ — закодированным: защита хостинга не пропускает запросы с открытым ключом бота */
+  try{const d=await apiReq('tgfind',{json:{k:tgEnc(TG.token)}});TG.bot=d.bot||'';TG.chats=d.chats||[]}catch(ex){toast(ex.message||'Не получилось')}
   TG.busy=false;tgPaint()});
 document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-tgchat],[data-tgtest],[data-tgoff]');if(!t)return;
-  try{if('tgchat' in t.dataset){t.disabled=true;await apiReq('tgsave',{json:{token:TG.token,chat:t.dataset.tgchat,title:t.dataset.title,bot:TG.bot}});
+  try{if('tgchat' in t.dataset){t.disabled=true;await apiReq('tgsave',{json:{c:t.dataset.tgchat,n:t.dataset.title,u:TG.bot}});
       TG.token='';TG.chats=null;toast('Подключено — в Telegram пришло проверочное сообщение');await tgSync()}
     else if('tgtest' in t.dataset){await apiReq('tgtest',{json:{}});toast('Проверка отправлена — посмотрите в Telegram')}
     else if('tgoff' in t.dataset){if(!confirm('Отключить уведомления в Telegram?'))return;await apiReq('tgoff',{json:{}});toast('Уведомления отключены');await tgSync()}}

@@ -14,7 +14,18 @@ import io, json, sys, os, datetime
 DOMAIN = 'https://konturhouse.ru'
 SHOP = 'Контур Хаус'
 
-CATS = [(1, 'Каркасные дома'), (2, 'Модули для проживания'), (3, 'Услуги')]
+CATS = [(1, 'Каркасные дома'), (2, 'Модули для проживания')]
+
+# в каталог — только дома и пара модулей, без услуг
+MODS_KEEP = ['kedr', 'bereg']
+
+# реальные фото построек — дополнительными картинками к дому (как в галерее на сайте)
+GALLERY = {
+    'valdai': ['stroyka-1.webp', 'stroyka-2.webp', 'stroyka-3.webp', 'stroyka-4.webp'],
+    'altai': ['stroyka-1.webp', 'stroyka-2.webp', 'stroyka-3.webp', 'stroyka-4.webp'],
+    'seliger': ['seliger-1.webp'], 'ladoga': ['ladoga-1.webp'], 'onega': ['onega-1.webp', 'onega-2.webp'],
+    'baikal': ['baikal-1.jpg', 'baikal-2.jpg', 'baikal-3.jpg'], 'karelia': ['karelia-1.jpg', 'karelia-2.jpg', 'karelia-3.jpg'],
+}
 
 PKG = ('В цену входит сборка на вашем участке. Оплата частями: аванс 10–30%, остальное после приёмки, '
        'гарантия 3 года. Доставка по Центральному федеральному округу, 300 ₽ за километр.')
@@ -55,18 +66,20 @@ def esc(s):
             .replace('"', '&quot;'))
 
 
-def offer(oid, cat, name, price, url, pic, desc):
+def offer(oid, cat, name, price, url, pic, desc, extra=()):
     return ('    <offer id="%s" available="true">\n'
             '      <name>%s</name>\n'
             '      <url>%s/%s</url>\n'
-            '      <price>%d</price>\n'
+            '      <price from="true">%d</price>\n'
             '      <currencyId>RUR</currencyId>\n'
             '      <categoryId>%d</categoryId>\n'
             '      <picture>%s/%s</picture>\n'
+            '%s'
             '      <vendor>%s</vendor>\n'
             '      <description>%s</description>\n'
             '    </offer>\n') % (esc(oid), esc(name), DOMAIN, esc(url), round(price), cat,
-                                 DOMAIN, esc(pic), esc(SHOP), esc(desc))
+                                 DOMAIN, esc(pic), ''.join('      <picture>%s/%s</picture>\n' % (DOMAIN, esc(x)) for x in extra),
+                                 esc(SHOP), esc(desc))
 
 
 def main():
@@ -87,14 +100,15 @@ def main():
             'спальня' if h['beds'] == 1 else 'спальни', ('Фундамент: %s.' % lc(h['base'])) if h.get('base') else '',
             h['days'], plural(h['days'], ['день', 'дня', 'дней']),
             str(cheap['w']).replace('.', ','), str(cheap['d']).replace('.', ','), PKG)
-        name = 'Каркасный дом «%s» %s×%s м, %s м²' % (
-            h['name'], str(cheap['w']).replace('.', ','), str(cheap['d']).replace('.', ','),
-            str(cheap['area']).replace('.', ','))
-        body.append(offer('dom-' + h['id'], 1, name, cheap['price'], 'dom-%s.html' % h['id'], h['photo'], desc))
+        name = 'Каркасный дом «%s» под ключ' % h['name']
+        if len(sizes) > 1:
+            desc = 'Строим в %d размерах: %s. ' % (len(sizes), ', '.join(
+                '%s×%s' % (str(s['w']).replace('.', ','), str(s['d']).replace('.', ',')) for s in sizes)) + desc
+        body.append(offer('dom-' + h['id'], 1, name, cheap['price'], 'dom-%s.html' % h['id'], h['photo'], desc, GALLERY.get(h['id'], [])))
 
     for m in d['mods']:
         sizes = m.get('sizes') or []
-        if not sizes:
+        if not sizes or m['id'] not in MODS_KEEP:
             continue
         cheap = min(sizes, key=lambda s: s['price'])
         big = max(sizes, key=lambda s: s['price'])
@@ -106,12 +120,9 @@ def main():
             str(cheap['w']).replace('.', ','), str(cheap['d']).replace('.', ','),
             str(big['w']).replace('.', ','), str(big['d']).replace('.', ','),
             format(cheap['price'], ',d').replace(',', ' '), format(big['price'], ',d').replace(',', ' '), PKG)
-        name = 'Модуль для проживания «%s» %s×%s м' % (
-            m['name'], str(cheap['w']).replace('.', ','), str(cheap['d']).replace('.', ','))
+        name = 'Модуль для проживания «%s»' % m['name']
         body.append(offer('modul-' + m['id'], 2, name, cheap['price'], 'modul-%s.html' % m['id'], m['photo'], desc))
 
-    for oid, name, price, url, pic, desc in SERVICES:
-        body.append(offer(oid, 3, name, price, url, pic, desc))
 
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<!DOCTYPE yml_catalog SYSTEM "shops.dtd">\n'

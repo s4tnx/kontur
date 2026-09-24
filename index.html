@@ -933,6 +933,18 @@ footer{padding:50px 0 34px}
 .hp-pics{display:flex;gap:6px;flex-wrap:wrap;padding:6px!important}
 .hp-pics img{width:86px;height:86px;object-fit:cover;border-radius:10px;display:block}
 .hp-acts{display:flex;flex-wrap:wrap;gap:8px}
+.pile-n{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:12px;padding:12px 14px;border:1px dashed var(--line2);border-radius:14px}
+.pile-n label{display:flex;align-items:center;gap:10px;font-size:14px}
+.pile-n input{width:92px;height:40px;padding:0 10px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);color:var(--text);font:inherit;font-size:15px}
+.pile-n input:focus{outline:none;border-color:var(--lamp)}
+.pile-n small{color:var(--muted);font-size:12.5px}
+.mgr-edit{position:fixed;left:50%;transform:translateX(-50%);top:74px;z-index:60;width:min(980px,calc(100% - 24px));display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+  padding:12px 14px;border-radius:16px;background:var(--panel);border:1px solid var(--lamp);box-shadow:0 16px 40px rgba(0,0,0,.35)}
+.mgr-edit>div{display:grid;gap:2px;flex:1 1 260px;min-width:0}
+.mgr-edit b{font-size:14.5px}.mgr-edit span{font-size:12.5px;color:var(--muted)}
+.mgr-edit input{flex:1 1 220px;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);color:var(--text);font:inherit;font-size:14px}
+.mgr-edit .btn{height:40px}
+body.mgr-editing main{padding-top:84px}
 .src-note{color:var(--lamp2)!important}
 .tg-set{padding-bottom:18px}
 .tg-set>:not(header){margin-left:18px;margin-right:18px}
@@ -2917,7 +2929,12 @@ function planSVG(m){
 const fp=m=>m.w*m.d, wallA=m=>2*(m.w+m.d)*geo(m).wallH, roofA=m=>fp(m)*1.5, glazA=m=>livingA(m)*.17;
 /* Винтовые сваи: шаг 2,5 м для одноэтажных, 2,0 м для мансарды и двух этажей. Цены — за сваю с завинчиванием и обвязкой оголовка. */
 const pileStep=m=>m.floors>1?2:2.5;
-const pileCount=m=>(Math.ceil(m.w/pileStep(m))+1)*(Math.ceil(m.d/pileStep(m))+1);
+const pileCountAuto=m=>(Math.ceil(m.w/pileStep(m))+1)*(Math.ceil(m.d/pileStep(m))+1);
+/* своё количество свай (cfg.pileN), иначе — по расчёту */
+const pileCount=(m,cfg)=>{cfg=cfg||calcState[m.id];const n=cfg?Math.round(+cfg.pileN||0):0;return n>0?n:pileCountAuto(m)};
+const isPile=id=>/^p\d/.test(String(id||''));
+const pileNUI=(scope,on,auto,val)=>on?`<div class="pile-n"><label><span>Количество свай</span><input type="number" min="4" max="300" step="1" inputmode="numeric" data-pilen="${scope}" value="${val>0?val:''}" placeholder="${auto}"></label>
+  <small>${val>0?`своё количество · по расчёту ${auto} шт`:`по расчёту ${auto} шт — впишите своё, если нужно больше или меньше`}</small>${val>0?`<button type="button" class="link" data-pilenreset="${scope}">вернуть расчёт</button>`:''}</div>`:'';
 const PILES=[['p76x2','Свая Ø76 × 2,0 м',4000,'лёгкий дом на плотном грунте'],['p89x2','Свая Ø89 × 2,0 м',4500,'универсальный вариант'],
  ['p76x25','Свая Ø76 × 2,5 м',4500,'ниже глубины промерзания'],['p89x25','Свая Ø89 × 2,5 м',5000,'пучинистый грунт'],
  ['p108x2','Свая Ø108 × 2,0 м',5500,'мансарда и два этажа'],['p108x25','Свая Ø108 × 2,5 м',6000,'слабый грунт под двумя этажами']];
@@ -3037,7 +3054,7 @@ const CALC=[
  {key:'pkg',title:'Комплектация',hint:m=>'что входит в цену',items:PKGS.map(p=>({id:p.id,name:p.name,txt:p.txt,abs:m=>m.price*(p.k-PKGS[0].k)}))},
  {key:'found',title:'Фундамент',hint:m=>`пятно ${fp(m)} м² · ${pileCount(m)} опор`,items:[
    {id:'blocks',name:'Бетонные блоки',txt:'400×200×200 на рубероиде, лаги 100×150 — входят в цену',abs:m=>0},
-   ...PILES.map(p=>({id:p[0],name:p[1],txt:m=>`${p[3]} · ${pileCount(m)} шт × ${rub(p[2])}`,abs:m=>pileCount(m)*p[2]})),
+   ...PILES.map(p=>({id:p[0],name:p[1],txt:m=>`${p[3]} · ${pileCount(m)} шт × ${rub(p[2])}`,abs:(m,cfg)=>pileCount(m,cfg)*p[2]})),
    {id:'ushp',name:'УШП',txt:'Утеплённая шведская плита, готовое основание под тёплый пол',abs:m=>fp(m)*9200}]},
  {key:'facade',title:'Фасад',hint:m=>`${Math.round(wallA(m))} м² стен · ветро-влагозащита в цене`,items:[
    {id:'siding',name:'Сайдинг виниловый',txt:'Панель 3660 × 230 мм, толщина 1,1 мм. Не требует покраски и ухода — самый доступный фасад',abs:m=>-wallA(m)*200},
@@ -3571,7 +3588,7 @@ function riseGroup(m,c,cust){const r=+c.rise||0;
   <small class="note">В базе потолок ${ceilM(baseCeil(m))} м. ${r?`С подъёмом на ${r} см — <b>${ceilM(ceilOf(m,c))} м</b>, ${rub(r*HOUSE_RISE)}.`:`Поднять можно до ${ceilM(baseCeil(m)+RISE_MAX/100)} м.`} Выше стойки каркаса, длиннее стропила, больше обшивки и утеплителя — поэтому каждый сантиметр считается отдельно.</small></div>`}
 function calcGroups(m){const cfg=getCfg(m);const cold=cfg.pkg==='cold';
   return CALC.filter(g=>!(cold&&(g.key==='ins'||g.key==='innerT'))).map(g=>`<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span class="num">${g.hint(m)}</span></div><div class="opts">${g.items.map(it=>{const d=optDelta(m,g.key,it.id,cfg);
-    return `<button type="button" class="opt ${cfg[g.key]===it.id?'on':''}" data-opt="${g.key}:${it.id}"><b>${it.name}</b><small>${optTxt(it,m)}</small><em class="num ${Math.round(d)?'':'z'}">${signRub(d)}</em></button>`}).join('')}</div>${gradeUI(m,cfg,g.key)}</div>`).join('')+
+    return `<button type="button" class="opt ${cfg[g.key]===it.id?'on':''}" data-opt="${g.key}:${it.id}"><b>${it.name}</b><small>${optTxt(it,m)}</small><em class="num ${Math.round(d)?'':'z'}">${signRub(d)}</em></button>`}).join('')}</div>${gradeUI(m,cfg,g.key)}${g.key==='found'?pileNUI('house',isPile(cfg.found),pileCountAuto(m),+cfg.pileN||0):''}</div>`).join('')+
   (cfg.pkg==='cold'?`<div class="cg"><div class="cg-h"><h3>Утепление стен</h3><span>нет в холодном контуре</span></div>
     <small class="note">Холодный контур — это каркас, обшивка, ветро-влагозащита, кровля, окна и дверь. Утеплитель, пароизоляция и внутренняя отделка появляются в тёплом контуре: переключите комплектацию выше, и здесь можно будет выбрать толщину утеплителя.</small></div>`:'')+
   riseGroup(m,cfg)+
@@ -3673,7 +3690,8 @@ const INS_STEP=850;
 const cWallA=c=>2*(c.w+c.d)*2.7*(c.floors==='2'?2:c.floors==='1.5'?1.25:1);
 const baseIns=c=>c.contour==='prem'?'150':'100';
 const insDelta=c=>c.contour==='cold'?0:(INS.find(i=>i.id===c.ins).mm-INS.find(i=>i.id===baseIns(c)).mm)/50*INS_STEP*cWallA(c);
-const pilesCount=c=>{const st=c.floors==='1'?2.5:2;return (Math.ceil(c.w/st)+1)*(Math.ceil(c.d/st)+1)};
+const pilesCountAuto=c=>{const st=c.floors==='1'?2.5:2;return (Math.ceil(c.w/st)+1)*(Math.ceil(c.d/st)+1)};
+const pilesCount=c=>{const n=Math.round(+c.pileN||0);return n>0?n:pilesCountAuto(c)};
 /* окна — как у домов: цена по профилю, в базе двухкамерные ПВХ */
 const cWinK=c=>1;
 const cWinsBase=c=>{const S=cArea(c);return{w120150:Math.max(1,Math.round(S/28)),w120100:Math.max(1,Math.round(S/22)),w6090:1}};
@@ -3736,7 +3754,7 @@ function customGroups(){const c=customState;
     <small class="note">Плиточно-базальтовый утеплитель: негорючий, не садится в стене. Шаг +50 мм — это и утеплитель, и более крупный каркас, и работа.</small></div>`}
   <div class="cg"><div class="cg-h"><h3>Фундамент</h3><span class="num">${pilesCount(c)} опор · шаг ${c.floors==='1'?'2,5':'2,0'} м</span></div>
     <div class="opts">${[['blocks','Бетонные блоки 400×200×200','на рубероиде, лаги 100×150 — входят в цену',0]].concat(PILES.map(p=>[p[0],p[1],`${p[3]} · ${pilesCount(c)} шт × ${rub(p[2])}`,pilesCount(c)*p[2]])).concat([['ushp','УШП','Утеплённая шведская плита, готовое основание под тёплый пол',c.w*c.d*9200]])
-      .map(p=>`<button type="button" class="opt ${c.pile===p[0]?'on':''}" data-copt="pile:${p[0]}"><b>${p[1]}</b><small>${p[2]}</small><em class="num ${p[3]?'':'z'}">${p[3]?'+ '+rub(p[3]):'включено'}</em></button>`).join('')}</div></div>
+      .map(p=>`<button type="button" class="opt ${c.pile===p[0]?'on':''}" data-copt="pile:${p[0]}"><b>${p[1]}</b><small>${p[2]}</small><em class="num ${p[3]?'':'z'}">${p[3]?'+ '+rub(p[3]):'включено'}</em></button>`).join('')}</div>${pileNUI('custom',isPile(c.pile),pilesCountAuto(c),+c.pileN||0)}</div>
 
   ${['facade','roof','floorT'].map(key=>{const g=cGrp(key),m=cMdl(c);
     return `<div class="cg"><div class="cg-h"><h3>${g.title}</h3><span class="num">${g.hint(m)}</span></div><div class="opts">${g.items.map(it=>{const d=cOptDelta(c,key,it.id);
@@ -4060,7 +4078,8 @@ const modWallA=c=>{const s=modSize(c),h=modH(c);return Math.round(2*(s.w+s.d)*(h
 const modRoofA=c=>Math.round(modArea(c)*(isGable(c)?1.32:1.12)*10)/10;
 const modEnvA=c=>Math.round((modWallA(c)+modArea(c)+modRoofA(c))*10)/10;
 const modWinCount=c=>1+MOD_WINS.reduce((s,w)=>s+((c.wins||{})[w[0]]||0),0);
-const modPiles=c=>{const s=modSize(c);return (Math.ceil(s.w/2)+1)*(s.d<=3?2:3)};
+const modPilesAuto=c=>{const s=modSize(c);return (Math.ceil(s.w/2)+1)*(s.d<=3?2:3)};
+const modPiles=c=>{const n=Math.round(+c.pileN||0);return n>0?n:modPilesAuto(c)};
 function modPer(c,per){return per==='env'?modEnvA(c):per==='wall'?modWallA(c):per==='inner'?Math.round((modWallA(c)+modArea(c))*10)/10:per==='floor'?modArea(c):per==='roof'?modRoofA(c):1}
 function computeModule(c){const s=modSize(c),lines=[[`${modName(c)} ${fmtD(s.w)}×${fmtD(s.d)} м в базовой комплектации`,modBase(s)]];
   MOD_GROUPS.forEach(g=>{if(g.key==='door'){const it=g.items.find(i=>i.id===c.door)||g.items[0],nd=modDoors(c);
@@ -4154,7 +4173,7 @@ function modGroupsHTML(){const c=modState,s=modSize(c),h=modH(c);
   grp(MOD_GROUPS[5])+
   `<div class="cg"><div class="cg-h"><h3>Опоры</h3><span class="num">${modPiles(c)} опор под модуль ${s.w}×${s.d}</span></div><div class="opts">
     <button type="button" class="opt ${c.pile==='blocks'?'on':''}" data-mopt="pile:blocks"><b>Бетонные блоки</b><small>Под опорный брус на ровной площадке</small><em class="num z">в базе</em></button>
-    ${MOD_PILES.map(p=>`<button type="button" class="opt ${c.pile===p[0]?'on':''}" data-mopt="pile:${p[0]}"><b>${p[1]}</b><small>${p[3]} · ${modPiles(c)} шт × ${rub(p[2])}</small><em class="num">+ ${rub(modPiles(c)*p[2])}</em></button>`).join('')}</div></div>`+
+    ${MOD_PILES.map(p=>`<button type="button" class="opt ${c.pile===p[0]?'on':''}" data-mopt="pile:${p[0]}"><b>${p[1]}</b><small>${p[3]} · ${modPiles(c)} шт × ${rub(p[2])}</small><em class="num">+ ${rub(modPiles(c)*p[2])}</em></button>`).join('')}</div>${pileNUI('mod',isPile(c.pile),modPilesAuto(c),+c.pileN||0)}</div>`+
   `<div class="cg"><div class="cg-h"><h3>Дополнительно</h3><span>можно несколько</span></div><div class="opts" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
     ${MOD_EXTRAS.filter(e=>e[0]!=='glass2'||modPvcCount(c)).map(e=>`<label class="chk"><input type="checkbox" data-mextra="${e[0]}" ${(c.extras||[]).includes(e[0])?'checked':''}><span>${e[1]}</span><em class="num">${rub(e[2](c))}</em></label>`).join('')}</div></div>`+
   `<div class="cg"><div class="cg-h"><h3>Доставка</h3><span class="num">${DELIVERY_RATE} ₽/км</span></div>
@@ -4555,6 +4574,59 @@ function galSync(tr){const st=tr.closest('.stage');if(!st)return;const n=tr.chil
   const c=st.querySelector('.gal-count');if(c)c.textContent=`${i+1} / ${n}`;
   const p=st.querySelector('.gal-btn.prev'),x=st.querySelector('.gal-btn.next');if(p)p.disabled=i<=0;if(x)x.disabled=i>=n-1}
 document.addEventListener('scroll',e=>{const tr=e.target&&e.target.closest&&e.target.closest('[data-galtrack]');if(tr)galSync(tr)},true);
+/* ---------- менеджер правит заказ клиента и отправляет новое предложение ---------- */
+let EDIT=null;const clone=o=>JSON.parse(JSON.stringify(o));
+function mgrEditStart(oid,idx,no){const o=allOrders().find(x=>String(x._id)===String(oid));if(!o||!o.items[idx]){toast('Заказ не найден');return}
+  const it=clone(o.items[idx]);
+  EDIT={oid,idx:+idx,no,fio:o.fio||o.phone||'клиент',items:clone(o.items),was:itemTotal(o.items[idx]),kind:it.module?'mod':it.custom?'custom':'house',refs:it.refs||[]};
+  if(it.module){const c=clone(it.cfg),pl=c.plan||{};delete c.plan;Object.assign(modState,c);modState.refs=it.refs||[];
+    const m=moduleModel();calcState[m.id]={...getCfg(m),rooms:pl.rooms||null,openings:pl.openings||null,idoors:pl.idoors||null,draw:pl.draw||0,walls:pl.walls||[],parts:{}};
+    location.hash='#/modules/'+modState.size}
+  else if(it.custom){const c=clone(it.cfg),p1=c.plan1,f2=c.floor2;delete c.plan1;delete c.floor2;Object.assign(customState,c);customState.refs=it.refs||[];
+    if(p1)calcState['custom']={...(calcState['custom']||{}),...p1};if(f2)calcState['custom#2']={...(calcState['custom#2']||{}),...f2};location.hash='#/custom'}
+  else{const m=byId(it.id);if(!m){toast('Дом не найден');EDIT=null;return}const c=clone(itemCfg(it)),f2=c.floor2;delete c.floor2;calcState[m.id]=c;
+    if(f2&&m.plan2)calcState[m.id+'#2']={...(calcState[m.id+'#2']||{}),...f2};location.hash='#/house/'+it.id}
+  editBar();toast('Меняйте что нужно — смета пересчитывается. Потом «Отправить клиенту»')}
+function editBar(){let el=document.getElementById('mgrEdit');document.body.classList.toggle('mgr-editing',!!EDIT);
+  if(!EDIT){el&&el.remove();return}
+  if(!el){el=document.createElement('div');el.id='mgrEdit';el.className='mgr-edit';document.body.appendChild(el)}
+  el.innerHTML=`<div><b>Правка заказа № ${esc(EDIT.no)} · ${esc(EDIT.fio)}</b><span>Было ${rub(EDIT.was)}. Меняйте комплектацию, размер, планировку — смета пересчитается.</span></div>
+    <input id="mgrEditNote" placeholder="Комментарий клиенту (необязательно)" maxlength="500" value="${esc(EDIT.note||'')}">
+    <button type="button" class="btn lamp" data-mgreditsend>Отправить клиенту</button><button type="button" class="btn" data-mgreditcancel>Отмена</button>`}
+function mgrEditItem(){const k=EDIT.kind;
+  if(k==='house'){const m=curHouse()||byId(EDIT.items[EDIT.idx].id);if(!m)return null;const cfg=clone(getCfg(m));
+    if(m.plan2){const c2=calcState[m.id+'#2'];if(c2)cfg.floor2=clone({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}})}
+    return{id:m.id,cfg,total:computeCalc(m,cfg).total,...(EDIT.refs.length?{refs:EDIT.refs}:{})}}
+  if(k==='custom'){const cfg=clone(customState),c1=calcState['custom'];
+    if(c1)cfg.plan1=clone({rooms:c1.rooms||null,openings:c1.openings||null,idoors:c1.idoors||null,walls:c1.walls||null,draw:c1.draw||0,parts:c1.parts||{}});
+    if(cUp(cfg)){const c2=calcState['custom#2'];if(c2)cfg.floor2=clone({rooms:c2.rooms||null,openings:c2.openings||null,idoors:c2.idoors||null,parts:c2.parts||{}})}
+    const refs=(customState.refs||[]).slice();delete cfg.refs;return{id:'custom',custom:true,cfg,refs,total:computeCustom(cfg).total}}
+  const cfg=clone(modState),pc=getCfg(moduleModel());
+  cfg.plan=clone({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:(pc.rooms&&pc.rooms.length)||pc.draw?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{},draw:pc.draw?1:0,walls:pc.draw?drawnWalls(pc):[]});
+  delete cfg.refs;return{id:'module',module:true,cfg,refs:(modState.refs||[]).slice(),total:computeModule(cfg).total}}
+async function mgrEditSend(btn){if(!EDIT)return;const it=mgrEditItem();if(!it){toast('Откройте страницу дома из заказа');return}
+  const items=EDIT.items.slice();items[EDIT.idx]=it;const total=items.reduce((s,x)=>s+itemTotal(x),0);
+  const note=(document.getElementById('mgrEditNote')?.value||'').trim();if(btn){btn.disabled=true;btn.textContent='Отправляем…'}
+  try{await apiReq('orderitems',{json:{id:EDIT.oid,items,total}});
+    const nm=lineModel(it),changed=Math.round(EDIT.was)!==Math.round(it.total);
+    const txt=`Обновил ваш заказ: ${nm?`${nm.name} ${fmtD(nm.w)}×${fmtD(nm.d)} м`:'дом'} — ${rub(it.total)}${changed?` (было ${rub(EDIT.was)})`:''}.${note?' '+note:''} Состав и смета — в карточке ниже и в заказе. Если всё подходит, напишите «Согласен».`;
+    try{await chatSend(EDIT.no,txt,[],'manager',it)}catch(e){}
+    try{await sbLoadOrders()}catch(e){}
+    EDIT=null;editBar();adminState.tab='orders';location.hash='#/admin';toast('Новое предложение отправлено клиенту')}
+  catch(ex){if(btn){btn.disabled=false;btn.textContent='Отправить клиенту'}toast(ex.message||'Не удалось сохранить')}}
+document.addEventListener('input',e=>{if(e.target.id==='mgrEditNote'&&EDIT)EDIT.note=e.target.value});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-mgredit],[data-mgreditsend],[data-mgreditcancel]');if(!t)return;
+  if('mgredit' in t.dataset){const [oid,idx,no]=t.dataset.mgredit.split('|');mgrEditStart(oid,idx,no);return}
+  if('mgreditsend' in t.dataset){mgrEditSend(t);return}
+  if(confirm('Отменить правку? Заказ клиента останется как был.')){EDIT=null;editBar();location.hash='#/admin'}});
+/* своё количество свай */
+function pileNSet(scope,n){n=Math.round(+n||0);if(n>0&&n<4)n=4;if(n>300)n=300;
+  if(scope==='house'){const m=curModel();if(!m)return;const cfg=getCfg(m);if(n>0)cfg.pileN=n;else delete cfg.pileN;refreshAny(m,true)}
+  else if(scope==='custom'){if(n>0)customState.pileN=n;else delete customState.pileN;refreshCustom(true)}
+  else if(scope==='mod'){if(n>0)modState.pileN=n;else delete modState.pileN;refreshModule(true)}}
+document.addEventListener('change',e=>{const i=e.target.closest&&e.target.closest('[data-pilen]');if(i)pileNSet(i.dataset.pilen,i.value)});
+document.addEventListener('keydown',e=>{const i=e.key==='Enter'&&e.target.closest&&e.target.closest('[data-pilen]');if(i){e.preventDefault();i.blur()}});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pilenreset]');if(b)pileNSet(b.dataset.pilenreset,0)});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-galgo],[data-galto]');if(!b)return;
   const tr=b.closest('.stage')&&b.closest('.stage').querySelector('[data-galtrack]');if(!tr)return;
   const cur=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth)),to='galto' in b.dataset?+b.dataset.galto:cur+ +b.dataset.galgo;
@@ -4639,7 +4711,7 @@ function itemSpec(it){
   const e=computeCalc(m,c);
   return [['Проект',`«${m.name}» ${fmtD(m.w)} × ${fmtD(m.d)} м`],['Площадь',`${livingA(m)} м² дом${verA(m)?` + ${verA(m)} м² ${m.ver&&m.ver.inset?'терраса':'веранда'}`:''}`],
     ['Комплектация',nm('pkg')],['Высота потолка',`${ceilM(ceilOf(m,c))} м${+c.rise?` · подняли на ${+c.rise} см`:''}`],['Инженерия и отделка',c.pkg==='key'?'всё включено':c.pkg==='cold'?'нет — холодный контур':((c.inc||[]).length?WARM_OPTS.filter(o=>c.inc.includes(o[0])).map(o=>o[1].split(':')[0].toLowerCase()).join(', '):'не добавляли')],['Утепление',c.pkg==='cold'?'нет — холодный контур':`плиточно-базальтовый утеплитель ${nm('ins')}`],['Фасад',nm('facade')+(hasGrade(c,'facade')?`, класс ${gradeName(c,'facade')}`:'')+(c.facade==='proff'&&!paintLayers(c)?` · ${ralName(c.ralWall||'7016')}`:'')],['Покраска фасада',paintLayers(c)?`${paintLayers(c)} ${plural(paintLayers(c),['слой','слоя','слоёв'])} · ${ralName(c.ralWall||'7016')}`:'нет'],...((paintLayers(c)||c.facade==='proff')&&c.roof!=='soft'&&c.roof!=='ondulin'?[['Цвет кровли',ralName(c.ralRoof||'7024')]]:[]),['Кровля',nm('roof')],['Пол',c.floorT==='base'?(c.pkg==='cold'?'черновая доска 25 мм':'черновая доска + OSB-3 15 мм'):nm('floorT')],['Внутри',c.pkg==='cold'?'нет — холодный контур':nm('innerT')+(hasGrade(c,'innerT')?`, класс ${gradeName(c,'innerT')}`:'')],
-    ['Фундамент',c.found==='blocks'?'бетонные блоки 400×200×200':`${nm('found')} · ${pileCount(m)} шт`],
+    ['Фундамент',c.found==='blocks'?'бетонные блоки 400×200×200':`${nm('found')} · ${pileCount(m,c)} шт`],
     ['Крыльцо',(()=>{const pc=porchOf(m,c);return pc?`${fmtD(pc.w)}×${fmtD(pc.d)} м, ${PORCH_WALLS[pc.wall]}`:'нет'})()],
     ...(c.verPos?[['Терраса',(VER_POS.find(v=>v[0]===c.verPos)||['',''])[1].toLowerCase()]]:[]),
     ['Окна',`${nw} шт, профиль: ${lcFirst(nm('win'))}`],['Входная дверь',nm('edoorT')],
@@ -6580,8 +6652,8 @@ function adminView(){
           ${o.guest?`<p class="note" style="color:var(--lamp2)">Клиент оформил заявку без личного кабинета. Ваши сообщения он увидит, когда зарегистрируется или войдёт на сайт с того же устройства — надёжнее позвонить: <a class="num" href="tel:${esc(String(o.phone||'').replace(/[^+\d]/g,''))}">${esc(o.phone||'')}</a></p>`:''}
           ${o.comment?`<p class="note">Комментарий: ${esc(o.comment)}</p>`:''}${promoLine(o)}
           ${o.src?`<p class="note src-note">Источник: ${esc(srcLine(o.src))}</p>`:''}
-          ${o.items.map(it=>{const m=lineModel(it);if(!m)return '';
-            return `${refsView(it)}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
+          ${o.items.map((it,ii)=>{const m=lineModel(it);if(!m)return '';
+            return `${refsView(it)}${SB.on&&SB.kind==='api'?`<button type="button" class="btn mgr-edit-btn" data-mgredit="${esc(String(o._id))}|${ii}|${esc(o.no)}">Изменить для клиента</button>`:''}<details class="spec-det"><summary>${m.name} ${fmtD(m.w)}×${fmtD(m.d)} · ${rub(itemTotal(it))}</summary>
               <div class="spec-list">${itemSpec(it).map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
               ${orderPlansHTML(it)}</details>`}).join('')}
           ${chatLink(o.no,'manager',`data-mgrchat="${o.no}"`)}

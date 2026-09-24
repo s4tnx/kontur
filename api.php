@@ -374,6 +374,17 @@ if ($a === 'status') {
   out(['ok' => true]);
 }
 
+/* менеджер изменил состав заказа (новое предложение клиенту) */
+if ($a === 'orderitems') {
+  $u = need(); if (!staff($u)) fail('Только для сотрудников', 403);
+  $b = body(); $id = (int)($b['id'] ?? 0); $items = $b['items'] ?? null;
+  if (!is_array($items) || !count($items)) fail('Нет состава заказа');
+  $st = db()->prepare('SELECT id FROM orders WHERE id=?'); $st->execute([$id]);
+  if (!$st->fetch()) fail('Заявка не найдена', 404);
+  db()->prepare('UPDATE orders SET items=?, total=? WHERE id=?')->execute([json_encode($items, JSON_UNESCAPED_UNICODE), (float)($b['total'] ?? 0), $id]);
+  out(['ok' => true]);
+}
+
 /* клиент вошёл в кабинет: забираем его гостевые заявки (подтверждение — ключ, выданный при оформлении) */
 if ($a === 'claim') {
   $u = need(); $b = body(); $n = 0;

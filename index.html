@@ -2365,6 +2365,8 @@ function draw3D(){
 }
 function mount3D(o){if(o&&o.mdl&&mountPlan3(o))return;
   const cv=document.getElementById('viz3d');if(!cv)return;cv.__o=o;
+  /* 3D-библиотека уже загрузилась, а на странице ещё упрощённая схема — меняем на 3D сразу */
+  if(o&&o.mdl&&threeOK()){const box=cv.closest('.plan-3d');if(box){box.innerHTML=vizBlock();if(mountPlan3(o))return}}
   if(!cv.__bound){cv.__bound=1;let last=null;
     cv.addEventListener('pointerdown',e=>{last=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)});
     cv.addEventListener('pointermove',e=>{if(!last)return;V3.yaw+=(e.clientX-last[0])*.009;
@@ -3895,7 +3897,7 @@ const MOD_GROUPS=[
    {id:'tile',name:'Металлочерепица',txt:'Монтеррей 0,45 мм',rate:750,per:'roof'},
    {id:'soft',name:'Мягкая кровля',txt:'Битумная черепица по OSB — тихая в дождь',rate:900,per:'roof'},
    {id:'none',name:'Без покрытия',txt:'Стропила и обрешётка — кровлю поставите сами',rate:-350,per:'roof'}]},
- {key:'door',title:'Входная дверь',hint:'одна в базе',items:[
+ {key:'door',title:'Входная дверь',hint:'одна в базе · сколько дверей — на схеме ниже',items:[
    {id:'cut',name:'Вырезная',txt:'В базе: полотно вырезано в стене модуля, снаружи заподлицо с обшивкой',rate:0,per:'fix'},
    {id:'wood',name:'Деревянная филёнчатая',txt:'Отдельное полотно в коробке, с наличниками',rate:4000,per:'fix'},
    {id:'metal',name:'Металлическая',txt:'Утеплённая, с замком',rate:20000,per:'fix'},
@@ -3973,10 +3975,14 @@ function moduleModel(c){c=c||modState;const s=modSize(c),w={d6090:1};MOD_WINS.fo
   return{id:'module@'+s.id,module:1,name:'Модуль',w:s.w,d:s.d,floors:1,area:s.w*s.d,living:s.w*s.d,plan:[],wins:w,winSides:[2,1,.5,.5],ver:null,door:{wall:0,f:.14},noDoor:c.door==='none',days:3}}
 const modPlanCfg=c=>c&&c.plan?c.plan:getCfg(moduleModel(c));
 function modParts(c){const m=moduleModel(c),cfg=modPlanCfg(c);
-  if(!cfg||!cfg.rooms||!cfg.rooms.length)return{wall:0,idoor:0,rooms:0};
+  if(!cfg||(!cfg.draw&&!(cfg.rooms&&cfg.rooms.length)))return{wall:0,idoor:0,rooms:0};
   const L=innerEdgesBox(m,cfg).reduce((s,e)=>s+Math.hypot(e[2]-e[0],e[3]-e[1]),0);
   const ds=idoorsOf(m,cfg);
-  return{wall:Math.round(L*10)/10,idoor:ds.length,wide:ds.filter(d=>(d.w||IDOOR_W)>.85).length,rooms:cfg.rooms.length}}
+  return{wall:Math.round(L*10)/10,idoor:ds.length,wide:ds.filter(d=>(d.w||IDOOR_W)>.85).length,rooms:(cfg.rooms||[]).length}}
+/* входные двери модуля: сколько их на схеме (вид — из группы «Входная дверь») */
+const MOD_DOOR_BASE=4000;
+function modDoors(c){c=c||modState;if(c.door==='none')return 0;const m=moduleModel(c),cfg=modPlanCfg(c);
+  return (cfg&&cfg.openings?cfg.openings:autoOpenings(m,cfg||{})).filter(o=>o.t==='door').length}
 document.addEventListener('submit',e=>{if(e.target.id!=='modOwn')return;e.preventDefault();
   const fd=new FormData(e.target),r=v=>Math.round(parseFloat(String(v).replace(',','.'))*2)/2,w=r(fd.get('w')),d=r(fd.get('d'));
   if(!(w>=MOD_OWN.minW&&w<=MOD_OWN.maxW)){toast(`Длина модуля — от ${MOD_OWN.minW} до ${MOD_OWN.maxW} м`);return}
@@ -3991,11 +3997,26 @@ function modDoorSync(){const m=moduleModel(),cfg=getCfg(m);if(!cfg.openings)cfg.
   else if(!has&&!(cfg.idoors||[]).some(d=>d.e||(d.w||IDOOR_W)>.85)){const p=placeOpening(m,cfg,'door');if(p)cfg.openings=cfg.openings.concat([p]);cfg.parts={...(cfg.parts||{}),edoor:1}}}
 function modRoomsGroup(){const m=moduleModel(),cfg=getCfg(m);if(!cfg.openings)cfg.openings=autoOpenings(m,cfg);
   if(m.noDoor&&cfg.openings.some(p=>p.t==='door'))cfg.openings=cfg.openings.filter(p=>p.t!=='door');const rooms=cfg.rooms||[],p=modParts(modState);
-  return `<div class="cg"><div class="cg-h"><h3>Планировка модуля</h3><span class="num">${m.w} × ${m.d} м · ${rooms.length?`${rooms.length} ${plural(rooms.length,['помещение','помещения','помещений'])}`:'внутри пусто'}</span></div>
+  const nd=modDoors(modState),dt=MOD_GROUPS.find(g=>g.key==='door').items.find(i=>i.id===modState.door)||{rate:0},
+    dChip=`<span class="chipx door pair"><button type="button" data-mdoor="-1" aria-label="Убрать входную дверь">−</button><b>Входная дверь</b>${cnBadge(nd)}<em class="num">${rub(MOD_DOOR_BASE+(modState.door==='none'?0:dt.rate))}</em><button type="button" data-mdoor="1" aria-label="Добавить входную дверь">+</button></span>`;
+  const tabs=`<div class="tabs"><button type="button" class="pill ${cfg.draw?'':'on'}" data-plansrc="project">Комнаты</button><button type="button" class="pill ${cfg.draw?'on':''}" data-plansrc="draw">Свой чертёж</button></div>`;
+  if(cfg.draw)return `<div class="cg"><div class="cg-h"><h3>Планировка модуля</h3><span class="num">${m.w} × ${m.d} м · свой чертёж</span></div>${tabs}
+    ${plannerSVG(m,cfg)}
+    <small class="note" style="margin-top:8px">Зажмите мышь (или палец) и проведите линию — получится перегородка. Линии прилипают к сетке 25 см и к стенам модуля. Нажмите на перегородку, чтобы убрать её. Окна и двери тащите вдоль стены, межкомнатные двери — по перегородкам.</small>
+    <div class="op-pal"><span class="label" style="margin-right:4px">Добавить</span>
+      ${MOD_WINS.map(w=>`<span class="chipx win pair ${w[2]==='wood'?'wood':''}" title="Окно ${MOD_MAT[w[2]][2]} ${w[1]}"><button type="button" data-mwin="${w[0]}:-1" aria-label="Убрать окно ${w[1]}">−</button><b>${MOD_MAT[w[2]][1]} ${w[1]}</b>${cnBadge((w[0]==='d6090'&&modHasBase(modState)?1:0)+((modState.wins||{})[w[0]]||0))}<em class="num">${rub(w[4])}</em><button type="button" data-mwin="${w[0]}:1" aria-label="Добавить окно ${w[1]}">+</button></span>`).join('')}
+      ${dChip}
+      <span class="chipx door pair"><button type="button" data-idoorsub aria-label="Убрать межкомнатную дверь">−</button><b>Межкомнатная 80</b>${cnBadge(p.idoor||0)}<em class="num">${rub(MOD_IDOOR)}</em><button type="button" data-idooradd aria-label="Добавить межкомнатную дверь">+</button></span>
+      <button type="button" class="chipx" data-walldel>Убрать последнюю стену</button>
+      <button type="button" class="chipx" data-wallclr>Очистить чертёж</button></div>
+    <div class="spec-list" style="margin-top:12px"><div><span>Перегородки начерчено</span><b class="num">${String(wallsLen(cfg)).replace('.',',')} м · ${rub(Math.round(wallsLen(cfg)*MOD_PART))}</b></div>
+      <div><span>Межкомнатные двери</span><b class="num">${p.idoor||0} · ${rub((p.idoor||0)*MOD_IDOOR)}</b></div></div></div>`;
+  return `<div class="cg"><div class="cg-h"><h3>Планировка модуля</h3><span class="num">${m.w} × ${m.d} м · ${rooms.length?`${rooms.length} ${plural(rooms.length,['помещение','помещения','помещений'])}`:'внутри пусто'}</span></div>${tabs}
     ${plannerSVG(m,cfg)}
     <small class="note" style="margin-top:8px">В базе внутри ничего нет — одно помещение. Добавьте комнаты: перегородки и двери появятся между ними и уйдут в смету. Окна и дверь тащите вдоль стены или на другую стену.</small>
     <div class="op-pal"><span class="label" style="margin-right:4px">Добавить</span>
       ${MOD_WINS.map(w=>`<span class="chipx win pair ${w[2]==='wood'?'wood':''}" title="Окно ${MOD_MAT[w[2]][2]} ${w[1]}"><button type="button" data-mwin="${w[0]}:-1" aria-label="Убрать окно ${w[1]}">−</button><b>${MOD_MAT[w[2]][1]} ${w[1]}</b>${cnBadge((w[0]==='d6090'&&modHasBase(modState)?1:0)+((modState.wins||{})[w[0]]||0))}<em class="num">${rub(w[4])}</em><button type="button" data-mwin="${w[0]}:1" aria-label="Добавить окно ${w[1]}">+</button></span>`).join('')}
+      ${dChip}
       <button type="button" class="chipx door" data-idooradd>Межкомнатная дверь 80 ${cnBadge(p.idoor||0)} · ${rub(MOD_IDOOR)}</button>
       <button type="button" class="chipx" data-idoordel>Убрать межкомнатную</button>
       <button type="button" class="chipx" data-mwinlast>Убрать последнее окно</button></div>
@@ -4039,7 +4060,10 @@ const modWinCount=c=>1+MOD_WINS.reduce((s,w)=>s+((c.wins||{})[w[0]]||0),0);
 const modPiles=c=>{const s=modSize(c);return (Math.ceil(s.w/2)+1)*(s.d<=3?2:3)};
 function modPer(c,per){return per==='env'?modEnvA(c):per==='wall'?modWallA(c):per==='inner'?Math.round((modWallA(c)+modArea(c))*10)/10:per==='floor'?modArea(c):per==='roof'?modRoofA(c):1}
 function computeModule(c){const s=modSize(c),lines=[[`Модуль ${fmtD(s.w)}×${fmtD(s.d)} м в базовой комплектации`,modBase(s)]];
-  MOD_GROUPS.forEach(g=>{const it=g.items.find(i=>i.id===c[g.key])||g.items[0],gr=g.grade&&it.id!=='none'&&it.id!=='siding'?modGrade(c,g.grade)[3]:0;
+  MOD_GROUPS.forEach(g=>{if(g.key==='door'){const it=g.items.find(i=>i.id===c.door)||g.items[0],nd=modDoors(c);
+      const v=nd*(MOD_DOOR_BASE+(it.id==='none'?0:it.rate))-MOD_DOOR_BASE;
+      if(v)lines.push([nd?`Входная дверь: ${lcFirst(it.name)}${nd>1?` × ${nd}`:''}`:'Без входной двери',v]);return}
+    const it=g.items.find(i=>i.id===c[g.key])||g.items[0],gr=g.grade&&it.id!=='none'&&it.id!=='siding'?modGrade(c,g.grade)[3]:0;
     if(it.rate+gr)lines.push([`${g.title}: ${g.grade?modFinishName(c,g):lcFirst(it.name)}`,Math.round((it.rate+gr)*modPer(c,it.per))])});
   if(c.rise)lines.push([`Потолок выше на ${c.rise} см`,c.rise*MOD_RISE]);
   const wb=MOD_WBASE();
@@ -4209,12 +4233,21 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-mwinlast]')){const cfg=getCfg(moduleModel()),ops=(cfg.openings||autoOpenings(moduleModel(),cfg)).filter(p=>p.t!=='door');
     const last=ops.map(p=>p.t).reverse().find(id=>MOD_WINS.some(w=>w[0]===id));
     if(!last){toast('Окон не осталось');return}modWin(last,-1);refreshModule(true);return}
+  const mdr=e.target.closest('[data-mdoor]');
+  if(mdr){const m0=moduleModel(),cfg=getCfg(m0);
+    if(+mdr.dataset.mdoor>0){if(modState.door==='none'){modState.door='cut';cfg.openings=(cfg.openings||autoOpenings(m0,cfg)).filter(o=>o.t!=='door')}
+      const m=moduleModel();cfg.openings=cfg.openings||autoOpenings(m,cfg);const pl=placeOpening(m,cfg,'door');
+      if(!pl){toast('На стенах нет места — передвиньте окна');return}cfg.openings=cfg.openings.concat([pl])}
+    else{cfg.openings=cfg.openings||autoOpenings(m0,cfg);const i=cfg.openings.map(o=>o.t).lastIndexOf('door');
+      if(i<0){toast('Входных дверей нет');return}cfg.openings=cfg.openings.filter((_,k)=>k!==i);
+      if(!cfg.openings.some(o=>o.t==='door'))modState.door='none'}
+    refreshModule(true);return}
   if(e.target.closest('[data-mroomsclear]')){const cfg=getCfg(moduleModel());cfg.rooms=null;cfg.idoors=null;cfg.parts={};refreshModule(true);return}
   const o=e.target.closest('[data-mopt]');if(o){const [k,v]=o.dataset.mopt.split(':');
     modState[k]=v;if(k==='door')modDoorSync();refreshModule(true);return}
   const w=e.target.closest('[data-mwin]');if(w){const [k,d]=w.dataset.mwin.split(':');modWin(k,+d);refreshModule(true);return}
   if(e.target.closest('[data-modadd]')){const cfg=JSON.parse(JSON.stringify(modState)),s=modSize(cfg),pc=getCfg(moduleModel());
-    cfg.plan=JSON.parse(JSON.stringify({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}}));delete cfg.refs;cart.push({id:'module',module:true,cfg,refs:(modState.refs||[]).slice(),total:computeModule(cfg).total});saveCart();toast(`Модуль ${fmtD(s.w)}×${fmtD(s.d)} добавлен в корзину`);return}
+    cfg.plan=JSON.parse(JSON.stringify({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:(pc.rooms&&pc.rooms.length)||pc.draw?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{},draw:pc.draw?1:0,walls:pc.draw?drawnWalls(pc):[]}));delete cfg.refs;cart.push({id:'module',module:true,cfg,refs:(modState.refs||[]).slice(),total:computeModule(cfg).total});saveCart();toast(`Модуль ${fmtD(s.w)}×${fmtD(s.d)} добавлен в корзину`);return}
   if(e.target.closest('[data-modreset]')){Object.assign(modState,{winTab:modState.winTab||'wood',roofShape:'shed',ins:'50',outer:'vag',outerGrade:'BC',inner:'vag',innerGrade:'BC',floor:'board',roof:'zinc',door:'cut',wins:{},paint:0,rise:0,pile:'blocks',extras:[],km:50});
     Object.keys(calcState).filter(k=>k.indexOf('module@')===0).forEach(k=>delete calcState[k]);refreshModule(true);toast('Настройки модуля сброшены')}});
 document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('[data-mrange]');if(!r)return;
@@ -5712,7 +5745,7 @@ function hpLayoutItem(refs){const s=hpScope(),cl=o=>JSON.parse(JSON.stringify(o)
   try{if(s==='house'){const m=hpPageModel();if(!m)return null;const cfg=cl(getCfg(m));return{id:m.id,cfg,refs,total:computeCalc(m,cfg).total}}
     if(s==='custom'){const cfg=cl(customState);delete cfg.refs;return{id:'custom',custom:true,cfg,refs:[...(customState.refs||[]),...refs].slice(-REF_MAX),total:computeCustom(cfg).total}}
     if(s==='mod'){const cfg=cl(modState),pc=getCfg(moduleModel());
-      cfg.plan=cl({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:pc.rooms&&pc.rooms.length?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{}});delete cfg.refs;
+      cfg.plan=cl({rooms:pc.rooms||null,openings:openingsOf(moduleModel(),pc),idoors:(pc.rooms&&pc.rooms.length)||pc.draw?idoorsOf(moduleModel(),pc).map(x=>({x:x.x,y:x.y})):null,parts:{},draw:pc.draw?1:0,walls:pc.draw?drawnWalls(pc):[]});delete cfg.refs;
       return{id:'module',module:true,cfg,refs:[...(modState.refs||[]),...refs].slice(-REF_MAX),total:computeModule(cfg).total}}}catch(e){}
   return null}
 async function hpLeadFiles(files){const v=HP.leadV=HP.leadV||{};v.files=v.files||[];let n=0;

@@ -2705,7 +2705,7 @@ function home(){
   <div class="wrap under-hero"><span class="label">Каркасные дома в скандинавском стиле</span><p>Высокий фронтон, панорамное остекление, фальцевая кровля и тёплый контур до 250 мм — восемь проектов в размерах от 6×4 до 12×10 м.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#/catalog">Смотреть дома</a><a class="btn" href="#/custom">Свой размер</a></div></div>
 
   <section class="wrap"><div class="manifesto">
-    <p class="two-tone reveal">Дом — это не <em>стены.</em> Это <em>тепло,</em> которое чувствуешь, когда за окном <em>минус тридцать.</em></p>
+    <p class="two-tone reveal">Мы <em>первая и единственная</em> компания в России, где можно получить конечный <em>расчёт и план</em> под ключ самостоятельно на сайте. И он <em>не станет выше,</em> если вы захотите его оформить прямо сейчас.</p>
     <aside class="reveal">
       <span class="label">О нас</span>
       <p>«Контур Хаус» строит каркасные дома в скандинавской эстетике: чёрный фасад, высокий фронтон, много стекла и дерева внутри.</p>
@@ -7223,6 +7223,7 @@ function themeTip(){try{if(store.get('themeTip',0))return}catch(e){return}
   try{store.set('themeTip',1)}catch(e){}
   setTimeout(()=>themeTipHide(false),9000)}
 addEventListener('hashchange',()=>themeTipHide(false));
+addEventListener('resize',()=>themeTipHide(false));
 setTimeout(themeTip,1800);
 cookieInit();
 appInit();
